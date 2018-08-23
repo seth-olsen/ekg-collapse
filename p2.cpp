@@ -64,28 +64,47 @@ void mass_check(const vector<double>& f1, const vector<double>& f2,
 }
 
 // get coarsened arrays from fields for writing
-void get_wr_arr(const vector<double>& field1, const vector<double>& field2,
-		    vector<double>& write1, vector<double>& write2,
+void get_wr_arr(const vector<double>& f1, const vector<double>& f2,
+		    vector<double>& wr1, vector<double>& wr2,
 		    int one_past_last, int savept)
 {
-  int k, s;
+  int k, s = 0;
   for (k = 0; k < one_past_last; ++k) {
-    s = savept*k;
-    write1[k] = field1[s];
-    write2[k] = field2[s];
+    wr1[k] = f1[s];
+    wr2[k] = f2[s];
+    s += savept;
   }
   return;
 }
 
-void get_wr_arr_ires(const vector<double>& f2, const vector<double>& f3,
-		     vector<double>& w2, vector<double>& w3, int last, int savept,
-		     const vector<double>& oldf2, const vector<double>& oldf3,
-		     vector<double>& ires2, vector<double>& ires3,
-		     const vector<double>& f2c1, const vector<double>& f2d1,
-		     const vector<double>& f2c2, const vector<double>& f2d2,
-		     const vector<double>& f3c1, const vector<double>& f3d1,
-		     const vector<double>& f3c2, const vector<double>& f3d2)
+void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& oldxi, const vector<double>& oldpi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, vector<double>& wrxi, vector<double>& wrpi,
+		     vector<double>& iresxi, vector<double>& irespi,
+		     int lastwrite, int savept, double lam, double dr)
 {
+  double rval = rmin;
+  wrxi[0] = xi[0];
+  wrpi[0] = pi[0];
+  iresxi[0] = xi[0] - iresxi_f(xi, pi, alpha, beta, psi, 0, lam)
+    - oldxi[0] - iresxi_f(oldxi, oldpi, alpha, beta, psi, 0, lam);
+  irespi[0] = pi[0] - irespi_f(xi, pi, alpha, beta, psi, 0, lam, dr, rval)
+    - oldpi[0] - irespi_f(oldxi, oldpi, alpha, beta, psi, 0, lam, dr, rval);
+  int k, s = savept;
+  for (k = 1; k < lastwrite; ++k) {
+    rval += savept*dr;
+    wrxi[k] = xi[s];
+    wrpi[k] = pi[s];
+    iresxi[k] = xi[s] - iresxi_c(xi, pi, alpha, beta, psi, s, lam)
+      - oldxi[s] - iresxi_c(oldxi, oldpi, alpha, beta, psi, s, lam);
+    irespi[k] = pi[s] - irespi_c(xi, pi, alpha, beta, psi, s, lam, dr, rval)
+      - oldpi[s] - irespi_c(oldxi, oldpi, alpha, beta, psi, s, lam, dr, rval);
+    s += savept;
+  }
+  wrxi[lastwrite] = xi[s];
+  wrpi[lastwrite] = pi[s];
+  return;
   return;
 }
 
@@ -171,19 +190,19 @@ int main(int argc, char **argv)
   // **********************************************************
   
   // user-set parameters
-  string outfile = "p1";
+  string outfile = "p2";
   int lastpt = 1000; // grid size
   int save_pt = 1; // write only every (save_pt)th grid point
   int nsteps = 4000; // time steps
   int save_step = 8; // write only every (save_step)th time step
   double lam = 0.25; // dt/dr
   double r2m = 2.0;
-  double rmin = 1.5;
+  double rmin = 0.0;
   double rmax = 100.0;
-  double dspn = 0.5; // dissipation coefficient
+  double dspn = 0.7; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
   int maxit = 25; // max iterations for debugging
-  double ic_Dsq = 5.0; // gaussian width
+  double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 1.0; // gaussian amplitude
   int check_step = 100; // for monitoring invariant mass
@@ -365,18 +384,7 @@ int main(int argc, char **argv)
     beta[j] = ic_beta(r, r2m);
     psi[j] = ic_psi(r, r2m);
     xi[j] = ic_xi(r, ic_Amp, ic_Dsq, ic_r0);
-    //if (!zero_pi) {
-    pi[j] = ic_pi(r, ic_Amp, ic_Dsq, ic_r0, sq(psi[j])/alpha[j], 1 - beta[j]);// }
-    /*
-    if (wr_ires) {
-      xic1[j] = -0.5*dt*sq(beta[j])/r2m;
-      xic2[j] = -xic1[j];
-      pic1[j] = xic1[j] + dt*beta[j]/r;
-      pic2[j] = xic2[j] + dt*f[j]/r;
-      d1[j] = 0.25*lam*beta[j];
-      d2[j] = 0.25*lam*f[j];
-    }
-    */
+    if (!zero_pi) { pi[j] = ic_pi(r, ic_Amp, ic_Dsq, ic_r0, sq(psi[j])/alpha[j], 1 - beta[j]); }
     if ((wr_sol) && (j%save_pt == 0)) {
       sol[j/save_pt] = ic_sol(r, ic_Amp, ic_Dsq, ic_r0); }
     r += dr;
@@ -397,17 +405,16 @@ int main(int argc, char **argv)
     // *************  WRITE the fields (& res, ires) at t(n)  **************
     if (i % save_step == 0) {
       if (wr_ires) {
-	get_wr_arr_ires(xi, pi, wr_xi, wr_pi, lastwr, save_pt,
-			   old_xi, old_pi, iresxi, irespi, xic1, d1,
-			   xic2, d2, pic1, d1, pic2, d2);
+	get_wr_arr_ires(xi, pi, old_xi, old_pi, alpha, beta, psi, wr_xi, wr_pi, 
+			iresxi, irespi, lastwr, save_pt, lam, dr);
 	wr_step(ires_arr, 2, iresname_arr, t, bbh_shape, bbh_rank, coords);
       }
-      else { get_wr_arr(xi, pi, wr_xi, wr_pi, lastwr+1, save_pt); }
+      else { get_wr_arr(xi, pi, wr_xi, wr_pi, wr_shape, save_pt); }
       
       wr_step(field_arr, 2, name_arr, t, bbh_shape, bbh_rank, coords);
       
       if (wr_res) {
-	get_wr_arr(resxi, respi, wr_xi, wr_pi, lastwr+1, save_pt);
+	get_wr_arr(resxi, respi, wr_xi, wr_pi, wr_shape, save_pt);
 	wr_step(field_arr, 2, resname_arr, t, bbh_shape, bbh_rank, coords);
       }
       if (wr_sol) { gft_out_bbox(&solname[0], t, bbh_shape, bbh_rank,
