@@ -9,22 +9,8 @@ inline double p4(double x) { return sq(sq(x)); }
 inline double sqin(double x) { return (1.0 / sq(x)); }
 inline double p4in(double x) { return sqin(sq(x)); }
 
-// kreiss-oliger dissipation (p.23 choptuik notes)
-inline double dissipate(double eps, const vector<double>& u, int ind)
-{ return -eps * 0.0625 * ( u[ind-2] - 4*u[ind-1] + 6*u[ind]
-			   - 4*u[ind+1] + u[ind+2] ); }
 
-inline double symdiss1(double eps, const vector<double>& u)
-{ return -eps * 0.0625 * ( u[3] - 4*u[2] + 7*u[1] - 4*u[0] ); }
-
-inline double antidiss1(double eps, const vector<double>& u)
-{ return -eps * 0.0625 * ( u[3] - 4*u[2] + 5*u[1] - 4*u[0] ); }
-
-inline double symdiss0(double eps, const vector<double>& u)
-{ return -eps * 0.0625 * ( 2*u[2] - 8*u[1] + 6*u[0] ); }
-
-inline double antidiss0(double eps, const vector<double>& u)
-{ return -eps * 0.0625 * ( 6*u[0] ); }
+// ******** DIFFERENCES AND DERIVATIVES ********
 
 inline double d_c(const vector<double>& u, int ind)
 { return u[ind+1] - u[ind-1]; }
@@ -43,6 +29,27 @@ inline double ddr_f(const vector<double>& u, int ind, double dr)
 
 inline double ddr_b(const vector<double>& u, int ind, double dr)
 { return 0.5 * d_b(u, ind) / dr; }
+
+inline double d2_c(const vector<double>& u, int ind)
+{ return u[ind-1] - 2*u[ind] + u[ind+1]; }
+
+inline double d2_f(const vector<double>& u, int ind)
+{ return 2*u[ind] - 5*u[ind+1] + 4*u[ind+2] - u[ind+3]; }
+
+inline double d2_b(const vector<double>& u, int ind)
+{ return 2*u[ind] - 5*u[ind-1] + 4*u[ind-2] - u[ind-3]; }
+
+inline double ddr2_c(const vector<double>& u, int ind, double dr)
+{ return sqin(dr) * d2_c(u, ind); }
+
+inline double ddr2_f(const vector<double>& u, int ind, double dr)
+{ return sqin(dr) * d2_f(u, ind); }
+
+inline double ddr2_b(const vector<double>& u, int ind, double dr)
+{ return sqin(dr) * d2_b(u, ind); }
+
+
+// ******* DIFFERENCE OPERATORS FOR EKG-COLLAPSE
 
 // centered differencing operator for fn1*field1 + fn2*field2/fn3^2
 // --> mult by 1/(2*dr) to get d(fn1*field1 + fn2*field2/fn3^2)/dr at O(dr^2)
@@ -97,25 +104,9 @@ inline double d3p_ekg_f(const vector<double>& fn1, const vector<double>& field1,
 	    - sq(r+2*dr)*p4(fn3[ind+2])*(fn1[ind+2]*field1[ind+2] + fn2[ind+2]*field2[ind+2]*sqin(fn3[ind+2])))
 	   * 3.0 / (3*r*r - 2*dr*dr) ); }
 
-inline void dirichlet0(vector<double>& field) {
-  field[0] = 0;
-  return;
-}
 
-inline void neumann0(vector<double>& field) {
-  field[0] = (4*field[1] - field[2]) / 3.0;
-  return;
-}
 
-inline void sommerfeld(vector<double>& field, const vector<double>& oldfield,
-		   int ind, double lambda, double coeff) {
-      field[ind] = (lambda*(field[ind-1] + oldfield[ind-1])
-		 - 0.25*lambda*(field[ind-2] + oldfield[ind-2])
-		 + (1 - coeff)*oldfield[ind]) / (1 + coeff);
-  return;
-}
-
-// FOR OLD PROGRAM -->
+// ********* DIFFERENCE OPERATORS FROM MASSLESS-SCALAR
 
 // centered differencing operator for fn1*field1 + fn2*field2
 // --> mult by 1/(2*dr) to get d(fn1*field1 + fn2*field2)/dr at O(dr^2)
@@ -185,7 +176,55 @@ inline double dr2a4_c(const vector<double>& ua, int ind, double dr, double r) {
 inline double dr2a4_f(const vector<double>& ua, int ind, double dr, double r) {
   return ( -3*sq(r)*p4(ua[ind]) + 4*sq(r+dr)*p4(ua[ind+1]) - sq(r+2*dr)*p4(ua[ind+2]) ); }
 
+
+
+// *********** BOUNDARY CONDITIONS ****************
+
+
+inline void dirichlet0(vector<double>& field) {
+  field[0] = 0;
+  return;
+}
+
+inline void neumann0(vector<double>& field) {
+  field[0] = (4*field[1] - field[2]) / 3.0;
+  return;
+}
+
+inline void sommerfeld(vector<double>& field, const vector<double>& oldfield,
+		   int ind, double lambda, double coeff) {
+      field[ind] = (lambda*(field[ind-1] + oldfield[ind-1])
+		 - 0.25*lambda*(field[ind-2] + oldfield[ind-2])
+		 + (1 - coeff)*oldfield[ind]) / (1 + coeff);
+  return;
+}
+
+
+
+// ********** DISSIPATION FUNCTIONS **************
+
+
+// kreiss-oliger dissipation (p.23 choptuik notes)
+inline double dissipate(double eps, const vector<double>& u, int ind)
+{ return -eps * 0.0625 * ( u[ind-2] - 4*u[ind-1] + 6*u[ind]
+			   - 4*u[ind+1] + u[ind+2] ); }
+
+inline double symdiss1(double eps, const vector<double>& u)
+{ return -eps * 0.0625 * ( u[3] - 4*u[2] + 7*u[1] - 4*u[0] ); }
+
+inline double antidiss1(double eps, const vector<double>& u)
+{ return -eps * 0.0625 * ( u[3] - 4*u[2] + 5*u[1] - 4*u[0] ); }
+
+inline double symdiss0(double eps, const vector<double>& u)
+{ return -eps * 0.0625 * ( 2*u[2] - 8*u[1] + 6*u[0] ); }
+
+inline double antidiss0(double eps, const vector<double>& u)
+{ return -eps * 0.0625 * ( 6*u[0] ); }
+
+
+
 // ******** IRES FUNCTIONS *************************
+
 
 // centered ires_f1 = f1 - ires_c(f1, f2, ind, c1, d1, c2, d2)
 //                   - oldf1 - ires_c(oldf1, oldf2, ind, c1, d1, c2, d2)
@@ -220,3 +259,5 @@ inline double irespi_f(const vector<double>& xi, const vector<double>& pi,
 		   (pi[ind]*beta[ind] + xi[ind]*alpha[ind]*sqin(psi[ind]))*sqin(r*sq(psi[ind]))
 		   *dr2a4_f(psi, ind, dr, r))
     - (lam/3.0)* pi[ind]*( d_f(beta, ind) + beta[ind]*(6*d_f(psi, ind)/psi[ind] + 4*dr/r) ); }
+
+
