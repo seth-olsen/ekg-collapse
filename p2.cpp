@@ -46,10 +46,26 @@ const double M_PI = 4.0*atan(1.0);
 
 
 //***********************NEED TO CHANGE THIS******************************
-// multiply by 4*M_PI*r^2 for dm/dr
-inline double mass_aspect(double xival, double pival, double alphaval,
+// multiply by 4*M_PI*r^2 for dm/dr of scalar
+inline double dmdr_scalar(double xival, double pival, double alphaval,
 			  double betaval, double psival) {
   return p4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
+
+inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int k, double dr, double r) {
+  return r*pow(psi[k],6)*sqin(alpha[k])*sq(r*ddr_c(beta,k,dr) - beta[k])/18.0 -
+    2*sq(r)*ddr_c(psi,k,dr)*(psi[k] + r*ddr_c(psi,k,dr)); }
+
+inline double mass_aspect0(const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, double dr, double r) {
+  return r*pow(psi[0],6)*sqin(alpha[0])*sq(r*ddr_f(beta,0,dr) - beta[0])/18.0 -
+    2*sq(r)*ddr_f(psi,0,dr)*(psi[0] + r*ddr_f(psi,0,dr)); }
+
+inline double mass_aspectR(const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int k, double dr, double r) {
+  return r*pow(psi[k],6)*sqin(alpha[k])*sq(r*ddr_b(beta,k,dr) - beta[k])/18.0 -
+    2*sq(r)*ddr_b(psi,k,dr)*(psi[k] + r*ddr_b(psi,k,dr)); }
+    
 // compute and write mass
 void mass_check(const vector<double>& xi, const vector<double>& pi,
 		const vector<double>& alpha, const vector<double>& beta,
@@ -59,7 +75,7 @@ void mass_check(const vector<double>& xi, const vector<double>& pi,
   double mass = 0.0, rval = rmin;
   int k = 0;
   for (auto xik : xi) {
-    mass += 4*M_PI*rval*rval*dr*mass_aspect(xik, pi[k], alpha[k], beta[k], psi[k]);
+    mass += 4*M_PI*rval*rval*dr*dmdr_scalar(xik, pi[k], alpha[k], beta[k], psi[k]);
     ++k;
     rval += dr;
   }
@@ -220,6 +236,7 @@ int main(int argc, char **argv)
   bool wr_res = false; // write res?
   bool wr_sol = false; // write sol?
   bool wr_itn = false; // write itn counts?
+  bool wr_mass = false; // write mass aspect?
   // variable to hold constant across resolutions
   string hold_const = "lambda"; // "lambda", "dt", or "dr"
   int nresn = 1; // 1, 2, or 3
@@ -238,7 +255,7 @@ int main(int argc, char **argv)
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res},
-      {"-wr_sol",&wr_sol}, {"-wr_itn",&wr_itn}};
+      {"-wr_sol",&wr_sol}, {"-wr_itn",&wr_itn}, {"-wr_mass",&wr_mass}};
   map<string, string> params;
   param_collect(argv, argc, params);
   param_set(params, p_str, p_int, p_dbl, p_bool);
@@ -270,7 +287,8 @@ int main(int argc, char **argv)
   vector<double> iresxi(ires_size, 0.0), irespi(ires_size, 0.0);
   double *ires_arr[2] = {&iresxi[0], &irespi[0]};
 
-  vector<double> sol(((wr_sol) ? wr_shape : 1), 0.0);	
+  vector<double> sol(((wr_sol) ? wr_shape : 1), 0.0);
+  vector<double> maspect(((wr_mass) ? wr_shape : 1), 0.0);
   
   // **************************************************************
   // **************************************************************
@@ -353,6 +371,7 @@ int main(int argc, char **argv)
   string itn_file = "itns-" + outfile + ".csv";
   ofstream ofs_itn;
   if (wr_itn) { ofs_itn.open(itn_file, ofstream::out); }
+  string maspect_name = "maspect-" + outfile + ".sdf";
 
   // fields and residuals
   vector<double> xi(npts, 0.0), pi(npts, 0.0);
@@ -507,7 +526,14 @@ int main(int argc, char **argv)
     }
 
     // ****************** WRITE MASS & update field **********************
-    if (i % check_step*save_step == 0) { mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
+    if (wr_mass && i % check_step*save_step == 0) {
+      //mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
+      maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
+      for (j = 1; j < lastwr; ++j) {
+	maspect[j] = mass_aspect(alpha, beta, psi, j, dr, rmin + j*save_pt*dr); }
+      maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);
+      gft_out_bbox(&maspect_name[0], t, bbh_shape, bbh_rank, coords, &maspect[0]);
+    }
     if (wr_sol) { update_sol(xi, pi, alpha, beta, psi, sol, dt, save_pt, wr_shape); } 
   }
   // ******************** DONE TIME STEPPING *********************
