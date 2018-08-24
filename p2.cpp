@@ -87,10 +87,12 @@ void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
   double rval = rmin;
   wrxi[0] = xi[0];
   wrpi[0] = pi[0];
-  iresxi[0] = xi[0] - iresxi_f(xi, pi, alpha, beta, psi, 0, lam)
-    - oldxi[0] - iresxi_f(oldxi, oldpi, alpha, beta, psi, 0, lam);
-  irespi[0] = pi[0] - irespi_f(xi, pi, alpha, beta, psi, 0, lam, dr, rval)
+  if (rmin != 0) {
+    iresxi[0] = xi[0] - iresxi_f(xi, pi, alpha, beta, psi, 0, lam)
+      - oldxi[0] - iresxi_f(oldxi, oldpi, alpha, beta, psi, 0, lam);
+    irespi[0] = pi[0] - irespi_f(xi, pi, alpha, beta, psi, 0, lam, dr, rval)
     - oldpi[0] - irespi_f(oldxi, oldpi, alpha, beta, psi, 0, lam, dr, rval);
+  }
   int k, s = savept;
   for (k = 1; k < lastwrite; ++k) {
     rval += savept*dr;
@@ -196,10 +198,10 @@ int main(int argc, char **argv)
   int nsteps = 4000; // time steps
   int save_step = 8; // write only every (save_step)th time step
   double lam = 0.25; // dt/dr
-  double r2m = 2.0;
+  double r2m = 0.0;
   double rmin = 0.0;
   double rmax = 100.0;
-  double dspn = 0.7; // dissipation coefficient
+  double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
   int maxit = 25; // max iterations for debugging
   double ic_Dsq = 4.0; // gaussian width
@@ -216,12 +218,16 @@ int main(int argc, char **argv)
   bool wr_itn = false; // write itn counts?
   // variable to hold constant across resolutions
   string hold_const = "lambda"; // "lambda", "dt", or "dr"
+  int nresn = 1; // 1, 2, or 3
+  int resn0 = 8, resn1 = 16, resn2 = 32; // in order of priority
+  int *resns[3] = {&resn0, &resn1, &resn2};
 
   map<string, string *> p_str {{"-outfile",&outfile},
       {"-hold_const",&hold_const}};
   map<string, int *> p_int {{"-lastpt",&lastpt}, {"-save_pt", &save_pt},
       {"-nsteps", &nsteps}, {"-save_step",&save_step}, {"-maxit",&maxit},
-      {"-check_step", &check_step}};
+      {"-check_step", &check_step}, {"-nresn", &nresn},
+      {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
       {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ic_Dsq",&ic_Dsq},
       {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
@@ -241,16 +247,9 @@ int main(int argc, char **argv)
   }
   
   // OBTAIN RESOLUTION FACTORS
-  string resn_str;
-  int num_resns;
-  cout << "enter integer number of resolutions:" << endl;
-  cin >> resn_str;
-  num_resns = atoi(&resn_str[0]);
-  vector<int> resolutions(num_resns);
-  for (int k = 0; k < num_resns; ++k) {
-    cout << "enter integer resolution factor at level " << k << ":" <<endl;
-    cin >> resn_str;
-    resolutions[k] = atoi(&resn_str[0]);
+  vector<int> resolutions(nresn);
+  for (int k = 0; k < nresn; ++k) {
+    resolutions[k] = *resns[k];
   }
 
   // bbhutil parameters for writing data to sdf
