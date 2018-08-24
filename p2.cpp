@@ -205,24 +205,30 @@ inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
   // d3pi_f(beta, pi, alpha, xi, psi, ind, dr, r)
 }
 
+inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return 0.25*lam*(beta[ind]*(psi[ind+1] - psi[ind-1]) +
+		   psi[ind]*(beta[ind+1] +4*beta[ind]/r - beta[ind-1])); }
+
 inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
-  return ddr2(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r + sqin(alpha[ind])*
+  return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r + sqin(alpha[ind])*
     (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*p4(psi[ind])/12.0 + 
     M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int ind, double dr, double r) {
-  return  ddr2(beta,ind,dr) + 12*M_PI*sqin(psi[ind])*alpha[ind]*xi[ind]*pi[ind]
+  return  ddr2_c(beta,ind,dr) + 12*M_PI*sqin(psi[ind])*alpha[ind]*xi[ind]*pi[ind]
     + (2/r + 6*ddr_c(psi,ind,dr)/psi[ind] - ddr_c(alpha,ind,dr)/alpha[ind])*
     (ddr_c(beta,ind,dr) - beta[ind]/r); }
 
 inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
 			   const vector<double>& alpha, const vector<double>& beta,
 			   const vector<double>& psi, int ind, double dr, double r) {
-  return ddr2(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
+  return ddr2_c(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
     - 2*p4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
     - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
 
