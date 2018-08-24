@@ -32,6 +32,12 @@ inline double d_c(const vector<double>& u, int ind)
 inline double d_f(const vector<double>& u, int ind)
 { return -3*u[ind] + 4*u[ind+1] - u[ind+2]; }
 
+inline double ddr_c(const vector<double>& u, int ind, double dr)
+{ return 0.5 * d_c(u, ind) / dr; }
+
+inline double ddr_f(const vector<double>& u, int ind, double dr)
+{ return 0.5 * d_f(u, ind) / dr; }
+
 // centered differencing operator for fn1*field1 + fn2*field2/fn3^2
 // --> mult by 1/(2*dr) to get d(fn1*field1 + fn2*field2/fn3^2)/dr at O(dr^2)
 inline double dx_ekg_c(const vector<double>& fn1, const vector<double>& field1,
