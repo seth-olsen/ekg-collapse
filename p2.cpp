@@ -46,16 +46,20 @@ const double M_PI = 4.0*atan(1.0);
 
 
 //***********************NEED TO CHANGE THIS******************************
+// multiply by 4*M_PI*r^2 for dm/dr
+inline double mass_aspect(double xival, double pival, double alphaval,
+			  double betaval, double psival) {
+  return p4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
 // compute and write mass
-void mass_check(const vector<double>& f1, const vector<double>& f2,
-		double t, double dr, double rmin, ofstream& out_stream,
-		const vector<double>& f_vec, const vector<double>& beta_vec)
+void mass_check(const vector<double>& xi, const vector<double>& pi,
+		const vector<double>& alpha, const vector<double>& beta,
+		const vector<double>& psi, double dr, double rmin,
+		double t, ofstream& out_stream)
 {
   double mass = 0.0, rval = rmin;
   int k = 0;
-  for (auto val : f2) {
-    mass += (0.5*f_vec[k]*(sq(f1[k]) + sq(val)) +
-	     beta_vec[k]*f1[k]*val) * 4*M_PI*rval*rval*dr;
+  for (auto xik : xi) {
+    mass += 4*M_PI*rval*rval*dr*mass_aspect(xik, pi[k], alpha[k], beta[k], psi[k]);
     ++k;
     rval += dr;
   }
@@ -503,7 +507,7 @@ int main(int argc, char **argv)
     }
 
     // ****************** WRITE MASS & update field **********************
-    //if (i % check_step*save_step == 0) { mass_check(xi, pi, t, dr, rmin, ofs_mass, alpha, beta); }
+    if (i % check_step*save_step == 0) { mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
     if (wr_sol) { update_sol(xi, pi, alpha, beta, psi, sol, dt, save_pt, wr_shape); } 
   }
   // ******************** DONE TIME STEPPING *********************
