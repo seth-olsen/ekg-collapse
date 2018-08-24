@@ -152,6 +152,12 @@ inline double ic_xi(double r, double amp, double dsq, double r0)
 inline double ic_pi(double r, double amp, double dsq, double r0, double ctot, double cxi)
 { return ctot*(cxi*ic_xi(r, amp, dsq, r0) + ic_sol(r, amp, dsq, r0)/r); }
 
+// **********************************************************
+// **********************************************************
+//                    FDA IMPLEMENTATIONS
+// **********************************************************
+// **********************************************************
+
 inline void update_sol(const vector<double>& xi, const vector<double>& pi,
 		       const vector<double>& alpha, const vector<double>& beta,
 		       const vector<double>& psi, vector<double>& sol,
@@ -172,7 +178,7 @@ inline double fda_xi(const vector<double>& xi, const vector<double>& pi,
 
 inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double lam, double r, double dr)
+		     const vector<double>& psi, int ind, double lam, double dr, double r)
 {
   return ( 0.25*lam*p4in(psi[ind])* sqin(r)*dp_ekg_c(beta, pi, alpha, xi, psi, ind, dr, r)
 	   - (lam/3.0)* pi[ind]*( d_c(beta, ind) + beta[ind]*(6*d_c(psi, ind)/psi[ind]
@@ -190,7 +196,7 @@ inline double fda0_xi(const vector<double>& xi, const vector<double>& pi,
 
 inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
-		      const vector<double>& psi, double lam, double r, double dr)
+		      const vector<double>& psi, double lam, double dr, double r)
 {
   return ( 0.25*lam*p4in(psi[0])* sqin(r)*dp_ekg_f(beta, pi, alpha, xi, psi, 0, dr, r)
 	   - (lam/3.0)* pi[0]*( d_f(beta, 0) + beta[0]*(6*d_f(psi, 0)/psi[0]
@@ -198,6 +204,27 @@ inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
   // or dpi_f(beta, pi, alpha, xi, psi, ind, dr, r)*sqin(r) replaced by
   // d3pi_f(beta, pi, alpha, xi, psi, ind, dr, r)
 }
+
+inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double dr, double r) {
+  return ddr2(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r + sqin(alpha[ind])*
+    (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*p4(psi[ind])/12.0 + 
+    M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
+
+inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double dr, double r) {
+  return  ddr2(beta,ind,dr) + 12*M_PI*sqin(psi[ind])*alpha[ind]*xi[ind]*pi[ind]
+    + (2/r + 6*ddr_c(psi,ind,dr)/psi[ind] - ddr_c(alpha,ind,dr)/alpha[ind])*
+    (ddr_c(beta,ind,dr) - beta[ind]/r); }
+
+inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
+			   const vector<double>& alpha, const vector<double>& beta,
+			   const vector<double>& psi, int ind, double dr, double r) {
+  return ddr2(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
+    - 2*p4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
+    - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
 
 // **********************************************************
 // **********************************************************
@@ -453,12 +480,12 @@ int main(int argc, char **argv)
     r = rmin;
     if (rmin != 0) {
       bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
-      bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, rmin, dr);
+      bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, dr, rmin);
     }
     for (j = 1; j < lastpt; ++j) {
       r += dr;
       bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, psi, j, lam);
-      bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, r, dr);
+      bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
     }
     // reset itn and set res > tol to enter GAUSS-SEIDEL ITERATIVE SOLVER
     itn = 0, res = 1.0;
@@ -469,24 +496,24 @@ int main(int argc, char **argv)
       if (rmin == 0) { neumann0(pi); }
       else {
 	xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
-	pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, rmin, dr);
+	pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin);
       }
       r += dr;
       xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
-      pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, r, dr);
+      pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
       for (j = 2; j < lastpt; ++j) {
         r += dr;
         xi[j] = bxi[j] + fda_xi(xi, pi, alpha, beta, psi, j, lam);
-	pi[j] = bpi[j] + fda_pi(xi, pi, alpha, beta, psi, j, lam, r, dr);
+	pi[j] = bpi[j] + fda_pi(xi, pi, alpha, beta, psi, j, lam, dr, r);
 	resxi[j-1] = abs(xi[j-1] - bxi[j-1] -
 			 fda_xi(xi, pi, alpha, beta, psi, j-1, lam));
 	respi[j-1] = abs(pi[j-1] - bpi[j-1] -
-			 fda_pi(xi, pi, alpha, beta, psi, j-1, lam, r-dr, dr));
+			 fda_pi(xi, pi, alpha, beta, psi, j-1, lam, dr, r-dr));
       }
       resxi[0] = abs(xi[0] - bxi[0] -
 		     fda0_xi(xi, pi, alpha, beta, psi, lam));
       respi[0] = abs(pi[0] - bpi[0] -
-		     fda0_pi(xi, pi, alpha, beta, psi, lam, rmin, dr));
+		     fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
       // UPDATE BOUNDARY
       if (somm_cond) {
 	sommerfeld(xi, xi, lastpt, lam, somm_coeff);
@@ -496,7 +523,7 @@ int main(int argc, char **argv)
       resxi[lastpt-1] = abs(xi[lastpt-1] - bxi[lastpt-1] -
 			    fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
       respi[lastpt-1] = abs(pi[lastpt-1] - bpi[lastpt-1] -
-			    fda_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, r, dr));
+			    fda_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, dr, r));
       
       // CHECK RESIDUAL
       res = max(*max_element(resxi.begin(), resxi.end()), *max_element(respi.begin(), respi.end())); // can also use 1-norm or 2-norm
