@@ -171,7 +171,7 @@ inline double dr2a4_c(const vector<double>& ua, int ind, double dr, double r) {
   return ( sq(r+dr)*p4(ua[ind+1]) - sq(r-dr)*p4(ua[ind-1]) ); }
 
 inline double dr2a4_f(const vector<double>& ua, int ind, double dr, double r) {
-  return ( -3*sq(r)*p4(ua[ind]) + 4*sq(r+dr)p4(ua[ind+1]) - sq(r+2*dr)*p4(ua[ind+2]) ); }
+  return ( -3*sq(r)*p4(ua[ind]) + 4*sq(r+dr)*p4(ua[ind+1]) - sq(r+2*dr)*p4(ua[ind+2]) ); }
 
 // ******** IRES FUNCTIONS *************************
 

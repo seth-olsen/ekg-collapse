@@ -82,7 +82,7 @@ void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, vector<double>& wrxi, vector<double>& wrpi,
 		     vector<double>& iresxi, vector<double>& irespi,
-		     int lastwrite, int savept, double lam, double dr)
+		     int lastwrite, int savept, double lam, double dr, double rmin)
 {
   double rval = rmin;
   wrxi[0] = xi[0];
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
     if (i % save_step == 0) {
       if (wr_ires) {
 	get_wr_arr_ires(xi, pi, old_xi, old_pi, alpha, beta, psi, wr_xi, wr_pi, 
-			iresxi, irespi, lastwr, save_pt, lam, dr);
+			iresxi, irespi, lastwr, save_pt, lam, dr, rmin);
 	wr_step(ires_arr, 2, iresname_arr, t, bbh_shape, bbh_rank, coords);
       }
       else { get_wr_arr(xi, pi, wr_xi, wr_pi, wr_shape, save_pt); }
