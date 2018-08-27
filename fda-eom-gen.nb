@@ -2788,7 +2788,7 @@ ed9851a9c2fa"]
 }, Open  ]]
 },
 WindowSize->{808, 621},
-WindowMargins->{{Automatic, -1119}, {Automatic, -626}},
+WindowMargins->{{Automatic, -1812}, {Automatic, -421}},
 FrontEndVersion->"11.2 for Linux x86 (64-bit) (September 10, 2017)",
 StyleDefinitions->"Default.nb"
 ]
