@@ -192,9 +192,17 @@ inline void dirichlet0(vector<double>& field) {
   return;
 }
 
+inline double dirichlet0res(const vector<double>& field) {;
+  return field[0];
+}
+
 inline void neumann0(vector<double>& field) {
   field[0] = (4*field[1] - field[2]) / 3.0;
   return;
+}
+
+inline double neumann0res(const vector<double>& field) {
+  return -3*field[0] + 4*field[1] - field[2];
 }
 
 inline void sommerfeld(vector<double>& field, const vector<double>& oldfield,
@@ -205,6 +213,12 @@ inline void sommerfeld(vector<double>& field, const vector<double>& oldfield,
   return;
 }
 
+inline double sommerfeldres(const vector<double>& field, const vector<double>& oldfield,
+		   int ind, double lambda, double coeff) {
+  return (coeff+1)*field[ind] + (coeff-1)*oldfield[ind]
+    - lambda*(field[ind-1] + oldfield[ind-1])
+    + 0.25*lambda*(field[ind-2] + oldfield[ind-2]);
+}
 
 
 // ********** DISSIPATION FUNCTIONS **************
