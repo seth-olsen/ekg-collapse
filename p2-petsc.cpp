@@ -334,6 +334,54 @@ inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
   return sqin(dr) + p_m/(r*dr); }
 
+inline void set_inds(int *cols, int indalpha) {
+  cols[0] = indalpha-3, cols[1] = indalpha-2, cols[2] = indalpha-1,
+    cols[3] = indalpha, cols[4] = indalpha+1, cols[5] = indalpha+2,
+    cols[6] = indalpha+3, cols[7] = indalpha+4, cols[8] = indalpha+5;
+  return; }
+
+inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  vals[0] = jac_aa_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = jac_ab_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = jac_ap_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = jac_aa(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[4] = jac_ab(alpha, beta, psi, ind, dr, r),
+    vals[5] = jac_ap(alpha, beta, psi, ind, dr, r),
+    vals[6] = jac_aa_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = jac_ab_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = jac_ap_pm(alpha, beta, psi, ind, 1, dr, r);
+  return; }
+
+inline void set_betavals(double *vals, const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  vals[0] = jac_ba_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = jac_bb_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = jac_bp_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = jac_ba(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[4] = jac_bb(alpha, beta, psi, ind, dr, r),
+    vals[5] = jac_bp(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[6] = jac_ba_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = jac_bb_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = jac_bp_pm(alpha, beta, psi, ind, 1, dr, r);
+  return; }
+
+inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  vals[0] = jac_pa_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = jac_pb_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = jac_pp_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = jac_pa(alpha, beta, psi, ind, dr, r),
+    vals[4] = jac_pb(alpha, beta, psi, ind, dr, r),
+    vals[5] = jac_pp(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[6] = jac_pa_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
+  return; }
+
 
 // **********************************************************
 // **********************************************************
@@ -520,6 +568,34 @@ int main(int argc, char **argv)
   char *resname_arr[2] = {&resxi_fname[0], &respi_fname[0]};
   int maxit_count = 0;
 
+  // *********************************************
+  // **************** PETSC **********************
+  // *********************************************
+
+  // petsc object declaration
+  PetscMPIInt rank;
+  PetscMPIInt size;
+  PetscErrorCode ierr;
+  PetscInt N = 3 * npts; // size of vectors
+  PetscInt diag_per_row = 1, offd_per_row = 8;
+  PetscInt i, rstart, rend; 
+  // matrices and vectors
+  Mat jac;
+  Vec abpres;
+  KSP ksp;
+  PC pc;
+  // checking matrix
+  //PetscViewer viewer;
+  PetscInt indices[N];
+  PetscScalar vec_vals[N];
+
+  //start petsc/mpi
+  ierr = PetscInitialize(&argc, &argv, (char *)0, help);
+  if (ierr) { return ierr; }
+  MPI_Comm comm = PETSC_COMM_WORLD;
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &size);
+
   time_t start_time = time(NULL); // time for rough performance measure
   
   // **********************************************************
@@ -537,6 +613,7 @@ int main(int argc, char **argv)
     if (!zero_pi) { pi[j] = ic_pi(r, ic_Amp, ic_Dsq, ic_r0, sq(psi[j])/alpha[j], 1 - beta[j]); }
     if ((wr_sol) && (j%save_pt == 0)) {
       sol[j/save_pt] = ic_sol(r, ic_Amp, ic_Dsq, ic_r0); }
+    indices[3*j] = 3*j, indices[3*j+1] = 3*j+1, indices[3*j+2] = 3*j+2;
     r += dr;
   }
   if (rmin == 0) {
@@ -544,6 +621,56 @@ int main(int argc, char **argv)
     neumann0(pi);
   }
 
+  // create petsc vector and matrix
+  ierr = VecCreateSeq(PETSC_COMM_SELF, N, &abpres); CHKERRQ(ierr);
+  //TEST ierr = VecView(abp, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
+  ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, N, N, 9, NULL, &jac); CHKERRQ(ierr);
+  if (size == 1) {
+    // BOUNDARY CONDITIONS
+    PetscInt col_inds0[3] = {0, 3, 6}, col_inds1[1] = {1}, col_inds2[3] = {2, 5, 8};
+    PetscInt col_indsNm3[3] = {N-9, N-6, N-3}, col_indsNm2[3] = {N-8, N-5, N-2}, col_indsNm1[3] = {N-7, N-4, N-1};
+    PetscScalar mat_vals02[3] = {-3, 4, -1}, mat_vals1[1] = {1};
+    PetscScalar mat_valsNm123[3] = {1, -4, 2*dr/rmax + 3};
+    ierr = MatSetValues(jac, 1, &indices[0], 3, col_inds0, mat_vals02, INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[1], 1, col_inds1, mat_vals1, INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[2], 3, col_inds2, mat_vals02, INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[N-3], 3, col_indsNm3, mat_valsNm123, INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[N-2], 3, col_indsNm2, mat_valsNm123, INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[N-1], 3, col_indsNm1, mat_valsNm123, INSERT_VALUES); CHKERRQ(ierr);
+  }
+  else { cout << "\n\n\n\n****ERROR: NOT USING SINGLE PROCESSOR****\n\n\n\n" << endl; }
+
+  PetscScalar mat_vals[9];
+  PetscInt col_inds[9];
+  r = rmin + dr;
+  for (j = 1; j < lastpt; ++j) {
+    set_inds(col_inds, 3*j);
+    set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+    ierr = MatSetValues(jac, 1, &indices[3*j], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
+    set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+    ierr = MatSetValues(jac, 1, &indices[3*j+1], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
+    set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+    ierr = MatSetValues(jac, 1, &indices[3*j+2], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
+    r += dr;
+  }
+  // matrix assembly & checking
+  ierr = MatAssemblyBegin(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+  /*
+  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
+  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
+  ierr = MatView(jac, viewer); CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+  */
+
+  // create linear solver context
+  ierr = KSPCreate(comm, &ksp); CHKERRQ(ierr);
+  ierr = KSPSetType(ksp, KSPPREONLY)
+  ierr = KSPGetPC(ksp,&pc); CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCLU); CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp, 1e-9, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
+  
   // **********************************************************
   // ******************* TIME STEPPING ************************
   // *******************   & WRITING   ************************
@@ -575,9 +702,8 @@ int main(int argc, char **argv)
     old_pi = pi;
 
     // **********************************************************
-    //         SOLVE EVOLUTION EQUATION Ax = b for x(n+1)
-    // **********************************************************   
-    // create rhs vec b in A_lhs.x(n+1) = A_rhs.x(n) := b
+    //         SOLVE EVOLUTION EQUATION for x(n+1)
+    // **********************************************************
     r = rmin;
     if (rmin != 0) {
       bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
@@ -665,6 +791,18 @@ int main(int argc, char **argv)
     if (wr_sol) { update_sol(xi, pi, alpha, beta, psi, sol, dt, save_pt, wr_shape); } 
   }
   // ******************** DONE TIME STEPPING *********************
+
+  // close and destroy objects then finalize mpi/petsc
+  ierr = KSPDestroy(&ksp); CHKERRQ(ierr);
+  ierr = PCDestroy(&pc); CHKERRQ(ierr);
+  ierr = MatDestroy(&jac); CHKERRQ(ierr);
+  //ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
+  //ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
+  ierr = VecDestroy(&abp); CHKERRQ(ierr);
+  ierr = VecDestroy(&abpres); CHKERRQ(ierr);
+
+  ierr = PetscFinalize();
+  if (ierr) { return ierr; }
   
   // write final time step
   if (nsteps % save_step == 0) {
@@ -684,276 +822,4 @@ int main(int argc, char **argv)
   // ******************** DONE LOOPING OVER RESOLUTIONS *********************
   
   return 0;
-}
-
-// ***************************************************************************
-// ***************************************************************************
-// ***************************************************************************
-// ***************************************************************************
-// ***************************************************************************
-// ***************************************************************************
-// ***************************************************************************
-// ***************************************************************************
-
-inline void set_inds(int *cols, int indphi) {
-  cols[0] = indphi-2, cols[1] = indphi-1, cols[2] = indphi,
-    cols[3] = indphi+1, cols[4] = indphi+2, cols[5] = indphi+3;
-  return; }
-
-inline void set_phivals(double *vals, int rind, double dr, double rmin,
-			double r2m, double lam) {
-  vals[0] = -cbeta(r(rind-1,dr,rmin), r2m, lam),
-    vals[1] = -cf(r(rind-1,dr,rmin), r2m, lam),
-    vals[2] = 0, vals[3] = 0,
-    vals[4] = cbeta(r(rind+1,dr,rmin),r2m,lam),
-    vals[5] = cf(r(rind+1,dr,rmin),r2m,lam);
-  return; }
-
-inline void set_pivals(double *vals, int rind, double dr, double rmin,
-			double r2m, double lam) {
-  vals[0] = -rr2(rind-1,rind,dr,rmin)*cf(r(rind-1,dr,rmin), r2m, lam),
-    vals[1] = -rr2(rind-1,rind,dr,rmin)*cbeta(r(rind-1,dr,rmin), r2m, lam),
-    vals[2] = 0, vals[3] = 0,
-    vals[4] = rr2(rind+1,rind,dr,rmin)*cf(r(rind+1,dr,rmin),r2m,lam),
-    vals[5] = rr2(rind+1,rind,dr,rmin)*cbeta(r(rind+1,dr,rmin),r2m,lam);
-  return; }
-
-inline void dspn_inds(int *cols, int ind) {
-  cols[0] = ind-4, cols[1] = ind-2, cols[2] = ind,
-    cols[3] = ind+2, cols[4] = ind+4;
-  return; }
-
-// ***************************************************************************
-// PETSC STUFF
-// ***************************************************************************
-void petsc_part() {
-
-   // derived parameters
-  int npts = lastpt + 1;
-  int lastwrite = lastpt / save_pt;
-  int write_shape = lastwrite + 1;
-  double dr = (rmax - rmin) / ((double) lastpt);
-  double dt = lam * dr;
-  double cN = 0.75*lam + 0.5*dt/rmax; // for outer bc
-  double cdiss = -dspn * 0.0625;
-  double drin = 1.0 / dr;
-
-  // for mass monitoring
-  vector<double> mass_data, mass_times;
-  
-  time_t start_time = time(NULL);
-
-  // petsc object declaration
-  PetscMPIInt rank;
-  PetscMPIInt size;
-  PetscErrorCode ierr;
-  PetscInt N = 3 * npts; // size of vectors
-  PetscInt last_row = N - 1;
-  PetscInt diag_per_row = 1, offd_per_row = 8;
-  PetscInt i, rstart, rend; 
-  // matrices and vectors
-  Mat A_lhs, A_rhs, dspn_mat;
-  Vec abp, old_abp, abp_res;
-  KSP ksp;
-  PC pc;
-  // checking matrix
-  //PetscViewer lhs_viewer, rhs_viewer;
-
-  // BOUNDARY CONDITIONS
-  PetscInt col_inds0[3] = {0, 3, 6}, col_val1[1] = {1}, col_inds2[3] = {2, 5, 8};
-  PetscInt col_indsNm3[3] = {N-9, N-6, N-3}, col_indsNm2[3] = {N-8, N-5, N-2}, col_indsNm1[3] = {N-7, N-4, N-1};
-  PetscScalar mat_vals02[6] = {-3, 4, -1};
-  PetscScalar mat_valsNm123[3] = {1, -4, 2*dr/rmax + 3};
-  PetscScalar dspn_vals[5] = {cdiss, -4*cdiss, 6*cdiss, -4*cdiss, cdiss};
-  
-  //start petsc/mpi
-  ierr = PetscInitialize(&argc, &argv, (char *)0, help);
-  if (ierr) { return ierr; }
-  MPI_Comm comm = PETSC_COMM_WORLD;
-  MPI_Comm_rank(comm, &rank);
-  MPI_Comm_size(comm, &size);
-
-  // create vectors
-  ierr = VecCreate(PETSC_DECIDE, N, &abp); CHKERRQ(ierr);
-  ierr = VecDuplicate(abp, &old_abp); CHKERRQ(ierr);
-  ierr = VecDuplicate(abp, &dspn_vec); CHKERRQ(ierr);
-  // set initial values
-  ierr = VecGetOwnershipRange(abp, &rstart, &rend); CHKERRQ(ierr);
-  PetscInt n = rend - rstart;
-  PetscInt indices[n];
-  PetscScalar ic_abp[n];
-  int j = 0;
-  for (i = rstart; i < rend; ++i) {
-    indices[j] = i;
-    ic_abp[j] = (i % 2 == 0) ?
-      ic_phi(r(i/2,dr,rmin), ic_Amp, ic_Dsq, ic_r0) :
-      ic_pi(r((i-1)/2,dr,rmin), ic_Amp, ic_Dsq, ic_r0, r2m);
-    ++j;
-  }
-  ierr = VecSetValues(abp, n, &indices[0], &ic_abp[0], INSERT_VALUES); CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(abp); CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(abp); CHKERRQ(ierr);
-  //TEST ierr = VecView(uj, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
-
-  // create matrices
-  int nlocal = n, nglobal;
-  int *nrows = NULL;
-  // get global min of rows owned by single process
-  if (rank == 0) { nrows = (int *) malloc(sizeof(int) * size); }
-  MPI_Gather(&n, 1, MPI_INT, nrows, 1, MPI_INT, 0, comm);
-  if (rank == 0) { nlocal = *min_element(nrows, nrows + size); }
-  MPI_Scatter(&nlocal, 1, MPI_INT, &nglobal, 1, MPI_INT, 0, comm);
-  free(nrows);
-  // set max number of nonzero off-diagonal matrix elements per row
-  offd_per_row = max(3, 6-nglobal);
-
-  ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, N, N, diag_per_row, NULL, offd_per_row, NULL, &A_rhs); CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A_rhs, &rstart, &rend); CHKERRQ(ierr);
-  n = rend - rstart;
-  // boundary cases
-  int on_start = 0, off_end = 0;
-  if (rstart == 0) {
-    ++on_start;
-    ierr = MatSetValues(A_rhs, 1, &rstart, 6, col_inds01, mat_vals0, INSERT_VALUES); CHKERRQ(ierr);
-  }
-  if (rstart < 2 && rend > 1) {
-    ++on_start;
-    int pt = 1;
-    ierr = MatSetValues(A_rhs, 1, &pt, 6, col_inds01, mat_vals1, INSERT_VALUES); CHKERRQ(ierr);
-  }
-  if (rend == N) {
-    ++off_end;
-    ierr = MatSetValues(A_rhs, 1, &last_row, 3, col_indsNm1, mat_valsNm12, INSERT_VALUES); CHKERRQ(ierr);
-  }
-  if (rstart < N-1 && rend > N-2) {
-    ++off_end;
-    int pt = N-2;
-    ierr = MatSetValues(A_rhs, 1, &pt, 3, col_indsNm2, mat_valsNm12, INSERT_VALUES); CHKERRQ(ierr);
-  }
-  // interior ****MIGHT NEED TO INSERT ZEROS TO PREVENT COMPRESSION****
-  PetscScalar mat_vals[6];
-  PetscInt col_inds[6];
-  int i_start = rstart + on_start, i_end = rend - off_end;
-  for (i = i_start; i < i_end; ++i) {
-    if (i % 2 == 0) {
-      set_inds(col_inds, i);
-      set_phivals(mat_vals, i/2, dr, rmin, r2m, lam);
-    }
-    else {
-      set_inds(col_inds, i-1);
-      set_phivals(mat_vals, (i-1)/2, dr, rmin, r2m, lam);
-    }
-    ierr = MatSetValues(A_rhs, 1, &i, 6, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-  }
-  // matrix assembly
-  ierr = MatAssemblyBegin(A_rhs, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A_rhs, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-  
-  // now have A, need A_rhs = I+A and A_lhs = I-A
-  ierr = MatDuplicate(A_rhs, MAT_COPY_VALUES, &A_lhs); CHKERRQ(ierr);
-  ierr = MatScale(A_lhs, -1.0); CHKERRQ(ierr);
-  ierr = MatShift(A_lhs, 1.0); CHKERRQ(ierr);
-  ierr = MatShift(A_rhs, 1.0); CHKERRQ(ierr);
-
-  ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, N, N, 5, NULL, 4, NULL, &dspn_mat); CHKERRQ(ierr);
-  PetscInt dspn_cols[5];
-  for (i = 4; i < N-4; ++i) {
-    dspn_inds(dspn_cols, i);
-    ierr = MatSetValues(dspn_mat, 1, &i, 5, dspn_cols, dspn_vals, INSERT_VALUES); CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(dspn_mat, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(dspn_mat, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr); 
-
-  // now check matrices
-  /*
-  ierr = PetscViewerASCIIOpen(comm, "matrix-lhs.m", &lhs_viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(lhs_viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
-  ierr = PetscViewerASCIIOpen(comm, "matrix-rhs.m", &rhs_viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(rhs_viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
-  ierr = MatView(A_lhs, lhs_viewer); CHKERRQ(ierr);
-  ierr = MatView(A_rhs, rhs_viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(lhs_viewer); CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(rhs_viewer); CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
-  */
-
-  // create linear solver context
-  ierr = KSPCreate(comm, &ksp); CHKERRQ(ierr);
-  ierr = KSPSetOperators(ksp, A_lhs, A_lhs); CHKERRQ(ierr);
-  // block jacobi with ILU(0) is default
-  //ierr = KSPGetPC(ksp,&pc); CHKERRQ(ierr);
-  //ierr = PCSetType(pc,PCJACOBI); CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp, 1e-9, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
-  //ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE); CHKERRQ(ierr);
-
-  // bbhutil parameters for writing data to sdf
-  int bbh_rank = 1;
-  int *bbh_shape = &npts;
-  double coord_lims[2] = {r2m, rmax};
-  double *coords = &coord_lims[0];
-  
-  // creat context to gather abp to root for checking mass and writing
-  ierr = VecScatterCreateToZero(abp, &ctx_root, &root_vec); CHKERRQ(ierr);
-  vector<double> phi((rank == 0) ? write_shape : 1);
-  vector<double> pi((rank == 0) ? write_shape : 1);
-  double *field_arr[2] = {&phi[0], &pi[0]};
-  string outfilePhi_name = "Phi-" + outfile + ".sdf";
-  string outfilePi_name = "Pi-" + outfile + ".sdf";
-  char *name_arr[2] = {&outfilePhi_name[0], &outfilePi_name[0]};
-
-  ierr = VecScatterBegin(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-  ierr = VecScatterEnd(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-  // write t=0 data
-  if (rank == 0) {
-    ierr = VecGetArray(root_vec, &root_array); CHKERRQ(ierr);
-    get_wr(root_array, phi, pi, write_shape, save_pt);
-    ierr = VecRestoreArray(root_vec, &root_array); CHKERRQ(ierr);
-    gft_set_multi();
-    write_step(field_arr, 2, name_arr, 0, bbh_shape, bbh_rank, coords);
-  }
-
-  // evolve
-  int step_lim = nsteps + 1;
-  for (i = 1; i < step_lim; ++i) {
-    // time stepping
-    ierr = MatMult(A_rhs, abp, old_abp); CHKERRQ(ierr);
-    ierr = KSPSolve(ksp, old_abp, abp); CHKERRQ(ierr);
-    // dissipate
-    ierr = MatMult(dspn_mat, old_abp, dspn_vec); CHKERRQ(ierr);
-    ierr = VecAXPY(abp, 1, dspn_vec; CHKERRQ(ierr);
-    // writing
-    if (i % save_step == 0) {
-      ierr = VecScatterBegin(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-      ierr = VecScatterEnd(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-      if (rank == 0) {
-	ierr = VecGetArray(root_vec, &root_array); CHKERRQ(ierr);
-	get_wr(root_array, phi, pi, write_shape, save_pt);
-	if (i % save_step*check_step == 0) {
-	  double mass = 0;
-	  for (j = 0; j < npts; ++j) {
-	    mass += mass_integrand(r(j,dr,rmin), r2m, dr,
-				   root_array[2*j], root_array[2*j+1]); }
-	  mass_times.push_back(i*dt);
-	  mass_data.push_back(mass);
-	}
-	ierr = VecRestoreArray(root_vec, &root_array); CHKERRQ(ierr);
-	write_step(field_arr, 2, name_arr, i*dt, bbh_shape, bbh_rank, coords);
-      }
-    }
-  }
-
-  // close and destroy objects then finalize mpi/petsc
-  ierr = KSPDestroy(&ksp); CHKERRQ(ierr);
-  //ierr = PCDestroy(&pc); CHKERRQ(ierr);
-  ierr = MatDestroy(&A_rhs); CHKERRQ(ierr);
-  ierr = MatDestroy(&A_lhs); CHKERRQ(ierr);
-  //ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
-  //ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
-  ierr = VecDestroy(&old_abp); CHKERRQ(ierr);
-  ierr = VecDestroy(&abp); CHKERRQ(ierr);
-  ierr = VecDestroy(&root_vec); CHKERRQ(ierr);  
-  ierr = VecScatterDestroy(&ctx_root); CHKERRQ(ierr);
-  }
-  return;
 }
