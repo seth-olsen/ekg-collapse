@@ -232,6 +232,95 @@ inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
     - 2*p4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
     - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
 
+// ***********************  JACOBIAN  ***********************
+
+// ***********************  row alpha(ind)   ***********************
+
+inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2*sqin(dr) - 8*M_PI*sq(pi[ind]) +
+    2*p4(psi[ind])*sqin(alpha)*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
+
+inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return sqin(dr) + p_m*(ddr_c(psi,ind,dr)/psi[ind] + 1/r)/dr; }
+
+inline double jac_ab(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return 4*p4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
+
+inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return -p_m*2*p4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
+
+inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2*(ddr_c(alpha,ind,dr)*ddr_c(psi,ind,dr)*sqin(psi[ind]) +
+	     4*pow(psi[ind],3)*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind])); }
+
+inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*ddr_c(alpha,ind, dr) / (dr*psi[ind]); }
+
+
+// ***********************  row beta(ind)   ***********************
+
+inline double jac_ba(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return 12*M_PI*xi[ind]*pi[ind]*sqin(psi[ind]) +
+    ddr_c(alpha,ind,dr)*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r); }
+
+inline double jac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*0.5*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*alpha[ind]); }
+
+inline double jac_bb(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2*sqin(dr) - (2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr))/dr; }
+
+inline double jac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return sqin(dr) + p_m*0.5*(2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr))/dr; }
+
+inline double jac_bp(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -24*M_PI*xi[ind]*pi[ind]*alpha[ind]/pow(psi[ind],3) -
+    6*ddr_c(psi,ind,dr)*sqin(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r); }
+
+inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*3*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*psi[ind]); }
+
+// ***********************  row psi(ind)   ***********************
+
+inline double jac_pa(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -pow(psi[ind],5)*(ddr_c(beta,ind,dr) - beta[ind]/r) / (6*pow(alpha[ind],3)); }
+
+inline double jac_pa_pm() { return 0; }
+
+inline double jac_pb(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -pow(psi[ind],5)*sqin(alpha[ind]) / (12*r); }
+
+inline double jac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*pow(psi[ind],5)*sqin(alpha[ind]) / (24*dr); }
+
+inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2*sqin(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
+    5*p4(psi[ind])*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / 12.0; }
+
+inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return sqin(dr) + p_m/(r*dr); }
+
+
 // **********************************************************
 // **********************************************************
 //                         PROGRAM
@@ -432,7 +521,7 @@ int main(int argc, char **argv)
   // **********************************************************
 
   int i, j, itn = 0; // declare loop integers
-  double res = 1.0; // declare residual indicator
+  double res = tol + 1.0; // declare residual indicator
   double r = rmin, t = 0.0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
     alpha[j] = ic_alpha(r, r2m);
@@ -494,7 +583,7 @@ int main(int argc, char **argv)
       bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
     }
     // reset itn and set res > tol to enter GAUSS-SEIDEL ITERATIVE SOLVER
-    itn = 0, res = 1.0;
+    itn = 0, res = tol + 1.0;
     while (res > tol) {
       
       r = rmin;
