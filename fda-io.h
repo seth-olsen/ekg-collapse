@@ -42,11 +42,11 @@ void read_step(char *files[], int times[], double *fields[], int nfields) {
   return;
 }
 
-string param_print(string outfile, int lastpt, int save_pt = 1, int nsteps,
-		   int save_step = 8, double lam = 0.25, double r2m,
-		   double rmin, double rmax, double dspn, double tol, int maxit,
-		   double ic_Dsq, double ic_r0, double ic_Amp, int check_step,
-		   bool zero_pi, bool somm_cond = true, bool dspn_bound) {
+string param_print(string outfile, int lastpt, int save_pt, int nsteps,
+		   int save_step, double lam, double r2m, double rmin, double rmax,
+		   double dspn, double tol, int maxit, double ic_Dsq, double ic_r0,
+		   double ic_Amp, int check_step, double dr, double dt,
+		   bool zero_pi, bool somm_cond, bool dspn_bound) {
   string z_p = (zero_pi) ? "true" : "false";
   string s_c = (somm_cond) ? "true" : "false";
   string d_b = (dspn_bound) ? "true" : "false";

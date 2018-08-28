@@ -31,6 +31,7 @@ default values can be found at the start of main()
 #include "fda-io.h"
 #include <petscksp.h> // PETSc library
 
+static char help[] = "EKG field collapse using PETSc\n";
 
 using namespace std;
 
@@ -242,7 +243,7 @@ inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*sqin(dr) - 8*M_PI*sq(pi[ind]) +
-    2*p4(psi[ind])*sqin(alpha)*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
+    2*p4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
 
 inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -455,25 +456,17 @@ int main(int argc, char **argv)
     double dt = lam * dr;
     double somm_coeff = 0.75*lam + 0.5*dt/rmax; // for outer bc
     
-  // OUTPUT parameter data
-  cout << "\noutfile name = " << outfile << "\ngrid size = " << lastpt << " (" << save_pt
-       << "/write)\ntime steps = " << nsteps << " (" << save_step << "/write)\nlambda = "
-       << lam << "\nr2m = " << r2m << "\nrmin = " << rmin << "\nrmax = " << rmax
-       << "\ndissipation = " << dspn << "\niterative tolerance = " << tol << "\nmaximum iterations = "
-       << maxit << "\nic_Dsq = " << ic_Dsq << "\nic_r0 = " << ic_r0 << "\nic_Amp = " << ic_Amp
-       << "\nmass check step = " << check_step << "\nmaximum evolution time = " << nsteps*dt
-       << "\ndr = " << dr << "\ndt = " << dt << endl;
+    // OUTPUT parameter data
+    cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
+			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
+			zero_pi,somm_cond,dspn_bound);
+    // *** BACK TO OLD INDENT FOR SPACE ***   
   ofstream specs;
   string specs_name = outfile + ".txt";
   specs.open(specs_name, ofstream::out);
-  specs << "\noutfile name = " << outfile << "\ngrid size = " << lastpt << " (" << save_pt
-	<< "/write)\ntime steps = " << nsteps << " (" << save_step << "/write)\nlambda = "
-	<< lam << "\nr2m = " << r2m << "\nrmin = " << rmin << "\nrmax = " << rmax
-	<< "\ndissipation = " << dspn << "\niterative tolerance = " << tol << "\nmaximum iterations = "
-	<< maxit << "\nic_Dsq = " << ic_Dsq << "\nic_r0 = " << ic_r0 << "\nic_Amp = " << ic_Amp
-	<< "\nmass check step = " << check_step << "\nmaximum evolution time = " << nsteps*dt
-	<< "\ndr = " << dr << "\ndt = " << dt << "\n\noptions:\nzero pi_0 = " << boolalpha << zero_pi
-	<< "\nsommerfeld bc = " << somm_cond << "\ndissipation at bound = " << dspn_bound << endl;
+  specs << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
+			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
+			zero_pi,somm_cond,dspn_bound);
   specs.close();
   
   // **********************************************************
@@ -683,6 +676,35 @@ int main(int argc, char **argv)
 }
 
 
+
+inline void set_inds(int *cols, int indphi) {
+  cols[0] = indphi-2, cols[1] = indphi-1, cols[2] = indphi,
+    cols[3] = indphi+1, cols[4] = indphi+2, cols[5] = indphi+3;
+  return; }
+
+inline void set_phivals(double *vals, int rind, double dr, double rmin,
+			double r2m, double lam) {
+  vals[0] = -cbeta(r(rind-1,dr,rmin), r2m, lam),
+    vals[1] = -cf(r(rind-1,dr,rmin), r2m, lam),
+    vals[2] = 0, vals[3] = 0,
+    vals[4] = cbeta(r(rind+1,dr,rmin),r2m,lam),
+    vals[5] = cf(r(rind+1,dr,rmin),r2m,lam);
+  return; }
+
+inline void set_pivals(double *vals, int rind, double dr, double rmin,
+			double r2m, double lam) {
+  vals[0] = -rr2(rind-1,rind,dr,rmin)*cf(r(rind-1,dr,rmin), r2m, lam),
+    vals[1] = -rr2(rind-1,rind,dr,rmin)*cbeta(r(rind-1,dr,rmin), r2m, lam),
+    vals[2] = 0, vals[3] = 0,
+    vals[4] = rr2(rind+1,rind,dr,rmin)*cf(r(rind+1,dr,rmin),r2m,lam),
+    vals[5] = rr2(rind+1,rind,dr,rmin)*cbeta(r(rind+1,dr,rmin),r2m,lam);
+  return; }
+
+inline void dspn_inds(int *cols, int ind) {
+  cols[0] = ind-4, cols[1] = ind-2, cols[2] = ind,
+    cols[3] = ind+2, cols[4] = ind+4;
+  return; }
+
 // PETSC STUFF
 void petsc_part() {
 
@@ -701,8 +723,6 @@ void petsc_part() {
   time_t start_time = time(NULL);
 
   // petsc object declaration
-  PetscMPIInt rank;
-  PetscMPIInt size;
   PetscErrorCode ierr;
   PetscInt N = 2 * npts; // size of vectors
   PetscInt last_row = N - 1;
@@ -710,13 +730,9 @@ void petsc_part() {
   PetscInt i, rstart, rend; 
   // matrices and vectors
   Mat A_lhs, A_rhs, dspn_mat;
-  Vec phipi, old_phipi, dspn_vec;
+  Vec abp, old_abp, dspn_vec;
   KSP ksp;
-  //PC pc;
-  // for scattering to root node
-  VecScatter ctx_root;
-  Vec root_vec;
-  PetscScalar *root_array;
+  PC pc;
   // checking matrix
   //PetscViewer lhs_viewer, rhs_viewer;
 
@@ -737,30 +753,27 @@ void petsc_part() {
   //start petsc/mpi
   ierr = PetscInitialize(&argc, &argv, (char *)0, help);
   if (ierr) { return ierr; }
-  MPI_Comm comm = PETSC_COMM_WORLD;
-  MPI_Comm_rank(comm, &rank);
-  MPI_Comm_size(comm, &size);
 
   // create vectors
-  ierr = VecCreateMPI(comm, PETSC_DECIDE, N, &phipi); CHKERRQ(ierr);
-  ierr = VecDuplicate(phipi, &old_phipi); CHKERRQ(ierr);
-  ierr = VecDuplicate(phipi, &dspn_vec); CHKERRQ(ierr);
+  ierr = VecCreate(PETSC_DECIDE, N, &abp); CHKERRQ(ierr);
+  ierr = VecDuplicate(abp, &old_abp); CHKERRQ(ierr);
+  ierr = VecDuplicate(abp, &dspn_vec); CHKERRQ(ierr);
   // set initial values
-  ierr = VecGetOwnershipRange(phipi, &rstart, &rend); CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(abp, &rstart, &rend); CHKERRQ(ierr);
   PetscInt n = rend - rstart;
   PetscInt indices[n];
-  PetscScalar ic_phipi[n];
+  PetscScalar ic_abp[n];
   int j = 0;
   for (i = rstart; i < rend; ++i) {
     indices[j] = i;
-    ic_phipi[j] = (i % 2 == 0) ?
+    ic_abp[j] = (i % 2 == 0) ?
       ic_phi(r(i/2,dr,rmin), ic_Amp, ic_Dsq, ic_r0) :
       ic_pi(r((i-1)/2,dr,rmin), ic_Amp, ic_Dsq, ic_r0, r2m);
     ++j;
   }
-  ierr = VecSetValues(phipi, n, &indices[0], &ic_phipi[0], INSERT_VALUES); CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(phipi); CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(phipi); CHKERRQ(ierr);
+  ierr = VecSetValues(abp, n, &indices[0], &ic_abp[0], INSERT_VALUES); CHKERRQ(ierr);
+  ierr = VecAssemblyBegin(abp); CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(abp); CHKERRQ(ierr);
   //TEST ierr = VecView(uj, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
 
   // create matrices
@@ -861,8 +874,8 @@ void petsc_part() {
   double coord_lims[2] = {r2m, rmax};
   double *coords = &coord_lims[0];
   
-  // creat context to gather phipi to root for checking mass and writing
-  ierr = VecScatterCreateToZero(phipi, &ctx_root, &root_vec); CHKERRQ(ierr);
+  // creat context to gather abp to root for checking mass and writing
+  ierr = VecScatterCreateToZero(abp, &ctx_root, &root_vec); CHKERRQ(ierr);
   vector<double> phi((rank == 0) ? write_shape : 1);
   vector<double> pi((rank == 0) ? write_shape : 1);
   double *field_arr[2] = {&phi[0], &pi[0]};
@@ -870,8 +883,8 @@ void petsc_part() {
   string outfilePi_name = "Pi-" + outfile + ".sdf";
   char *name_arr[2] = {&outfilePhi_name[0], &outfilePi_name[0]};
 
-  ierr = VecScatterBegin(ctx_root, phipi, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-  ierr = VecScatterEnd(ctx_root, phipi, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+  ierr = VecScatterBegin(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+  ierr = VecScatterEnd(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
   // write t=0 data
   if (rank == 0) {
     ierr = VecGetArray(root_vec, &root_array); CHKERRQ(ierr);
@@ -885,15 +898,15 @@ void petsc_part() {
   int step_lim = nsteps + 1;
   for (i = 1; i < step_lim; ++i) {
     // time stepping
-    ierr = MatMult(A_rhs, phipi, old_phipi); CHKERRQ(ierr);
-    ierr = KSPSolve(ksp, old_phipi, phipi); CHKERRQ(ierr);
+    ierr = MatMult(A_rhs, abp, old_abp); CHKERRQ(ierr);
+    ierr = KSPSolve(ksp, old_abp, abp); CHKERRQ(ierr);
     // dissipate
-    ierr = MatMult(dspn_mat, old_phipi, dspn_vec); CHKERRQ(ierr);
-    ierr = VecAXPY(phipi, 1, dspn_vec; CHKERRQ(ierr);
+    ierr = MatMult(dspn_mat, old_abp, dspn_vec); CHKERRQ(ierr);
+    ierr = VecAXPY(abp, 1, dspn_vec; CHKERRQ(ierr);
     // writing
     if (i % save_step == 0) {
-      ierr = VecScatterBegin(ctx_root, phipi, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
-      ierr = VecScatterEnd(ctx_root, phipi, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+      ierr = VecScatterBegin(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
+      ierr = VecScatterEnd(ctx_root, abp, root_vec, INSERT_VALUES, SCATTER_FORWARD); CHKERRQ(ierr);
       if (rank == 0) {
 	ierr = VecGetArray(root_vec, &root_array); CHKERRQ(ierr);
 	get_wr(root_array, phi, pi, write_shape, save_pt);
@@ -918,8 +931,8 @@ void petsc_part() {
   ierr = MatDestroy(&A_lhs); CHKERRQ(ierr);
   //ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
   //ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
-  ierr = VecDestroy(&old_phipi); CHKERRQ(ierr);
-  ierr = VecDestroy(&phipi); CHKERRQ(ierr);
+  ierr = VecDestroy(&old_abp); CHKERRQ(ierr);
+  ierr = VecDestroy(&abp); CHKERRQ(ierr);
   ierr = VecDestroy(&root_vec); CHKERRQ(ierr);  
   ierr = VecScatterDestroy(&ctx_root); CHKERRQ(ierr);
   }

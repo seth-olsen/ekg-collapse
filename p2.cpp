@@ -240,7 +240,7 @@ inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*sqin(dr) - 8*M_PI*sq(pi[ind]) +
-    2*p4(psi[ind])*sqin(alpha)*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
+    2*p4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
 
 inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -454,25 +454,16 @@ int main(int argc, char **argv)
     double somm_coeff = 0.75*lam + 0.5*dt/rmax; // for outer bc
     
   // OUTPUT parameter data
-  cout << "\noutfile name = " << outfile << "\ngrid size = " << lastpt << " (" << save_pt
-       << "/write)\ntime steps = " << nsteps << " (" << save_step << "/write)\nlambda = "
-       << lam << "\nr2m = " << r2m << "\nrmin = " << rmin << "\nrmax = " << rmax
-       << "\ndissipation = " << dspn << "\niterative tolerance = " << tol << "\nmaximum iterations = "
-       << maxit << "\nic_Dsq = " << ic_Dsq << "\nic_r0 = " << ic_r0 << "\nic_Amp = " << ic_Amp
-       << "\nmass check step = " << check_step << "\nmaximum evolution time = " << nsteps*dt
-       << "\ndr = " << dr << "\ndt = " << dt << endl;
+    cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
+			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
+			zero_pi,somm_cond,dspn_bound);
+    // *** BACK TO OLD INDENT FOR SPACE ***   
   ofstream specs;
   string specs_name = outfile + ".txt";
   specs.open(specs_name, ofstream::out);
-  specs << "\noutfile name = " << outfile << "\ngrid size = " << lastpt << " (" << save_pt
-	<< "/write)\ntime steps = " << nsteps << " (" << save_step << "/write)\nlambda = "
-	<< lam << "\nr2m = " << r2m << "\nrmin = " << rmin << "\nrmax = " << rmax
-	<< "\ndissipation = " << dspn << "\niterative tolerance = " << tol << "\nmaximum iterations = "
-	<< maxit << "\nic_Dsq = " << ic_Dsq << "\nic_r0 = " << ic_r0 << "\nic_Amp = " << ic_Amp
-	<< "\nmass check step = " << check_step << "\nmaximum evolution time = " << nsteps*dt
-	<< "\ndr = " << dr << "\ndt = " << dt << "\n\noptions:\nzero pi_0 = " << boolalpha << zero_pi
-	<< "\nsommerfeld bc = " << somm_cond << "\ndissipation at bound = " << dspn_bound << endl;
-  specs.close();
+  specs << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
+			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
+			zero_pi,somm_cond,dspn_bound);
   
   // **********************************************************
   // ***************** OBJECT DECLARATIONS ********************
