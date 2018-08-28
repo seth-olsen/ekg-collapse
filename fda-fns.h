@@ -8,7 +8,7 @@ inline double sq(double x) { return (x * x); }
 inline double pw3(double x) { return x*sq(x); }
 inline double pw4(double x) { return sq(sq(x)); }
 inline double pw5(double x) { return x*pw4(x); }
-inline double pw4(double x) { return sq(x)*pw4(x); }
+inline double pw6(double x) { return sq(x)*pw4(x); }
 inline double sqin(double x) { return (1.0 / sq(x)); }
 inline double p3in(double x) { return (1.0 / pw3(x)); }
 inline double p4in(double x) { return (1.0 / pw4(x)); }
