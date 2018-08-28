@@ -246,6 +246,25 @@ inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, doubl
 inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
   return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
 
+double get_ell_res(double *vec_vals, const vector<double>& xi, const vector<double>& pi,
+		 const vector<double>& alpha, const vector<double>& beta,
+		 const vector<double>& psi, int lastpt, double dr, double rmin) {
+  vec_vals[0] = neumann0res(alpha);
+  vec_vals[1] = dirichlet0res(beta);
+  vec_vals[2] = neumann0res(psi);
+  double rval = rmin + dr;
+    for (j = 1; j < lastpt; ++j) {
+      vec_vals[3*j] = fda_resalpha(xi, pi, alpha, beta, psi, j, dr, rval);
+      vec_vals[3*j+1] = fda_resbeta(xi, pi, alpha, beta, psi, j, dr, rval);
+      vec_vals[3*j+2] = fda_respsi(xi, pi, alpha, beta, psi, j, dr, rval);
+      rval += dr;
+    }
+    vec_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, rval);
+    vec_vals[N-2] = fdaR_resbeta(beta, lastpt, dr, rval);
+    vec_vals[N-1] = fdaR_respsi(psi, lastpt, dr, rval);
+  return;
+}
+
 // ***********************  JACOBIAN  ***********************
 
 // ***********************  row alpha(ind)   ***********************
@@ -407,6 +426,7 @@ int main(int argc, char **argv)
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
+  double ell_tol = tol;
   int maxit = 25; // max iterations for debugging
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
@@ -434,8 +454,7 @@ int main(int argc, char **argv)
       {"-check_step", &check_step}, {"-nresn", &nresn},
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
-      {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ic_Dsq",&ic_Dsq},
-      {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
+      {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},			      {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res},
@@ -577,7 +596,7 @@ int main(int argc, char **argv)
   PetscMPIInt size;
   PetscErrorCode ierr;
   PetscInt N = 3 * npts; // size of vectors
-  PetscInt diag_per_row = 1, offd_per_row = 8;
+  PetscInt nz = 9;
   PetscInt i, rstart, rend; 
   // matrices and vectors
   Mat jac;
@@ -588,6 +607,8 @@ int main(int argc, char **argv)
   //PetscViewer viewer;
   PetscInt indices[N];
   PetscScalar vec_vals[N];
+  PetscScalar mat_vals[9];
+  PetscInt col_inds[9];
 
   //start petsc/mpi
   ierr = PetscInitialize(&argc, &argv, (char *)0, help);
@@ -602,8 +623,8 @@ int main(int argc, char **argv)
   // ******************* INITIAL DATA ************************
   // **********************************************************
 
-  int i, j, itn = 0; // declare loop integers
-  double res = tol + 1.0; // declare residual indicator
+  int i, j, itn = 0, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
+  double res = tol + 1.0, ell_res = ell_tol + 1;// declare residual indicators
   double r = rmin, t = 0.0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
     alpha[j] = ic_alpha(r, r2m);
@@ -623,8 +644,7 @@ int main(int argc, char **argv)
 
   // create petsc vector and matrix
   ierr = VecCreateSeq(PETSC_COMM_SELF, N, &abpres); CHKERRQ(ierr);
-  //TEST ierr = VecView(abp, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
-  ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, N, N, 9, NULL, &jac); CHKERRQ(ierr);
+  ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, N, N, nz, NULL, &jac); CHKERRQ(ierr);
   if (size == 1) {
     // BOUNDARY CONDITIONS
     PetscInt col_inds0[3] = {0, 3, 6}, col_inds1[1] = {1}, col_inds2[3] = {2, 5, 8};
@@ -640,36 +660,13 @@ int main(int argc, char **argv)
   }
   else { cout << "\n\n\n\n****ERROR: NOT USING SINGLE PROCESSOR****\n\n\n\n" << endl; }
 
-  PetscScalar mat_vals[9];
-  PetscInt col_inds[9];
-  r = rmin + dr;
-  for (j = 1; j < lastpt; ++j) {
-    set_inds(col_inds, 3*j);
-    set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-    ierr = MatSetValues(jac, 1, &indices[3*j], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-    set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-    ierr = MatSetValues(jac, 1, &indices[3*j+1], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-    set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-    ierr = MatSetValues(jac, 1, &indices[3*j+2], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-    r += dr;
-  }
-  // matrix assembly & checking
-  ierr = MatAssemblyBegin(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-  /*
-  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
-  ierr = MatView(jac, viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
-  */
-
   // create linear solver context
   ierr = KSPCreate(comm, &ksp); CHKERRQ(ierr);
   ierr = KSPSetType(ksp, KSPPREONLY)
   ierr = KSPGetPC(ksp,&pc); CHKERRQ(ierr);
   ierr = PCSetType(pc,PCLU); CHKERRQ(ierr);
   ierr = KSPSetTolerances(ksp, 1e-9, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
+  //ierr = KSPSetFromOptions(ksp); CHKERRQ(ierr);
   
   // **********************************************************
   // ******************* TIME STEPPING ************************
@@ -700,10 +697,12 @@ int main(int argc, char **argv)
     // now set old_xi/pi to t(n) so that xi/pi can be updated to t(n+1)
     old_xi = xi;
     old_pi = pi;
-
-    // **********************************************************
-    //         SOLVE EVOLUTION EQUATION for x(n+1)
-    // **********************************************************
+    
+    // ******************************************************************
+    // ******************************************************************
+    //         SOLVE HYPERBOLIC & ELLIPTIC EQUATIONS ITERATIVELY
+    // ******************************************************************
+    // ******************************************************************
     r = rmin;
     if (rmin != 0) {
       bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
@@ -715,8 +714,14 @@ int main(int argc, char **argv)
       bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
     }
     // reset itn and set res > tol to enter GAUSS-SEIDEL ITERATIVE SOLVER
-    itn = 0, res = tol + 1.0;
-    while (res > tol) {
+    hyp_ell_itn = 0;
+    ell_itn = 2;
+    while (ell_itn > 1) {
+      // ***********************************************************************
+      // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
+      // ***********************************************************************
+      itn = 0, res = tol + 1;
+      while (res > tol) {
       
       r = rmin;
       // UPDATE INTERIOR and collect residuals
@@ -763,7 +768,9 @@ int main(int argc, char **argv)
       }
     }
     if (wr_itn) { ofs_itn << itn << endl; } // record itn count
-    // ****************** ITERATIVE SOLUTION COMPLETE ******************
+    // ****************************************************************************
+    // ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
+    // ****************************************************************************
     
     // ****************** kreiss-oliger DISSIPATION ********************
     // at ind next to boundaries can call dissipate on ind+/-1 or ind+/-2
@@ -778,7 +785,64 @@ int main(int argc, char **argv)
       xi[j] += dissipate(dspn, old_xi, j);
       pi[j] += dissipate(dspn, old_pi, j);
     }
+    // ***********************************************************************
+    // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
+    // ***********************************************************************
+    // get initial residual
+    get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, dr, rmin);
+    ell_res = max(*max_element(vec_vals, vec_vals+N), abs(*min_element(vec_vals, vec_vals+N)));
+    ell_itn = 0;
+    while (ell_res > ell_tol) {
+      r = rmin + dr;
+      for (j = 1; j < lastpt; ++j) {
+	set_inds(col_inds, 3*j);
+	set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	ierr = MatSetValues(jac, 1, &indices[3*j], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
+	set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	ierr = MatSetValues(jac, 1, &indices[3*j+1], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
+	
+	set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	ierr = MatSetValues(jac, 1, &indices[3*j+2], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
+	
+	r += dr;
+      }
+      // matrix/vector assembly & checking
+      ierr = MatAssemblyBegin(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+      ierr = MatAssemblyEnd(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+      
+      ierr = VecSetValues(abpres, N, &indices[0], &vec_vals[0], INSERT_VALUES); CHKERRQ(ierr);
+      ierr = VecAssemblyBegin(abpres); CHKERRQ(ierr);
+      ierr = VecAssemblyEnd(abpres); CHKERRQ(ierr);
+      
+      // solve linear system
+      ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
+      ierr = KSPSolve(ksp, abpres, abpres); CHKERRQ(ierr);
+      // add displacements to metric functions
+      ierr = VecGetArray(abpres, &vec_vals); CHKERRQ(ierr);
+      for (j = 0; j < npts; ++j) {
+	alpha[j] += vec_vals[3*j];
+	beta[j] += vec_vals[3*j+1];
+	psi[j] += vec_vals[3*j+2];
+      }
+      ierr = VecRestoreArray(abpres, &vec_vals); CHKERRQ(ierr);
 
+      // get new residual
+      get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, dr, rmin);
+      ell_res = max(*max_element(vec_vals, vec_vals+N), abs(*min_element(vec_vals, vec_vals+N)));
+      ++ell_itn;
+    }
+    // **************************************************************************
+    // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
+    // **************************************************************************
+
+    ++hyp_ell_itn;
+    }
+    // ***********************************************************************
+    // ***********************************************************************
+    // ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
+    // ***********************************************************************
+    // ***********************************************************************
+    
     // ****************** WRITE MASS & update field **********************
     if (wr_mass && i % check_step*save_step == 0) {
       //mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
@@ -823,3 +887,13 @@ int main(int argc, char **argv)
   
   return 0;
 }
+
+  //TEST ierr = VecView(abp, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
+
+    /*
+  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
+  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
+  ierr = MatView(jac, viewer); CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+  */
