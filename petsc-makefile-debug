@@ -1,0 +1,30 @@
+CC		 = gcc
+CXX		 = g++
+DEBUG		 = -g
+OPTFLAGS	 = -O2
+CFLAGS		 = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS}
+CXXFLAGS         = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS}
+LDFLAGS	 	 = -Wall ${DEBUG}
+LDLIBS		 = -lbbhutil
+MANSEC           = KSP
+LOCDIR		 = home/seth/research
+
+include ${PETSC_DIR}/lib/petsc/conf/variables
+include ${PETSC_DIR}/lib/petsc/conf/rules
+
+p1-petsc: p1-petsc.o chkopts
+	-${CLINKER} -o p1-petsc p1-petsc.o ${PETSC_KSP_LIB} ${LDLIBS}
+	rm -f p1-petsc.o
+
+p1-par: p1-par.o chkopts
+	-${CLINKER} -o p1-par p1-par.o ${PETSC_KSP_LIB} ${LDLIBS}
+	rm -f p1-par.o
+
+p1-petsc-flat: p1-petsc-flat.o chkopts
+	-${CLINKER} -o p1-petsc-flat p1-petsc-flat.o ${PETSC_KSP_LIB} ${LDLIBS}
+	rm -f p1-petsc-flat.o
+
+p1-conv-test:
+	$(CXX) -c $(CXXFLAGS) p1-conv-test.cpp
+	$(CXX) $(LDFLAGS) p1-conv-test.o $(LDLIBS) -o p1-conv-test
+	rm -f p1-conv-test.o

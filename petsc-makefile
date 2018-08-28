@@ -1,0 +1,19 @@
+CC		 = gcc
+CXX		 = g++
+DEBUG		 = 
+OPTFLAGS	 = -O2
+CFLAGS		 = ${OPTFLAGS}
+CXXFLAGS         = ${OPTFLAGS}
+LDFLAGS	 	 = 
+LDLIBS		 = -lbbhutil
+MANSEC           = KSP
+LOCDIR		 = home/seth/research
+
+include ${PETSC_DIR}/lib/petsc/conf/variables
+include ${PETSC_DIR}/lib/petsc/conf/rules
+
+p1-petsc: p1-petsc.o chkopts
+	-${CLINKER} -o p1-petsc p1-petsc.o ${PETSC_KSP_LIB} ${LDLIBS}
+	rm -f p1-petsc.o
+
+p1-conv-sep: p1-conv-sep.o
