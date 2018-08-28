@@ -53,7 +53,7 @@ const double M_PI = 4.0*atan(1.0);
 // multiply by 4*M_PI*r^2 for dm/dr of scalar
 inline double dmdr_scalar(double xival, double pival, double alphaval,
 			  double betaval, double psival) {
-  return p4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
+  return pw4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
 
 inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
@@ -173,6 +173,7 @@ inline void update_sol(const vector<double>& xi, const vector<double>& pi,
   }
 }
 
+// field = oldfield + fda(field) + fda(oldfield)
 inline double fda_xi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double lam)
@@ -190,7 +191,7 @@ inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
   // or dpi_c(beta, pi, alpha, xi, psi, ind, dr, r)*sqin(r) replaced by
   // d3pi_c(beta, pi, alpha, xi, psi, ind, dr, r)
 }
-
+// only need these if no BC at rmin
 inline double fda0_xi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, double lam)
@@ -219,7 +220,7 @@ inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r + sqin(alpha[ind])*
-    (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*p4(psi[ind])/12.0 + 
+    (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*pw4(psi[ind])/12.0 + 
     M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
@@ -233,8 +234,17 @@ inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
 			   const vector<double>& alpha, const vector<double>& beta,
 			   const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
-    - 2*p4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
+    - 2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
     - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
+
+inline double fdaR_respsi(const vector<double>& psi, int ind, double dr, double r) {
+  return d_b(psi,ind) + 2*dr*(psi[ind] - 1)/r; }
+
+inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, double r) {
+  return d_b(beta,ind) + 2*dr*beta[ind]/r; }
+
+inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
+  return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
 
 // ***********************  JACOBIAN  ***********************
 
@@ -244,7 +254,7 @@ inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*sqin(dr) - 8*M_PI*sq(pi[ind]) +
-    2*p4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
+    2*pw4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
 
 inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -252,11 +262,11 @@ inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 
 inline double jac_ab(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return 4*p4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
+  return 4*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
 
 inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return -p_m*2*p4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
+  return -p_m*2*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
 
 inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
@@ -318,7 +328,7 @@ inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*sqin(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
-    5*p4(psi[ind])*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / 12.0; }
+    5*pw4(psi[ind])*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / 12.0; }
 
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -676,7 +686,14 @@ int main(int argc, char **argv)
   return 0;
 }
 
-
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
 
 inline void set_inds(int *cols, int indphi) {
   cols[0] = indphi-2, cols[1] = indphi-1, cols[2] = indphi,
@@ -706,7 +723,9 @@ inline void dspn_inds(int *cols, int ind) {
     cols[3] = ind+2, cols[4] = ind+4;
   return; }
 
+// ***************************************************************************
 // PETSC STUFF
+// ***************************************************************************
 void petsc_part() {
 
    // derived parameters
@@ -717,6 +736,7 @@ void petsc_part() {
   double dt = lam * dr;
   double cN = 0.75*lam + 0.5*dt/rmax; // for outer bc
   double cdiss = -dspn * 0.0625;
+  double drin = 1.0 / dr;
 
   // for mass monitoring
   vector<double> mass_data, mass_times;
@@ -727,30 +747,23 @@ void petsc_part() {
   PetscMPIInt rank;
   PetscMPIInt size;
   PetscErrorCode ierr;
-  PetscInt N = 2 * npts; // size of vectors
+  PetscInt N = 3 * npts; // size of vectors
   PetscInt last_row = N - 1;
-  PetscInt diag_per_row = 6, offd_per_row = 5;
+  PetscInt diag_per_row = 1, offd_per_row = 8;
   PetscInt i, rstart, rend; 
   // matrices and vectors
   Mat A_lhs, A_rhs, dspn_mat;
-  Vec abp, old_abp, dspn_vec;
+  Vec abp, old_abp, abp_res;
   KSP ksp;
   PC pc;
   // checking matrix
   //PetscViewer lhs_viewer, rhs_viewer;
 
   // BOUNDARY CONDITIONS
-  PetscInt col_inds01[6] = {0, 1, 2, 3, 4, 5},
-    col_indsNm2[3] = {N-6, N-4, N-2}, col_indsNm1[3] = {N-5, N-3, N-1};
-  PetscScalar mat_vals0[6] = {-3*cbeta(rmin,r2m,lam), -3*cf(rmin,r2m,lam),
-	                  4*cbeta(rmin+dr,r2m,lam), 4*cf(rmin+dr,r2m,lam),
-	                -cbeta(rmin+2*dr,r2m,lam), -cf(rmin+2*dr,r2m,lam)};
-  PetscScalar mat_vals1[6] = {-3*cf(rmin,r2m,lam), -3*cbeta(rmin,r2m,lam),
-			      4*rr2(1,0,dr,rmin)*cf(rmin+dr,r2m,lam),
-			      4*rr2(1,0,dr,rmin)*cbeta(rmin+dr,r2m,lam),
-			      -rr2(2,0,dr,rmin)*cf(rmin+2*dr,r2m,lam),
-			      -rr2(2,0,dr,rmin)*cbeta(rmin+2*dr,r2m,lam)};
-  PetscScalar mat_valsNm12[3] = {-0.25*lam, lam, cN};
+  PetscInt col_inds0[3] = {0, 3, 6}, col_val1[1] = {1}, col_inds2[3] = {2, 5, 8};
+  PetscInt col_indsNm3[3] = {N-9, N-6, N-3}, col_indsNm2[3] = {N-8, N-5, N-2}, col_indsNm1[3] = {N-7, N-4, N-1};
+  PetscScalar mat_vals02[6] = {-3, 4, -1};
+  PetscScalar mat_valsNm123[3] = {1, -4, 2*dr/rmax + 3};
   PetscScalar dspn_vals[5] = {cdiss, -4*cdiss, 6*cdiss, -4*cdiss, cdiss};
   
   //start petsc/mpi
