@@ -5,9 +5,15 @@ using namespace std;
 
 // x^2 and 1/x^2
 inline double sq(double x) { return (x * x); }
-inline double p4(double x) { return sq(sq(x)); }
+inline double pw3(double x) { return x*sq(x); }
+inline double pw4(double x) { return sq(sq(x)); }
+inline double pw5(double x) { return x*pw4(x); }
+inline double pw4(double x) { return sq(x)*pw4(x); }
 inline double sqin(double x) { return (1.0 / sq(x)); }
-inline double p4in(double x) { return sqin(sq(x)); }
+inline double p3in(double x) { return (1.0 / pw3(x)); }
+inline double p4in(double x) { return (1.0 / pw4(x)); }
+inline double p5in(double x) { return (1.0 / pw5(x)); }
+inline double p6in(double x) { return (1.0 / pw6(x)); }
 
 
 // ******** DIFFERENCES AND DERIVATIVES ********
@@ -64,8 +70,8 @@ inline double dx_ekg_c(const vector<double>& fn1, const vector<double>& field1,
 inline double dp_ekg_c(const vector<double>& fn1, const vector<double>& field1,
 		    const vector<double>& fn2, const vector<double>& field2,
 		    const vector<double>& fn3, int ind, double dr, double r)
-{ return sq(r+dr)*p4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
-    - sq(r-dr)*p4(fn3[ind-1])*(fn1[ind-1]*field1[ind-1] + fn2[ind-1]*field2[ind-1]*sqin(fn3[ind-1])); }
+{ return sq(r+dr)*pw4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
+    - sq(r-dr)*pw4(fn3[ind-1])*(fn1[ind-1]*field1[ind-1] + fn2[ind-1]*field2[ind-1]*sqin(fn3[ind-1])); }
 
 // forward differencing operator for dn1*field1 + fn2*field2/fn3^2
 // --> mult by 1/(2*dr) to get d(fn1*field1 + fn2*field2/fn3^2)/dr at O(dr^2)
@@ -81,17 +87,17 @@ inline double dx_ekg_f(const vector<double>& fn1, const vector<double>& field1,
 inline double dp_ekg_f(const vector<double>& fn1, const vector<double>& field1,
 		    const vector<double>& fn2, const vector<double>& field2,
 		    const vector<double>& fn3, int ind, double dr, double r)
-{ return -3*sq(r)*p4(fn3[ind])*(fn1[ind]*field1[ind] + fn2[ind]*field2[ind]*sqin(fn3[ind]))
-    + 4*sq(r+dr)*p4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
-    - sq(r+2*dr)*p4(fn3[ind+2])*(fn1[ind+2]*field1[ind+2] + fn2[ind+2]*field2[ind+2]*sqin(fn3[ind+2])); }
+{ return -3*sq(r)*pw4(fn3[ind])*(fn1[ind]*field1[ind] + fn2[ind]*field2[ind]*sqin(fn3[ind]))
+    + 4*sq(r+dr)*pw4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
+    - sq(r+2*dr)*pw4(fn3[ind+2])*(fn1[ind+2]*field1[ind+2] + fn2[ind+2]*field2[ind+2]*sqin(fn3[ind+2])); }
 
 // centered differencing operator for r^2*fn3^4*(fn1*field1 + fn2*field2) [using d/d(r^3)]
 // --> mult by 1/(2*dr) to get (1/r^2)*d(r^2*fn3^4*(fn1*field1 + fn2*field2))/dr at O(dr^2)
 inline double d3p_ekg_c(const vector<double>& fn1, const vector<double>& field1,
 		     const vector<double>& fn2, const vector<double>& field2,
 		     const vector<double>& fn3, int ind, double dr, double r)
-{ return ( (sq(r+dr)*p4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
-	  - sq(r-dr)*p4(fn3[ind-1])*(fn1[ind-1]*field1[ind-1] + fn2[ind-1]*field2[ind-1]*sqin(fn3[ind-1])))
+{ return ( (sq(r+dr)*pw4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
+	  - sq(r-dr)*pw4(fn3[ind-1])*(fn1[ind-1]*field1[ind-1] + fn2[ind-1]*field2[ind-1]*sqin(fn3[ind-1])))
 	  * 3.0 / (3*r*r + dr*dr) ); }
 
 // forward differencing operator for r^2*fn3^4*(fn1*field1 + fn2*field2) [using d/d(r^3)]
@@ -99,9 +105,9 @@ inline double d3p_ekg_c(const vector<double>& fn1, const vector<double>& field1,
 inline double d3p_ekg_f(const vector<double>& fn1, const vector<double>& field1,
 		     const vector<double>& fn2, const vector<double>& field2,
 		     const vector<double>& fn3, int ind, double dr, double r)
-{ return ( (-3*sq(r)*p4(fn3[ind])*(fn1[ind]*field1[ind] + fn2[ind]*field2[ind]*sqin(fn3[ind]))
-	    + 4*sq(r+dr)*p4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
-	    - sq(r+2*dr)*p4(fn3[ind+2])*(fn1[ind+2]*field1[ind+2] + fn2[ind+2]*field2[ind+2]*sqin(fn3[ind+2])))
+{ return ( (-3*sq(r)*pw4(fn3[ind])*(fn1[ind]*field1[ind] + fn2[ind]*field2[ind]*sqin(fn3[ind]))
+	    + 4*sq(r+dr)*pw4(fn3[ind+1])*(fn1[ind+1]*field1[ind+1] + fn2[ind+1]*field2[ind+1]*sqin(fn3[ind+1]))
+	    - sq(r+2*dr)*pw4(fn3[ind+2])*(fn1[ind+2]*field1[ind+2] + fn2[ind+2]*field2[ind+2]*sqin(fn3[ind+2])))
 	   * 3.0 / (3*r*r - 2*dr*dr) ); }
 
 
@@ -171,10 +177,10 @@ inline double dab2_f(const vector<double>& ua, const vector<double>& ub, int ind
 
 // d(r^2*ua^4)/dr * 2*dr
 inline double dr2a4_c(const vector<double>& ua, int ind, double dr, double r) {
-  return ( sq(r+dr)*p4(ua[ind+1]) - sq(r-dr)*p4(ua[ind-1]) ); }
+  return ( sq(r+dr)*pw4(ua[ind+1]) - sq(r-dr)*pw4(ua[ind-1]) ); }
 
 inline double dr2a4_f(const vector<double>& ua, int ind, double dr, double r) {
-  return ( -3*sq(r)*p4(ua[ind]) + 4*sq(r+dr)*p4(ua[ind+1]) - sq(r+2*dr)*p4(ua[ind+2]) ); }
+  return ( -3*sq(r)*pw4(ua[ind]) + 4*sq(r+dr)*pw4(ua[ind+1]) - sq(r+2*dr)*pw4(ua[ind+2]) ); }
 
 
 

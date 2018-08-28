@@ -29,6 +29,7 @@ default values can be found at the start of main()
 #include <ctime> // for quick time analysis
 #include "fda-fns.h"
 #include "fda-io.h"
+#include <mpi.h>
 #include <petscksp.h> // PETSc library
 
 static char help[] = "EKG field collapse using PETSc\n";
@@ -460,7 +461,7 @@ int main(int argc, char **argv)
     cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
 			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
 			zero_pi,somm_cond,dspn_bound);
-    // *** BACK TO OLD INDENT FOR SPACE ***   
+    // *** BACK TO MAIN() INDENT FOR SPACE ***   
   ofstream specs;
   string specs_name = outfile + ".txt";
   specs.open(specs_name, ofstream::out);
@@ -723,6 +724,8 @@ void petsc_part() {
   time_t start_time = time(NULL);
 
   // petsc object declaration
+  PetscMPIInt rank;
+  PetscMPIInt size;
   PetscErrorCode ierr;
   PetscInt N = 2 * npts; // size of vectors
   PetscInt last_row = N - 1;
@@ -753,6 +756,9 @@ void petsc_part() {
   //start petsc/mpi
   ierr = PetscInitialize(&argc, &argv, (char *)0, help);
   if (ierr) { return ierr; }
+  MPI_Comm comm = PETSC_COMM_WORLD;
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &size);
 
   // create vectors
   ierr = VecCreate(PETSC_DECIDE, N, &abp); CHKERRQ(ierr);

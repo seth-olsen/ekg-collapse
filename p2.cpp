@@ -49,7 +49,7 @@ const double M_PI = 4.0*atan(1.0);
 // multiply by 4*M_PI*r^2 for dm/dr of scalar
 inline double dmdr_scalar(double xival, double pival, double alphaval,
 			  double betaval, double psival) {
-  return p4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
+  return pw4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
 
 inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
@@ -215,7 +215,7 @@ inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r + sqin(alpha[ind])*
-    (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*p4(psi[ind])/12.0 + 
+    (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*pw4(psi[ind])/12.0 + 
     M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
@@ -229,7 +229,7 @@ inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
 			   const vector<double>& alpha, const vector<double>& beta,
 			   const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
-    - 2*p4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
+    - 2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
     - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
 
 // ***********************  JACOBIAN  ***********************
@@ -240,7 +240,7 @@ inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*sqin(dr) - 8*M_PI*sq(pi[ind]) +
-    2*p4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
+    2*pw4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
 
 inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -248,11 +248,11 @@ inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 
 inline double jac_ab(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return 4*p4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
+  return 4*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
 
 inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return -p_m*2*p4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
+  return -p_m*2*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
 
 inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
@@ -314,7 +314,7 @@ inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*sqin(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
-    5*p4(psi[ind])*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / 12.0; }
+    5*pw4(psi[ind])*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / 12.0; }
 
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -457,7 +457,7 @@ int main(int argc, char **argv)
     cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
 			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
 			zero_pi,somm_cond,dspn_bound);
-    // *** BACK TO OLD INDENT FOR SPACE ***   
+    // *** BACK TO MAIN() INDENT FOR SPACE ***   
   ofstream specs;
   string specs_name = outfile + ".txt";
   specs.open(specs_name, ofstream::out);
