@@ -60,7 +60,7 @@ string param_print(string outfile, int lastpt, int save_pt, int nsteps,
     to_string(ic_r0) + "\nic_Amp = " + to_string(ic_Amp) + "\nmass check step = "
     + to_string(check_step) + "\nmaximum evolution time = " + to_string(nsteps*dt)
     + "\ndr = " + to_string(dr) + "\ndt = " + to_string(dt) +
-    "\n\noptions:\nzero pi_0 = " + z_p + "\nsommerfeld bc = " + s_c +
+    "\noptions:\nzero pi_0 = " + z_p + "\nsommerfeld bc = " + s_c +
     "\ndissipation at bound = " + d_b + "\n";
 }
 
