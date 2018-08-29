@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    153409,       4619]
-NotebookOptionsPosition[    140766,       4412]
-NotebookOutlinePosition[    141105,       4427]
-CellTagsIndexPosition[    141062,       4424]
+NotebookDataLength[    192812,       5867]
+NotebookOptionsPosition[    184311,       5730]
+NotebookOutlinePosition[    184655,       5745]
+CellTagsIndexPosition[    184612,       5742]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -558,208 +558,77 @@ Cell[BoxData[{
   3.737452460926227*^9}},ExpressionUUID->"1b0b2395-6157-4ea9-8469-\
 62352f99da9f"],
 
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"DrC2", " ", "=", " ", 
-  RowBox[{
-   RowBox[{"(", 
-    RowBox[{"1", "/", 
-     RowBox[{"(", 
-      RowBox[{"2", "*", "dr"}], ")"}]}], ")"}], "*", 
-   RowBox[{"{", 
-    RowBox[{"0", ",", 
-     RowBox[{"-", "1"}], ",", "0", ",", "1", ",", "0"}], "}"}]}]}]], "Input",
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"DrC2", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "/", 
+      RowBox[{"(", 
+       RowBox[{"2", "*", "dr"}], ")"}]}], ")"}], "*", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", 
+      RowBox[{"-", "1"}], ",", "0", ",", "1", ",", "0"}], "}"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DrF2", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "/", 
+      RowBox[{"(", 
+       RowBox[{"2", "*", "dr"}], ")"}]}], ")"}], "*", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "0", ",", 
+      RowBox[{"-", "3"}], ",", "4", ",", 
+      RowBox[{"-", "1"}]}], "}"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"DrB2", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "/", 
+      RowBox[{"(", 
+       RowBox[{"2", "*", "dr"}], ")"}]}], ")"}], "*", 
+    RowBox[{"{", 
+     RowBox[{"1", ",", 
+      RowBox[{"-", "4"}], ",", "3", ",", "0", ",", "0"}], "}"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Dr2C2", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "/", 
+      RowBox[{"(", 
+       RowBox[{"dr", "^", "2"}], ")"}]}], ")"}], "*", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "1", ",", 
+      RowBox[{"-", "2"}], ",", "1", ",", "0"}], "}"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Dr2F2jM1", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "/", 
+      RowBox[{"(", 
+       RowBox[{"dr", "^", "2"}], ")"}]}], ")"}], "*", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "2", ",", 
+      RowBox[{"-", "5"}], ",", "4", ",", 
+      RowBox[{"-", "1"}]}], "}"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Dr2B2jP1", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "/", 
+      RowBox[{"(", 
+       RowBox[{"dr", "^", "2"}], ")"}]}], ")"}], "*", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"-", "1"}], ",", "4", ",", 
+      RowBox[{"-", "5"}], ",", "2", ",", "0"}], "}"}]}]}], ";"}]}], "Input",
  CellChangeTimes->{{3.737452496311379*^9, 3.737452620646987*^9}, {
-  3.744462741593285*^9, 
-  3.7444627440034227`*^9}},ExpressionUUID->"0bc8cb27-b798-4914-a28b-\
+  3.744462741593285*^9, 3.7444627440034227`*^9}, {3.744557452446941*^9, 
+  3.74455750050597*^9}},ExpressionUUID->"0bc8cb27-b798-4914-a28b-\
 5afbf96b9bbe"],
-
-Cell[BoxData[
- RowBox[{"{", 
-  RowBox[{"0", ",", 
-   RowBox[{"-", 
-    FractionBox["1", 
-     RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ",", "0", ",", 
-   FractionBox["1", 
-    RowBox[{"2", " ", "\[CapitalDelta]r"}]], ",", "0"}], "}"}]], "Output",
- CellChangeTimes->{
-  3.737452622768882*^9, 3.7374529250725307`*^9, {3.738149573393806*^9, 
-   3.7381495768361483`*^9}, 3.742663560575589*^9, 3.742663717229395*^9, 
-   3.744125934817326*^9, 3.744380564419456*^9, 
-   3.744449677198751*^9},ExpressionUUID->"873a94c3-ef86-41df-a4fd-\
-544d54c1603b"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"DrF2", " ", "=", " ", 
-  RowBox[{
-   RowBox[{"(", 
-    RowBox[{"1", "/", 
-     RowBox[{"(", 
-      RowBox[{"2", "*", "dr"}], ")"}]}], ")"}], "*", 
-   RowBox[{"{", 
-    RowBox[{"0", ",", "0", ",", 
-     RowBox[{"-", "3"}], ",", "4", ",", 
-     RowBox[{"-", "1"}]}], "}"}]}]}]], "Input",
- CellChangeTimes->{{3.737395559560829*^9, 3.737395596815353*^9}, {
-  3.73739578136213*^9, 3.737395788474986*^9}, {3.7374526429034557`*^9, 
-  3.737452684030632*^9}},ExpressionUUID->"4ff14788-41e4-4f74-b8c2-\
-16e4ca6d113f"],
-
-Cell[BoxData[
- RowBox[{"{", 
-  RowBox[{"0", ",", "0", ",", 
-   RowBox[{"-", 
-    FractionBox["3", 
-     RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ",", 
-   FractionBox["2", "\[CapitalDelta]r"], ",", 
-   RowBox[{"-", 
-    FractionBox["1", 
-     RowBox[{"2", " ", "\[CapitalDelta]r"}]]}]}], "}"}]], "Output",
- CellChangeTimes->{3.737452700184039*^9, 3.737452926712594*^9, 
-  3.7381495806311283`*^9, 3.742663726215232*^9, 3.744125943888891*^9, 
-  3.744380566328898*^9, 
-  3.7444496793876953`*^9},ExpressionUUID->"4ab7d984-c016-4aac-82c6-\
-6967ce41953b"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"DrB2", " ", "=", " ", 
-  RowBox[{
-   RowBox[{"(", 
-    RowBox[{"1", "/", 
-     RowBox[{"(", 
-      RowBox[{"2", "*", "dr"}], ")"}]}], ")"}], "*", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", 
-     RowBox[{"-", "4"}], ",", "3", ",", "0", ",", "0"}], "}"}]}]}]], "Input",
- CellChangeTimes->{{3.737452713512124*^9, 
-  3.737452750823316*^9}},ExpressionUUID->"cc7b4fbb-236a-4a91-85f5-\
-f7f8addd87bc"],
-
-Cell[BoxData[
- RowBox[{"{", 
-  RowBox[{
-   FractionBox["1", 
-    RowBox[{"2", " ", "\[CapitalDelta]r"}]], ",", 
-   RowBox[{"-", 
-    FractionBox["2", "\[CapitalDelta]r"]}], ",", 
-   FractionBox["3", 
-    RowBox[{"2", " ", "\[CapitalDelta]r"}]], ",", "0", ",", "0"}], 
-  "}"}]], "Output",
- CellChangeTimes->{3.7374527526148777`*^9, 3.7374529286121893`*^9, 
-  3.738149583638722*^9, 3.742663728088029*^9, 3.744125946685741*^9, 
-  3.744380567869234*^9, 
-  3.744449680745923*^9},ExpressionUUID->"80684253-a32a-44cc-82df-\
-00989e27ec53"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"Dr2C2", " ", "=", " ", 
-  RowBox[{
-   RowBox[{"(", 
-    RowBox[{"1", "/", 
-     RowBox[{"(", 
-      RowBox[{"dr", "^", "2"}], ")"}]}], ")"}], "*", 
-   RowBox[{"{", 
-    RowBox[{"0", ",", "1", ",", 
-     RowBox[{"-", "2"}], ",", "1", ",", "0"}], "}"}]}]}]], "Input",
- CellChangeTimes->{
-  3.744126009934063*^9, {3.74412879973927*^9, 
-   3.744128809075905*^9}},ExpressionUUID->"6528202b-38ac-4213-a544-\
-b92f01cab680"],
-
-Cell[BoxData[
- RowBox[{"{", 
-  RowBox[{"0", ",", 
-   FractionBox["1", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]], ",", 
-   RowBox[{"-", 
-    FractionBox["2", 
-     SuperscriptBox["\[CapitalDelta]r", "2"]]}], ",", 
-   FractionBox["1", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]], ",", "0"}], "}"}]], "Output",
- CellChangeTimes->{3.744128814674*^9, 3.74438056976346*^9, 
-  3.7444496830575333`*^9},ExpressionUUID->"0236cc9b-eae5-4a89-b0dd-\
-e1e2d4d9f03e"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"Dr2F2jM1", " ", "=", " ", 
-  RowBox[{
-   RowBox[{"(", 
-    RowBox[{"1", "/", 
-     RowBox[{"(", 
-      RowBox[{"dr", "^", "2"}], ")"}]}], ")"}], "*", 
-   RowBox[{"{", 
-    RowBox[{"0", ",", "2", ",", 
-     RowBox[{"-", "5"}], ",", "4", ",", 
-     RowBox[{"-", "1"}]}], "}"}]}]}]], "Input",
- CellChangeTimes->{{3.7441288242191353`*^9, 3.744128824394043*^9}, {
-  3.744128944348896*^9, 
-  3.744128990629155*^9}},ExpressionUUID->"c255aa58-f22b-4898-802f-\
-e0a27d4e1fa1"],
-
-Cell[BoxData[
- RowBox[{"{", 
-  RowBox[{"0", ",", 
-   FractionBox["2", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]], ",", 
-   RowBox[{"-", 
-    FractionBox["5", 
-     SuperscriptBox["\[CapitalDelta]r", "2"]]}], ",", 
-   FractionBox["4", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]], ",", 
-   RowBox[{"-", 
-    FractionBox["1", 
-     SuperscriptBox["\[CapitalDelta]r", "2"]]}]}], "}"}]], "Output",
- CellChangeTimes->{3.744129016985216*^9, 3.744380571604604*^9, 
-  3.7444496850068817`*^9},ExpressionUUID->"ea0d24fb-d531-48cb-bc86-\
-44419d7b04f8"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"Dr2B2jP1", " ", "=", " ", 
-  RowBox[{
-   RowBox[{"(", 
-    RowBox[{"1", "/", 
-     RowBox[{"(", 
-      RowBox[{"dr", "^", "2"}], ")"}]}], ")"}], "*", 
-   RowBox[{"{", 
-    RowBox[{
-     RowBox[{"-", "1"}], ",", "4", ",", 
-     RowBox[{"-", "5"}], ",", "2", ",", "0"}], "}"}]}]}]], "Input",
- CellChangeTimes->{{3.7441290261893473`*^9, 
-  3.744129045221466*^9}},ExpressionUUID->"ebb431e4-2f99-4ed7-87d8-\
-aa9ed591349f"],
-
-Cell[BoxData[
- RowBox[{"{", 
-  RowBox[{
-   RowBox[{"-", 
-    FractionBox["1", 
-     SuperscriptBox["\[CapitalDelta]r", "2"]]}], ",", 
-   FractionBox["4", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]], ",", 
-   RowBox[{"-", 
-    FractionBox["5", 
-     SuperscriptBox["\[CapitalDelta]r", "2"]]}], ",", 
-   FractionBox["2", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]], ",", "0"}], "}"}]], "Output",
- CellChangeTimes->{3.74412905499865*^9, 3.744380573494767*^9, 
-  3.74444968689303*^9},ExpressionUUID->"8f4d76af-7be2-4afa-95df-1dee10405014"]
-}, Open  ]],
 
 Cell[BoxData[{
  RowBox[{
@@ -994,8 +863,9 @@ Cell[BoxData[
            StripOnInput->False,
            FontWeight->Bold], "2"]}]]}], 
       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}]}]], "Output",
- CellChangeTimes->{{3.744463501395076*^9, 
-  3.7444635299547*^9}},ExpressionUUID->"66f30be1-66ac-4fd9-8a66-f88ba555ebdf"]
+ CellChangeTimes->{{3.744463501395076*^9, 3.7444635299547*^9}, 
+   3.7445575201179667`*^9},ExpressionUUID->"6f734e61-c3de-4874-9c99-\
+71b5e463bfe0"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -1123,15 +993,7 @@ Cell[BoxData[
           FontWeight->Bold]], "+", 
         FractionBox["1", 
          SubscriptBox["r", "j"]]}], ")"}]}]}], ")"}]}], "-", 
-  RowBox[{
-   FractionBox["1", 
-    RowBox[{
-     SuperscriptBox[
-      StyleBox[
-       SubscriptBox["\[Psi]", "j"],
-       StripOnInput->False,
-       FontWeight->Bold], "4"], " ", 
-     SubsuperscriptBox["r", "j", "2"]}]], 
+  FractionBox[
    RowBox[{"\[CapitalDelta]t", " ", 
     RowBox[{"(", 
      RowBox[{
@@ -1264,10 +1126,17 @@ Cell[BoxData[
           FontWeight->Bold], "4"], " ", 
         SubsuperscriptBox["r", 
          RowBox[{"1", "+", "j"}], "2"]}], 
-       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}]}]}]], "Output",
- CellChangeTimes->{3.744463721636834*^9, 
-  3.744463811701955*^9},ExpressionUUID->"095ff2b8-d1fd-4711-b71e-\
-54f18c49bb73"]
+       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+   RowBox[{
+    SuperscriptBox[
+     StyleBox[
+      SubscriptBox["\[Psi]", "j"],
+      StripOnInput->False,
+      FontWeight->Bold], "4"], " ", 
+    SubsuperscriptBox["r", "j", "2"]}]]}]], "Output",
+ CellChangeTimes->{3.744463721636834*^9, 3.744463811701955*^9, 
+  3.744557521628437*^9},ExpressionUUID->"86112cd9-af82-4ecd-a948-\
+078cb7646e92"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -1400,9 +1269,8 @@ Cell[BoxData[
         FontWeight->Bold]}], 
       RowBox[{"6", " ", 
        SubscriptBox["r", "j"]}]]}], ")"}]}]}]], "Output",
- CellChangeTimes->{
-  3.7444614940549307`*^9},ExpressionUUID->"59670455-416e-42f6-b9f7-\
-96c8613c6226"]
+ CellChangeTimes->{3.7444614940549307`*^9, 
+  3.7445575240767*^9},ExpressionUUID->"b15991dc-7254-4096-b4e8-221b080f9ab8"]
 }, Open  ]],
 
 Cell[BoxData[
@@ -1556,9 +1424,9 @@ Cell[BoxData[
    SubscriptBox["r", "j"]]}]], "Output",
  CellChangeTimes->{
   3.744131221352517*^9, {3.744131847331184*^9, 3.744131854251994*^9}, 
-   3.744380591977642*^9, 
-   3.744449694105982*^9},ExpressionUUID->"a3ce246d-6852-44ef-a84d-\
-d725833aa3e9"]
+   3.744380591977642*^9, 3.744449694105982*^9, 
+   3.744557527240082*^9},ExpressionUUID->"590cae41-a50f-44f0-ad55-\
+604e24179aab"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -1720,8 +1588,9 @@ Cell[BoxData[
        FontWeight->Bold], 
       SubscriptBox["r", "j"]]}], ")"}]}]}]], "Output",
  CellChangeTimes->{3.744132106141781*^9, 3.744380593833156*^9, 
-  3.744449696826251*^9},ExpressionUUID->"3bbf602b-2cc0-4fe8-9e53-\
-b5c6055b9f09"]
+  3.744449696826251*^9, 
+  3.744557529219305*^9},ExpressionUUID->"64173312-b9ce-4b37-94b1-\
+9a220f7dbce7"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -1881,622 +1750,2071 @@ Cell[BoxData[
      StripOnInput->False,
      FontWeight->Bold]}]]}]], "Output",
  CellChangeTimes->{3.744132550789666*^9, 3.7443805954754343`*^9, 
-  3.7444496987340717`*^9},ExpressionUUID->"430805fa-8f3b-48aa-9a55-\
-a5c82c8b8dfc"]
+  3.7444496987340717`*^9, 
+  3.744557531071212*^9},ExpressionUUID->"299f0ab1-f864-44fd-9fa6-\
+7c717a306844"]
 }, Open  ]],
 
-Cell[BoxData[
- RowBox[{"\[IndentingNewLine]", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-  "\[IndentingNewLine]", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-  "\[IndentingNewLine]"}]], "Input",
- CellChangeTimes->{{3.7443840225366907`*^9, 3.74438402348037*^9}, {
-  3.744384099354073*^9, 
-  3.744384099784852*^9}},ExpressionUUID->"ada5b68f-1135-4226-a760-\
-14c94875c24e"],
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"aam1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"alpha", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"abm1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"beta", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"apm1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"psi", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"aa", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"alpha", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"ab", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"beta", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"ap", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"psi", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"aap1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"alpha", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"abp1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"beta", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"app1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2alpha", ",", " ", 
+     RowBox[{"psi", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.7445580327911243`*^9, 
+  3.744558082168244*^9}},ExpressionUUID->"c74592a0-c47f-44ce-aa62-\
+d2e5c5f59f53"],
 
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2psi", ",", " ", 
-   RowBox[{"alpha", "[", 
-    RowBox[{"j", "-", "1"}], "]"}]}], "]"}]], "Input",
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"bam1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"alpha", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bbm1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"beta", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bpm1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"psi", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"ba", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"alpha", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bb", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"beta", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bp", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"psi", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bap1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"alpha", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bbp1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"beta", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"bpp1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2beta", ",", " ", 
+     RowBox[{"psi", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}]}], "Input",
  CellChangeTimes->{{3.744380746635068*^9, 3.744380793505768*^9}, 
-   3.744386610583934*^9, 
-   3.744388965058918*^9},ExpressionUUID->"29cff7f8-a84a-465d-9ac1-\
-c6520b57ef3a"],
+   3.744386610583934*^9, 3.744388965058918*^9, 3.744557684985855*^9, {
+   3.744557802200107*^9, 3.7445578395657387`*^9}, 3.74455790287704*^9, {
+   3.744558010326549*^9, 3.744558026683571*^9}, {3.744558090528557*^9, 
+   3.744558099904319*^9}},ExpressionUUID->"37dc5043-ca39-41d1-80c4-\
+d0361d66ff32"],
 
-Cell[BoxData["0"], "Output",
- CellChangeTimes->{3.744380796299747*^9, 3.744386644755896*^9, 
-  3.7443889851170473`*^9},ExpressionUUID->"c94f37f2-590c-4cf3-b7d3-\
-09e99213e7d5"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.744384025437315*^9, 
-  3.744384037175922*^9}},ExpressionUUID->"1e7872ab-3442-45db-ac47-\
-e0a3660c1f44"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2alpha", ",", " ", 
-   RowBox[{"beta", "[", 
-    RowBox[{"j", "-", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744382739392303*^9, 3.744382743950169*^9}, 
-   3.744386611934617*^9, 3.7443889657763557`*^9, {3.744395409938826*^9, 
-   3.7443954109598427`*^9}},ExpressionUUID->"6875d3f9-c63d-4366-ae9f-\
-13c550d80787"],
-
-Cell[BoxData[
- FractionBox[
-  RowBox[{"2", " ", 
-   SuperscriptBox[
-    StyleBox[
-     SubscriptBox["\[Psi]", "j"],
-     StripOnInput->False,
-     FontWeight->Bold], "4"], " ", 
-   RowBox[{"(", 
-    RowBox[{
-     RowBox[{"-", 
-      FractionBox[
-       StyleBox[
-        SubscriptBox["\[Beta]", 
-         RowBox[{
-          RowBox[{"-", "1"}], "+", "j"}]],
-        StripOnInput->False,
-        FontWeight->Bold], 
-       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-     FractionBox[
-      StyleBox[
-       SubscriptBox["\[Beta]", 
-        RowBox[{"1", "+", "j"}]],
-       StripOnInput->False,
-       FontWeight->Bold], 
-      RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
-     FractionBox[
-      StyleBox[
-       SubscriptBox["\[Beta]", "j"],
-       StripOnInput->False,
-       FontWeight->Bold], 
-      SubscriptBox["r", "j"]]}], ")"}]}], 
-  RowBox[{"3", " ", "\[CapitalDelta]r", " ", 
-   StyleBox[
-    SubscriptBox["\[Alpha]", "j"],
-    StripOnInput->False,
-    FontWeight->Bold]}]]], "Output",
- CellChangeTimes->{3.744382745785986*^9, 3.744386646118433*^9, 
-  3.7443889882877817`*^9, 
-  3.744395412749213*^9},ExpressionUUID->"5ca030fd-ff62-480c-bc50-\
-25c67a168426"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.74438402715337*^9, 
-  3.744384035705207*^9}},ExpressionUUID->"e794d4d3-2a55-4c40-9591-\
-6c9c3198edc4"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2psi", ",", " ", 
-   RowBox[{"psi", "[", 
-    RowBox[{"j", "-", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744382760895719*^9, 3.7443827618079863`*^9}, 
-   3.744386612629447*^9, 
-   3.744388966270237*^9},ExpressionUUID->"ec802f6c-28d3-4e58-8f2d-\
-a8d4a7d713ea"],
-
-Cell[BoxData[
+Cell[BoxData[{
  RowBox[{
-  FractionBox["1", 
-   SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
-  FractionBox["1", 
-   RowBox[{"\[CapitalDelta]r", " ", 
-    SubscriptBox["r", "j"]}]]}]], "Output",
- CellChangeTimes->{3.7443827632241983`*^9, 3.744386643375004*^9, 
-  3.744388993742996*^9},ExpressionUUID->"087a7536-e43b-4232-bd42-\
-0fa2ba7ebbec"]
-}, Open  ]],
-
-Cell[BoxData["\[IndentingNewLine]"], "Input",
- CellChangeTimes->{
-  3.7443840286856823`*^9},ExpressionUUID->"1a7c4101-dd7c-41d2-93ed-\
-5669cc07ff56"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2psi", ",", " ", 
-   RowBox[{"alpha", "[", "j", "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744380860786544*^9, 3.7443808609620447`*^9}, 
-   3.744386613110265*^9, 
-   3.74438896681428*^9},ExpressionUUID->"ce322371-6ee8-45a1-9c41-\
-047ee94a06fa"],
-
-Cell[BoxData[
- RowBox[{"-", 
-  FractionBox[
-   RowBox[{
-    SuperscriptBox[
-     StyleBox[
-      SubscriptBox["\[Psi]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold], "5"], " ", 
-    RowBox[{"(", 
-     RowBox[{
-      RowBox[{"-", 
-       FractionBox[
-        StyleBox[
-         SubscriptBox["\[Beta]", 
-          RowBox[{
-           RowBox[{"-", "1"}], "+", "j"}]],
-         StripOnInput->False,
-         FontWeight->Bold], 
-        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-      FractionBox[
-       StyleBox[
-        SubscriptBox["\[Beta]", 
-         RowBox[{"1", "+", "j"}]],
-        StripOnInput->False,
-        FontWeight->Bold], 
-       RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
-      FractionBox[
-       StyleBox[
-        SubscriptBox["\[Beta]", "j"],
-        StripOnInput->False,
-        FontWeight->Bold], 
-       SubscriptBox["r", "j"]]}], ")"}]}], 
-   RowBox[{"6", " ", 
-    SuperscriptBox[
-     StyleBox[
-      SubscriptBox["\[Alpha]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold], "3"]}]]}]], "Output",
- CellChangeTimes->{3.744380862079529*^9, 3.744386642067864*^9, 
-  3.744388997555251*^9},ExpressionUUID->"9a5dc5aa-165b-4910-8d5e-\
-17b41cdd30aa"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.744384043625882*^9, 
-  3.744384044345285*^9}},ExpressionUUID->"38b0f927-ebda-412b-beee-\
-cb5740b94581"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2beta", ",", " ", 
-   RowBox[{"beta", "[", "j", "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744382937168296*^9, 3.744382938469245*^9}, 
-   3.7443866135901623`*^9, 3.744388967338501*^9, {3.744395373805537*^9, 
-   3.744395374584979*^9}, {3.744396758026312*^9, 
-   3.744396758525297*^9}},ExpressionUUID->"6c630199-cbfb-4903-87ca-\
-04015f70daac"],
-
-Cell[BoxData[
+  RowBox[{"pam1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"alpha", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
  RowBox[{
-  RowBox[{"-", 
-   FractionBox["2", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]]}], "-", 
-  FractionBox[
-   RowBox[{
-    RowBox[{"-", 
-     FractionBox[
-      RowBox[{
-       RowBox[{"-", 
-        FractionBox[
-         StyleBox[
-          SubscriptBox["\[Alpha]", 
-           RowBox[{
-            RowBox[{"-", "1"}], "+", "j"}]],
-          StripOnInput->False,
-          FontWeight->Bold], 
-         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-       FractionBox[
-        StyleBox[
-         SubscriptBox["\[Alpha]", 
-          RowBox[{"1", "+", "j"}]],
-         StripOnInput->False,
-         FontWeight->Bold], 
-        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
-      StyleBox[
-       SubscriptBox["\[Alpha]", "j"],
-       StripOnInput->False,
-       FontWeight->Bold]]}], "+", 
-    FractionBox[
-     RowBox[{"6", " ", 
-      RowBox[{"(", 
-       RowBox[{
-        RowBox[{"-", 
-         FractionBox[
-          StyleBox[
-           SubscriptBox["\[Psi]", 
-            RowBox[{
-             RowBox[{"-", "1"}], "+", "j"}]],
-           StripOnInput->False,
-           FontWeight->Bold], 
-          RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-        FractionBox[
-         StyleBox[
-          SubscriptBox["\[Psi]", 
-           RowBox[{"1", "+", "j"}]],
-          StripOnInput->False,
-          FontWeight->Bold], 
-         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
-     StyleBox[
-      SubscriptBox["\[Psi]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold]], "+", 
-    FractionBox["2", 
-     SubscriptBox["r", "j"]]}], 
-   SubscriptBox["r", "j"]]}]], "Output",
- CellChangeTimes->{3.744382939593443*^9, 3.74438664094742*^9, 
-  3.744389000097207*^9, 3.744395375782528*^9, 
-  3.7443967593101187`*^9},ExpressionUUID->"08373fbe-d90f-40ac-914c-\
-a237ce06ebe5"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.744384046478672*^9, 
-  3.744384046679841*^9}},ExpressionUUID->"9505df15-7e35-47d5-804d-\
-8297670ac329"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2psi", ",", " ", 
-   RowBox[{"psi", "[", "j", "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.7443829440878983`*^9, 3.744382945669839*^9}, 
-   3.744386614066218*^9, 
-   3.7443889678100653`*^9},ExpressionUUID->"35d50237-4c54-46a7-969f-\
-c4e46636cd81"],
-
-Cell[BoxData[
+  RowBox[{"pbm1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"beta", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
  RowBox[{
-  RowBox[{"-", 
-   FractionBox["2", 
-    SuperscriptBox["\[CapitalDelta]r", "2"]]}], "+", 
-  RowBox[{"\[Pi]", " ", 
-   RowBox[{"(", 
-    RowBox[{
-     SuperscriptBox[
-      StyleBox[
-       SubsuperscriptBox["\[Xi]", "j", "n"],
-       StripOnInput->False,
-       FontWeight->Bold], "2"], "+", 
-     SuperscriptBox[
-      StyleBox[
-       SubsuperscriptBox["\[CapitalPi]", "j", "n"],
-       StripOnInput->False,
-       FontWeight->Bold], "2"]}], ")"}]}], "+", 
-  FractionBox[
-   RowBox[{"5", " ", 
-    SuperscriptBox[
-     StyleBox[
-      SubscriptBox["\[Psi]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold], "4"], " ", 
-    RowBox[{"(", 
-     RowBox[{
-      RowBox[{"-", 
-       FractionBox[
-        StyleBox[
-         SubscriptBox["\[Beta]", 
-          RowBox[{
-           RowBox[{"-", "1"}], "+", "j"}]],
-         StripOnInput->False,
-         FontWeight->Bold], 
-        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-      FractionBox[
-       StyleBox[
-        SubscriptBox["\[Beta]", 
-         RowBox[{"1", "+", "j"}]],
-        StripOnInput->False,
-        FontWeight->Bold], 
-       RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
-      FractionBox[
-       StyleBox[
-        SubscriptBox["\[Beta]", "j"],
-        StripOnInput->False,
-        FontWeight->Bold], 
-       SubscriptBox["r", "j"]]}], ")"}]}], 
-   RowBox[{"12", " ", 
-    SuperscriptBox[
-     StyleBox[
-      SubscriptBox["\[Alpha]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold], "2"]}]]}]], "Output",
- CellChangeTimes->{3.7443829462466784`*^9, 3.744386639844451*^9, 
-  3.7443890038050413`*^9},ExpressionUUID->"a254bee8-b1c7-48ef-97cd-\
-67337b6d824b"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.744388764853856*^9, 
-  3.744388766562855*^9}},ExpressionUUID->"fec3d7b1-5b9e-4d52-a7a1-\
-739be9cfba85"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2psi", ",", " ", 
-   RowBox[{"alpha", "[", 
-    RowBox[{"j", "+", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744380746635068*^9, 3.744380793505768*^9}, 
-   3.744382983036047*^9, 3.74438663072285*^9, 
-   3.744388968354464*^9},ExpressionUUID->"7052c7a7-0d3e-463f-8dfa-\
-7d80a490ba0f"],
-
-Cell[BoxData["0"], "Output",
- CellChangeTimes->{3.744388778564218*^9, 
-  3.744389007188278*^9},ExpressionUUID->"eb21e795-fd9c-4d15-82e1-\
-433053f31938"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.744388780460948*^9, 
-  3.74438878141063*^9}},ExpressionUUID->"fee18e4b-000f-44ec-afa0-\
-4e732947baf9"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2beta", ",", " ", 
-   RowBox[{"beta", "[", 
-    RowBox[{"j", "+", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.7443839763770638`*^9, 3.744383976880508*^9}, 
-   3.744386631512455*^9, 3.744388972362937*^9, {3.7443953877643147`*^9, 
-   3.744395388608369*^9}, {3.744396771305641*^9, 
-   3.744396771669076*^9}},ExpressionUUID->"3bb3a62c-cc99-4609-b090-\
-87e4bb0e10d5"],
-
-Cell[BoxData[
+  RowBox[{"ppm1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"psi", "[", 
+      RowBox[{"j", "-", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
  RowBox[{
-  FractionBox["1", 
-   SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
-  FractionBox[
-   RowBox[{
-    RowBox[{"-", 
-     FractionBox[
-      RowBox[{
-       RowBox[{"-", 
-        FractionBox[
-         StyleBox[
-          SubscriptBox["\[Alpha]", 
-           RowBox[{
-            RowBox[{"-", "1"}], "+", "j"}]],
-          StripOnInput->False,
-          FontWeight->Bold], 
-         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-       FractionBox[
-        StyleBox[
-         SubscriptBox["\[Alpha]", 
-          RowBox[{"1", "+", "j"}]],
-         StripOnInput->False,
-         FontWeight->Bold], 
-        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
-      StyleBox[
-       SubscriptBox["\[Alpha]", "j"],
-       StripOnInput->False,
-       FontWeight->Bold]]}], "+", 
-    FractionBox[
-     RowBox[{"6", " ", 
-      RowBox[{"(", 
-       RowBox[{
-        RowBox[{"-", 
-         FractionBox[
-          StyleBox[
-           SubscriptBox["\[Psi]", 
-            RowBox[{
-             RowBox[{"-", "1"}], "+", "j"}]],
-           StripOnInput->False,
-           FontWeight->Bold], 
-          RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-        FractionBox[
-         StyleBox[
-          SubscriptBox["\[Psi]", 
-           RowBox[{"1", "+", "j"}]],
-          StripOnInput->False,
-          FontWeight->Bold], 
-         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
-     StyleBox[
-      SubscriptBox["\[Psi]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold]], "+", 
-    FractionBox["2", 
-     SubscriptBox["r", "j"]]}], 
-   RowBox[{"2", " ", "\[CapitalDelta]r"}]]}]], "Output",
- CellChangeTimes->{3.744388785398015*^9, 3.744389009845031*^9, 
-  3.744395389181574*^9, 
-  3.74439677221766*^9},ExpressionUUID->"d4cddc29-15d3-4148-a614-65638f500e2e"]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.744388786739502*^9, 
-  3.744388788108149*^9}},ExpressionUUID->"ead25bef-dd33-4a85-b6dd-\
-d4d4b276b2c9"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2psi", ",", " ", 
-   RowBox[{"psi", "[", 
-    RowBox[{"j", "+", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.7443839763770638`*^9, 3.744383976880508*^9}, 
-   3.744386631512455*^9, {3.744388792900114*^9, 3.7443887949068823`*^9}, 
-   3.744388973728633*^9},ExpressionUUID->"c63e3159-f9b2-4b82-a93d-\
-7075a2fe52a1"],
-
-Cell[BoxData[
+  RowBox[{"pa", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"alpha", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
  RowBox[{
-  FractionBox["1", 
-   SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
-  FractionBox["1", 
-   RowBox[{"\[CapitalDelta]r", " ", 
-    SubscriptBox["r", "j"]}]]}]], "Output",
- CellChangeTimes->{3.744388796070236*^9, 
-  3.744389013423572*^9},ExpressionUUID->"7476178d-cbb0-446c-8bf0-\
-3d135d3ae3f0"]
-}, Open  ]],
-
-Cell[BoxData[
- RowBox[{"\[IndentingNewLine]", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-  "\[IndentingNewLine]", "\[IndentingNewLine]", 
-  "\[IndentingNewLine]"}]], "Input",
+  RowBox[{"pb", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"beta", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"pp", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"psi", "[", "j", "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"pap1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"alpha", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"pbp1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"beta", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"ppp1", " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{"dr2psi", ",", " ", 
+     RowBox[{"psi", "[", 
+      RowBox[{"j", "+", "1"}], "]"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.744384061258319*^9, 3.7443840623295097`*^9}, {
-  3.744384102528907*^9, 
-  3.744384102976582*^9}},ExpressionUUID->"8bd83783-6ec1-412c-a8a3-\
+  3.744384102528907*^9, 3.744384102976582*^9}, {3.74455776958038*^9, 
+  3.744557771668577*^9}, {3.7445578876803226`*^9, 
+  3.744558006070579*^9}},ExpressionUUID->"8bd83783-6ec1-412c-a8a3-\
 203a72b5fd87"],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2alpha", ",", " ", 
-   RowBox[{"alpha", "[", 
-    RowBox[{"j", "+", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.7443808649629297`*^9, 
-  3.744380866098778*^9}},ExpressionUUID->"79f5b5f8-a3df-4cad-a8ca-\
-c631f14ee43e"],
+ RowBox[{"jac", " ", "=", " ", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+     "aam1", ",", "abm1", ",", "apm1", ",", "aa", ",", "ab", ",", "ap", ",", 
+      "aap1", ",", "abp1", ",", "app1"}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{
+     "bam1", ",", "bbm1", ",", "bpm1", ",", "ba", ",", "bb", ",", "bp", ",", 
+      "bap1", ",", "bbp1", ",", "bpp1"}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{
+     "pam1", ",", "pbm1", ",", "ppm1", ",", "pa", ",", "pb", ",", "pp", ",", 
+      "pap1", ",", "pbp1", ",", "ppp1"}], "}"}]}], "}"}]}]], "Input",
+ CellChangeTimes->{{3.744558121057382*^9, 
+  3.7445582471292152`*^9}},ExpressionUUID->"82c1df21-2872-428c-be92-\
+a934f940e936"],
 
 Cell[BoxData[
- RowBox[{
-  FractionBox["1", 
-   SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
-  FractionBox[
-   RowBox[{
-    FractionBox[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
+      FractionBox[
+       RowBox[{
+        FractionBox[
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Psi]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["1", 
+         SubscriptBox["r", "j"]]}], "\[CapitalDelta]r"]}], ",", 
+     FractionBox[
+      RowBox[{"2", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "4"], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{"1", "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          SubscriptBox["r", "j"]]}], ")"}]}], 
+      RowBox[{"3", " ", "\[CapitalDelta]r", " ", 
+       StyleBox[
+        SubscriptBox["\[Alpha]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold]}]], ",", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Alpha]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", 
+           RowBox[{"1", "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], ",", 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox["2", 
+        SuperscriptBox["\[CapitalDelta]r", "2"]]}], "-", 
+      RowBox[{"8", " ", "\[Pi]", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]}], "+", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "4"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Beta]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", "j"],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            SubscriptBox["r", "j"]]}], ")"}], "2"]}], 
+       RowBox[{"3", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]}]]}], ",", 
+     FractionBox[
+      RowBox[{"4", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "4"], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{"1", "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          SubscriptBox["r", "j"]]}], ")"}]}], 
+      RowBox[{"3", " ", 
+       StyleBox[
+        SubscriptBox["\[Alpha]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold], " ", 
+       SubscriptBox["r", "j"]}]], ",", 
      RowBox[{
       RowBox[{"-", 
        FractionBox[
-        StyleBox[
-         SubscriptBox["\[Psi]", 
+        RowBox[{"2", " ", 
+         RowBox[{"(", 
           RowBox[{
-           RowBox[{"-", "1"}], "+", "j"}]],
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}], " ", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]]}], "-", 
+      FractionBox[
+       RowBox[{"8", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "3"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Beta]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", "j"],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            SubscriptBox["r", "j"]]}], ")"}], "2"]}], 
+       RowBox[{"3", " ", 
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], ",", 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
+      FractionBox[
+       RowBox[{
+        FractionBox[
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Psi]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["1", 
+         SubscriptBox["r", "j"]]}], "\[CapitalDelta]r"]}], ",", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "4"], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"3", " ", "\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], ",", 
+     FractionBox[
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", 
+           RowBox[{
+            RowBox[{"-", "1"}], "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+       FractionBox[
+        StyleBox[
+         SubscriptBox["\[Alpha]", 
+          RowBox[{"1", "+", "j"}]],
          StripOnInput->False,
          FontWeight->Bold], 
-        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-      FractionBox[
+        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+      RowBox[{"\[CapitalDelta]r", " ", 
        StyleBox[
-        SubscriptBox["\[Psi]", 
-         RowBox[{"1", "+", "j"}]],
+        SubscriptBox["\[Psi]", "j"],
         StripOnInput->False,
-        FontWeight->Bold], 
-       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
-     StyleBox[
-      SubscriptBox["\[Psi]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold]], "+", 
-    FractionBox["1", 
-     SubscriptBox["r", "j"]]}], "\[CapitalDelta]r"]}]], "Output",
- CellChangeTimes->{
-  3.7443808707482986`*^9},ExpressionUUID->"9c71008e-1eeb-4ed7-acdc-\
-f738b835a002"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2alpha", ",", " ", 
-   RowBox[{"beta", "[", 
-    RowBox[{"j", "+", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744382963946216*^9, 3.7443829664251623`*^9}, {
-  3.7443841080838757`*^9, 
-  3.744384112384894*^9}},ExpressionUUID->"c7e9bcfd-f704-4e6b-bb55-\
-04b84f2ff30f"],
-
-Cell[BoxData[
- RowBox[{"-", 
-  FractionBox[
-   RowBox[{"2", " ", 
-    SuperscriptBox[
-     StyleBox[
-      SubscriptBox["\[Psi]", "j"],
-      StripOnInput->False,
-      FontWeight->Bold], "4"], " ", 
-    RowBox[{"(", 
-     RowBox[{
-      RowBox[{"-", 
+        FontWeight->Bold]}]]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     FractionBox[
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Beta]", 
+           RowBox[{
+            RowBox[{"-", "1"}], "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
        FractionBox[
         StyleBox[
          SubscriptBox["\[Beta]", 
-          RowBox[{
-           RowBox[{"-", "1"}], "+", "j"}]],
+          RowBox[{"1", "+", "j"}]],
          StripOnInput->False,
          FontWeight->Bold], 
-        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-      FractionBox[
+        RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+       FractionBox[
+        StyleBox[
+         SubscriptBox["\[Beta]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], 
+        SubscriptBox["r", "j"]]}], 
+      RowBox[{"2", " ", "\[CapitalDelta]r", " ", 
        StyleBox[
-        SubscriptBox["\[Beta]", 
-         RowBox[{"1", "+", "j"}]],
+        SubscriptBox["\[Alpha]", "j"],
         StripOnInput->False,
-        FontWeight->Bold], 
-       RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+        FontWeight->Bold]}]], ",", 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
       FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+          StyleBox[
+           SubscriptBox["\[Alpha]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold]]}], "+", 
+        FractionBox[
+         RowBox[{"6", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", 
+             FractionBox[
+              StyleBox[
+               SubscriptBox["\[Psi]", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", "j"}]],
+               StripOnInput->False,
+               FontWeight->Bold], 
+              RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{"1", "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["2", 
+         SubscriptBox["r", "j"]]}], 
+       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ",", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"3", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], ",", 
+     RowBox[{
+      FractionBox[
+       RowBox[{"12", " ", "\[Pi]", " ", 
+        StyleBox[
+         SubsuperscriptBox["\[Xi]", "j", "n"],
+         StripOnInput->False,
+         FontWeight->Bold], " ", 
+        StyleBox[
+         SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+         StripOnInput->False,
+         FontWeight->Bold]}], 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]], "+", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Alpha]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]]}], ",", 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox["2", 
+        SuperscriptBox["\[CapitalDelta]r", "2"]]}], "-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+          StyleBox[
+           SubscriptBox["\[Alpha]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold]]}], "+", 
+        FractionBox[
+         RowBox[{"6", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", 
+             FractionBox[
+              StyleBox[
+               SubscriptBox["\[Psi]", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", "j"}]],
+               StripOnInput->False,
+               FontWeight->Bold], 
+              RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{"1", "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["2", 
+         SubscriptBox["r", "j"]]}], 
+       SubscriptBox["r", "j"]]}], ",", 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"24", " ", "\[Pi]", " ", 
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], " ", 
+         StyleBox[
+          SubsuperscriptBox["\[Xi]", "j", "n"],
+          StripOnInput->False,
+          FontWeight->Bold], " ", 
+         StyleBox[
+          SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+          StripOnInput->False,
+          FontWeight->Bold]}], 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "3"]]}], "-", 
+      FractionBox[
+       RowBox[{"6", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Psi]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]]}], ",", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Beta]", 
+           RowBox[{"1", "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Beta]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         SubscriptBox["r", "j"]]}], 
+       RowBox[{"2", " ", "\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], ",", 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+          StyleBox[
+           SubscriptBox["\[Alpha]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold]]}], "+", 
+        FractionBox[
+         RowBox[{"6", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", 
+             FractionBox[
+              StyleBox[
+               SubscriptBox["\[Psi]", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", "j"}]],
+               StripOnInput->False,
+               FontWeight->Bold], 
+              RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{"1", "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["2", 
+         SubscriptBox["r", "j"]]}], 
+       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ",", 
+     FractionBox[
+      RowBox[{"3", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{"1", "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          SubscriptBox["r", "j"]]}], ")"}]}], 
+      RowBox[{"\[CapitalDelta]r", " ", 
        StyleBox[
-        SubscriptBox["\[Beta]", "j"],
+        SubscriptBox["\[Psi]", "j"],
         StripOnInput->False,
-        FontWeight->Bold], 
-       SubscriptBox["r", "j"]]}], ")"}]}], 
-   RowBox[{"3", " ", "\[CapitalDelta]r", " ", 
-    StyleBox[
-     SubscriptBox["\[Alpha]", "j"],
-     StripOnInput->False,
-     FontWeight->Bold]}]]}]], "Output",
- CellChangeTimes->{3.744382967441326*^9, 
-  3.744384115036367*^9},ExpressionUUID->"25122814-e19e-4a1b-a2d7-\
-e42a59693493"]
+        FontWeight->Bold]}]]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", 
+     RowBox[{"-", 
+      FractionBox[
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "5"], 
+       RowBox[{"24", " ", "\[CapitalDelta]r", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]}]]}], ",", 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
+      FractionBox["1", 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        SubscriptBox["r", "j"]}]]}], ",", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "5"], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"6", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "3"]}]]}], ",", 
+     RowBox[{"-", 
+      FractionBox[
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "5"], 
+       RowBox[{"12", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"], " ", 
+        SubscriptBox["r", "j"]}]]}], ",", 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox["2", 
+        SuperscriptBox["\[CapitalDelta]r", "2"]]}], "+", 
+      RowBox[{"\[Pi]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         SuperscriptBox[
+          StyleBox[
+           SubsuperscriptBox["\[Xi]", "j", "n"],
+           StripOnInput->False,
+           FontWeight->Bold], "2"], "+", 
+         SuperscriptBox[
+          StyleBox[
+           SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+           StripOnInput->False,
+           FontWeight->Bold], "2"]}], ")"}]}], "+", 
+      FractionBox[
+       RowBox[{"5", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "4"], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"12", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]}]]}], ",", "0", ",", 
+     FractionBox[
+      SuperscriptBox[
+       StyleBox[
+        SubscriptBox["\[Psi]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold], "5"], 
+      RowBox[{"24", " ", "\[CapitalDelta]r", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]}]], ",", 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
+      FractionBox["1", 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        SubscriptBox["r", "j"]}]]}]}], "}"}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.7445582494782467`*^9},ExpressionUUID->"340f9896-c13c-4ad1-8875-\
+bcbf67bf7f2b"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
- RowBox[{"D", "[", 
-  RowBox[{"dr2alpha", ",", " ", 
-   RowBox[{"psi", "[", 
-    RowBox[{"j", "+", "1"}], "]"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.744380746635068*^9, 3.744380793505768*^9}, 
-   3.744382983036047*^9, {3.744384119881069*^9, 
-   3.744384123032099*^9}},ExpressionUUID->"2e1608a6-4ef9-4051-94f1-\
-82223c9a0317"],
+ RowBox[{"TableForm", "[", "jac", "]"}]], "Input",
+ NumberMarks->False,ExpressionUUID->"98213345-76a3-47a6-8938-3e30c6d66b4b"],
 
 Cell[BoxData[
- FractionBox[
-  RowBox[{
-   RowBox[{"-", 
-    FractionBox[
-     StyleBox[
-      SubscriptBox["\[Alpha]", 
+ TagBox[GridBox[{
+    {
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
+      FractionBox[
        RowBox[{
-        RowBox[{"-", "1"}], "+", "j"}]],
-      StripOnInput->False,
-      FontWeight->Bold], 
-     RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
-   FractionBox[
-    StyleBox[
-     SubscriptBox["\[Alpha]", 
-      RowBox[{"1", "+", "j"}]],
-     StripOnInput->False,
-     FontWeight->Bold], 
-    RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
-  RowBox[{"\[CapitalDelta]r", " ", 
-   StyleBox[
-    SubscriptBox["\[Psi]", "j"],
-    StripOnInput->False,
-    FontWeight->Bold]}]]], "Output",
+        FractionBox[
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Psi]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["1", 
+         SubscriptBox["r", "j"]]}], "\[CapitalDelta]r"]}], 
+     FractionBox[
+      RowBox[{"2", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "4"], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{"1", "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          SubscriptBox["r", "j"]]}], ")"}]}], 
+      RowBox[{"3", " ", "\[CapitalDelta]r", " ", 
+       StyleBox[
+        SubscriptBox["\[Alpha]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold]}]], 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Alpha]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", 
+           RowBox[{"1", "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox["2", 
+        SuperscriptBox["\[CapitalDelta]r", "2"]]}], "-", 
+      RowBox[{"8", " ", "\[Pi]", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]}], "+", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "4"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Beta]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", "j"],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            SubscriptBox["r", "j"]]}], ")"}], "2"]}], 
+       RowBox[{"3", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]}]]}], 
+     FractionBox[
+      RowBox[{"4", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "4"], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{"1", "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          SubscriptBox["r", "j"]]}], ")"}]}], 
+      RowBox[{"3", " ", 
+       StyleBox[
+        SubscriptBox["\[Alpha]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold], " ", 
+       SubscriptBox["r", "j"]}]], 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}], " ", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]]}], "-", 
+      FractionBox[
+       RowBox[{"8", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "3"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Beta]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", "j"],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            SubscriptBox["r", "j"]]}], ")"}], "2"]}], 
+       RowBox[{"3", " ", 
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
+      FractionBox[
+       RowBox[{
+        FractionBox[
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Psi]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["1", 
+         SubscriptBox["r", "j"]]}], "\[CapitalDelta]r"]}], 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "4"], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"3", " ", "\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], 
+     FractionBox[
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", 
+           RowBox[{
+            RowBox[{"-", "1"}], "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+       FractionBox[
+        StyleBox[
+         SubscriptBox["\[Alpha]", 
+          RowBox[{"1", "+", "j"}]],
+         StripOnInput->False,
+         FontWeight->Bold], 
+        RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+      RowBox[{"\[CapitalDelta]r", " ", 
+       StyleBox[
+        SubscriptBox["\[Psi]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold]}]]},
+    {
+     FractionBox[
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Beta]", 
+           RowBox[{
+            RowBox[{"-", "1"}], "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+       FractionBox[
+        StyleBox[
+         SubscriptBox["\[Beta]", 
+          RowBox[{"1", "+", "j"}]],
+         StripOnInput->False,
+         FontWeight->Bold], 
+        RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+       FractionBox[
+        StyleBox[
+         SubscriptBox["\[Beta]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], 
+        SubscriptBox["r", "j"]]}], 
+      RowBox[{"2", " ", "\[CapitalDelta]r", " ", 
+       StyleBox[
+        SubscriptBox["\[Alpha]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold]}]], 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+          StyleBox[
+           SubscriptBox["\[Alpha]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold]]}], "+", 
+        FractionBox[
+         RowBox[{"6", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", 
+             FractionBox[
+              StyleBox[
+               SubscriptBox["\[Psi]", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", "j"}]],
+               StripOnInput->False,
+               FontWeight->Bold], 
+              RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{"1", "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["2", 
+         SubscriptBox["r", "j"]]}], 
+       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"3", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], 
+     RowBox[{
+      FractionBox[
+       RowBox[{"12", " ", "\[Pi]", " ", 
+        StyleBox[
+         SubsuperscriptBox["\[Xi]", "j", "n"],
+         StripOnInput->False,
+         FontWeight->Bold], " ", 
+        StyleBox[
+         SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+         StripOnInput->False,
+         FontWeight->Bold]}], 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]], "+", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Alpha]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]]}], 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox["2", 
+        SuperscriptBox["\[CapitalDelta]r", "2"]]}], "-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+          StyleBox[
+           SubscriptBox["\[Alpha]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold]]}], "+", 
+        FractionBox[
+         RowBox[{"6", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", 
+             FractionBox[
+              StyleBox[
+               SubscriptBox["\[Psi]", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", "j"}]],
+               StripOnInput->False,
+               FontWeight->Bold], 
+              RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{"1", "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["2", 
+         SubscriptBox["r", "j"]]}], 
+       SubscriptBox["r", "j"]]}], 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"24", " ", "\[Pi]", " ", 
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], " ", 
+         StyleBox[
+          SubsuperscriptBox["\[Xi]", "j", "n"],
+          StripOnInput->False,
+          FontWeight->Bold], " ", 
+         StyleBox[
+          SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+          StripOnInput->False,
+          FontWeight->Bold]}], 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "3"]]}], "-", 
+      FractionBox[
+       RowBox[{"6", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Psi]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Psi]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]]}], 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Beta]", 
+           RowBox[{"1", "+", "j"}]],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+        FractionBox[
+         StyleBox[
+          SubscriptBox["\[Beta]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], 
+         SubscriptBox["r", "j"]]}], 
+       RowBox[{"2", " ", "\[CapitalDelta]r", " ", 
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold]}]]}], 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox[
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Alpha]", 
+               RowBox[{
+                RowBox[{"-", "1"}], "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Alpha]", 
+              RowBox[{"1", "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+          StyleBox[
+           SubscriptBox["\[Alpha]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold]]}], "+", 
+        FractionBox[
+         RowBox[{"6", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", 
+             FractionBox[
+              StyleBox[
+               SubscriptBox["\[Psi]", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", "j"}]],
+               StripOnInput->False,
+               FontWeight->Bold], 
+              RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+            FractionBox[
+             StyleBox[
+              SubscriptBox["\[Psi]", 
+               RowBox[{"1", "+", "j"}]],
+              StripOnInput->False,
+              FontWeight->Bold], 
+             RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], ")"}]}], 
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold]], "+", 
+        FractionBox["2", 
+         SubscriptBox["r", "j"]]}], 
+       RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], 
+     FractionBox[
+      RowBox[{"3", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", 
+            RowBox[{"1", "+", "j"}]],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+         FractionBox[
+          StyleBox[
+           SubscriptBox["\[Beta]", "j"],
+           StripOnInput->False,
+           FontWeight->Bold], 
+          SubscriptBox["r", "j"]]}], ")"}]}], 
+      RowBox[{"\[CapitalDelta]r", " ", 
+       StyleBox[
+        SubscriptBox["\[Psi]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold]}]]},
+    {"0", 
+     RowBox[{"-", 
+      FractionBox[
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "5"], 
+       RowBox[{"24", " ", "\[CapitalDelta]r", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]}]]}], 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "-", 
+      FractionBox["1", 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        SubscriptBox["r", "j"]}]]}], 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "5"], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"6", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "3"]}]]}], 
+     RowBox[{"-", 
+      FractionBox[
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Psi]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "5"], 
+       RowBox[{"12", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"], " ", 
+        SubscriptBox["r", "j"]}]]}], 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox["2", 
+        SuperscriptBox["\[CapitalDelta]r", "2"]]}], "+", 
+      RowBox[{"\[Pi]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         SuperscriptBox[
+          StyleBox[
+           SubsuperscriptBox["\[Xi]", "j", "n"],
+           StripOnInput->False,
+           FontWeight->Bold], "2"], "+", 
+         SuperscriptBox[
+          StyleBox[
+           SubsuperscriptBox["\[CapitalPi]", "j", "n"],
+           StripOnInput->False,
+           FontWeight->Bold], "2"]}], ")"}]}], "+", 
+      FractionBox[
+       RowBox[{"5", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Psi]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "4"], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"-", 
+           FractionBox[
+            StyleBox[
+             SubscriptBox["\[Beta]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "j"}]],
+             StripOnInput->False,
+             FontWeight->Bold], 
+            RowBox[{"2", " ", "\[CapitalDelta]r"}]]}], "+", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", 
+             RowBox[{"1", "+", "j"}]],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           RowBox[{"2", " ", "\[CapitalDelta]r"}]], "-", 
+          FractionBox[
+           StyleBox[
+            SubscriptBox["\[Beta]", "j"],
+            StripOnInput->False,
+            FontWeight->Bold], 
+           SubscriptBox["r", "j"]]}], ")"}]}], 
+       RowBox[{"12", " ", 
+        SuperscriptBox[
+         StyleBox[
+          SubscriptBox["\[Alpha]", "j"],
+          StripOnInput->False,
+          FontWeight->Bold], "2"]}]]}], "0", 
+     FractionBox[
+      SuperscriptBox[
+       StyleBox[
+        SubscriptBox["\[Psi]", "j"],
+        StripOnInput->False,
+        FontWeight->Bold], "5"], 
+      RowBox[{"24", " ", "\[CapitalDelta]r", " ", 
+       SuperscriptBox[
+        StyleBox[
+         SubscriptBox["\[Alpha]", "j"],
+         StripOnInput->False,
+         FontWeight->Bold], "2"]}]], 
+     RowBox[{
+      FractionBox["1", 
+       SuperscriptBox["\[CapitalDelta]r", "2"]], "+", 
+      FractionBox["1", 
+       RowBox[{"\[CapitalDelta]r", " ", 
+        SubscriptBox["r", "j"]}]]}]}
+   },
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}},
+   GridBoxSpacings->{"Columns" -> {
+       Offset[0.27999999999999997`], {
+        Offset[2.0999999999999996`]}, 
+       Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+       Offset[0.2], {
+        Offset[0.4]}, 
+       Offset[0.2]}, "RowsIndexed" -> {}}],
+  Function[BoxForm`e$, 
+   TableForm[BoxForm`e$]]]], "Output",
  CellChangeTimes->{
-  3.744384123755929*^9},ExpressionUUID->"9aefdbca-80e8-4cf3-a791-\
-a46b6f4ec747"]
+  3.744558254755053*^9},ExpressionUUID->"dbe29283-f360-4dfe-9faa-\
+ea1a0a0ade52"]
 }, Open  ]],
 
 Cell[BoxData[
@@ -4410,8 +5728,8 @@ Cell[BoxData[
 ed9851a9c2fa"]
 }, Open  ]]
 },
-WindowSize->{667, 716},
-WindowMargins->{{188, Automatic}, {0, Automatic}},
+WindowSize->{1040, 832},
+WindowMargins->{{Automatic, -1101}, {496, Automatic}},
 FrontEndVersion->"11.2 for Linux x86 (64-bit) (September 10, 2017)",
 StyleDefinitions->"Default.nb"
 ]
@@ -4428,198 +5746,128 @@ CellTagsIndex->{}
 Notebook[{
 Cell[558, 20, 3537, 111, 327, "Input",ExpressionUUID->"863da039-88dc-485b-8cf1-3fb195d17d9c"],
 Cell[4098, 133, 612, 17, 55, "Input",ExpressionUUID->"a1cbb462-73b4-412c-8471-6254bbc2d06e"],
-Cell[4713, 152, 4847, 137, 331, "Input",ExpressionUUID->"e922a5c2-d3b4-4188-b2d3-3ef9a0884d16"],
+Cell[4713, 152, 4847, 137, 193, "Input",ExpressionUUID->"e922a5c2-d3b4-4188-b2d3-3ef9a0884d16"],
 Cell[9563, 291, 598, 17, 31, "Input",ExpressionUUID->"f9ec8d1e-1655-45df-bfea-e8fb14c2d19e"],
 Cell[10164, 310, 1800, 51, 101, "Input",ExpressionUUID->"1f8749b3-dcce-4ed7-a834-b66d81dd4ce7"],
 Cell[11967, 363, 740, 21, 78, "Input",ExpressionUUID->"73169c54-664c-4a3f-955e-85442912589b"],
-Cell[12710, 386, 5168, 161, 331, "Input",ExpressionUUID->"2f2194db-ca3a-41e6-915a-7f656603c421"],
+Cell[12710, 386, 5168, 161, 216, "Input",ExpressionUUID->"2f2194db-ca3a-41e6-915a-7f656603c421"],
 Cell[17881, 549, 367, 9, 55, "Input",ExpressionUUID->"1b0b2395-6157-4ea9-8469-62352f99da9f"],
+Cell[18251, 560, 2197, 70, 147, "Input",ExpressionUUID->"0bc8cb27-b798-4914-a28b-5afbf96b9bbe"],
+Cell[20451, 632, 2885, 76, 377, "Input",ExpressionUUID->"03363b06-d9ee-4a92-a119-54d7e2936100"],
+Cell[23339, 710, 339, 8, 55, "Input",ExpressionUUID->"e0d52096-aeeb-4984-8cb1-0dc3e69c4aaa"],
 Cell[CellGroupData[{
-Cell[18273, 562, 465, 13, 31, "Input",ExpressionUUID->"0bc8cb27-b798-4914-a28b-5afbf96b9bbe"],
-Cell[18741, 577, 544, 13, 53, "Output",ExpressionUUID->"873a94c3-ef86-41df-a4fd-544d54c1603b"]
+Cell[23703, 722, 766, 18, 31, "Input",ExpressionUUID->"fd9ba5e8-c93f-4f2f-a6f0-217070cb919c"],
+Cell[24472, 742, 3943, 125, 102, "Output",ExpressionUUID->"6f734e61-c3de-4874-9c99-71b5e463bfe0"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[19322, 595, 531, 14, 31, "Input",ExpressionUUID->"4ff14788-41e4-4f74-b8c2-16e4ca6d113f"],
-Cell[19856, 611, 550, 14, 53, "Output",ExpressionUUID->"4ab7d984-c016-4aac-82c6-6967ce41953b"]
+Cell[28452, 872, 1583, 45, 78, "Input",ExpressionUUID->"90f5b20c-10e7-4bb6-ad4c-f3a497e0c8e3"],
+Cell[30038, 919, 7110, 219, 199, "Output",ExpressionUUID->"86112cd9-af82-4ecd-a948-078cb7646e92"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[20443, 630, 414, 12, 31, "Input",ExpressionUUID->"cc7b4fbb-236a-4a91-85f5-f7f8addd87bc"],
-Cell[20860, 644, 531, 14, 53, "Output",ExpressionUUID->"80684253-a32a-44cc-82df-00989e27ec53"]
+Cell[37185, 1143, 1412, 41, 78, "Input",ExpressionUUID->"0b8c0799-0fb2-46b4-abed-33ac4ebbd6b2"],
+Cell[38600, 1186, 2635, 86, 68, "Output",ExpressionUUID->"b15991dc-7254-4096-b4e8-221b080f9ab8"]
+}, Open  ]],
+Cell[41250, 1275, 249, 6, 31, "Input",ExpressionUUID->"2cf3b85e-b571-4a38-bb9a-b5b62d5babc3"],
+Cell[CellGroupData[{
+Cell[41524, 1285, 1262, 38, 55, "Input",ExpressionUUID->"ef3f4531-b81d-46c1-9d25-0eaaf143301c"],
+Cell[42789, 1325, 2915, 103, 80, "Output",ExpressionUUID->"590cae41-a50f-44f0-ad55-604e24179aab"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[21428, 663, 440, 13, 31, "Input",ExpressionUUID->"6528202b-38ac-4213-a544-b92f01cab680"],
-Cell[21871, 678, 457, 12, 54, "Output",ExpressionUUID->"0236cc9b-eae5-4a89-b0dd-e1e2d4d9f03e"]
+Cell[45741, 1433, 1302, 35, 55, "Input",ExpressionUUID->"cbfdc6a2-2bb5-44a6-a29c-cb67c13de116"],
+Cell[47046, 1470, 3515, 122, 77, "Output",ExpressionUUID->"64173312-b9ce-4b37-94b1-9a220f7dbce7"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[22365, 695, 490, 14, 31, "Input",ExpressionUUID->"c255aa58-f22b-4898-802f-e0a27d4e1fa1"],
-Cell[22858, 711, 545, 15, 54, "Output",ExpressionUUID->"ea0d24fb-d531-48cb-bc86-44419d7b04f8"]
+Cell[50598, 1597, 1338, 36, 55, "Input",ExpressionUUID->"bb05f39d-8de9-4989-bd33-27b431b853dc"],
+Cell[51939, 1635, 3401, 119, 134, "Output",ExpressionUUID->"299f0ab1-f864-44fd-9fa6-7c717a306844"]
+}, Open  ]],
+Cell[55355, 1757, 1804, 55, 239, "Input",ExpressionUUID->"c74592a0-c47f-44ce-aa62-d2e5c5f59f53"],
+Cell[57162, 1814, 2007, 57, 216, "Input",ExpressionUUID->"37dc5043-ca39-41d1-80c4-d0361d66ff32"],
+Cell[59172, 1873, 1931, 57, 239, "Input",ExpressionUUID->"8bd83783-6ec1-412c-a8a3-203a72b5fd87"],
+Cell[CellGroupData[{
+Cell[61128, 1934, 711, 18, 78, "Input",ExpressionUUID->"82c1df21-2872-428c-be92-a934f940e936"],
+Cell[61842, 1954, 29247, 922, 878, "Output",ExpressionUUID->"340f9896-c13c-4ad1-8875-bcbf67bf7f2b"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[23440, 731, 441, 13, 31, "Input",ExpressionUUID->"ebb431e4-2f99-4ed7-87d8-aa9ed591349f"],
-Cell[23884, 746, 539, 14, 54, "Output",ExpressionUUID->"8f4d76af-7be2-4afa-95df-1dee10405014"]
+Cell[91126, 2881, 140, 2, 31, "Input",ExpressionUUID->"98213345-76a3-47a6-8938-3e30c6d66b4b"],
+Cell[91269, 2885, 29460, 931, 209, "Output",ExpressionUUID->"dbe29283-f360-4dfe-9faa-ea1a0a0ade52"]
 }, Open  ]],
-Cell[24438, 763, 2885, 76, 377, "Input",ExpressionUUID->"03363b06-d9ee-4a92-a119-54d7e2936100"],
-Cell[27326, 841, 339, 8, 55, "Input",ExpressionUUID->"e0d52096-aeeb-4984-8cb1-0dc3e69c4aaa"],
+Cell[120744, 3819, 2006, 50, 170, "Input",ExpressionUUID->"a4c43139-dd3b-4104-a72f-9a445ad11d24"],
+Cell[122753, 3871, 1712, 46, 147, "Input",ExpressionUUID->"69b95069-ce9b-4a1e-a606-fcf788e3761a"],
+Cell[124468, 3919, 1740, 47, 147, "Input",ExpressionUUID->"2b05eefb-695d-41a8-9f88-d30ff7c1807b"],
+Cell[126211, 3968, 3227, 88, 262, "Input",ExpressionUUID->"c3358a0e-f879-4f00-aa34-e1baaa04cf03"],
+Cell[129441, 4058, 3162, 87, 262, "Input",ExpressionUUID->"cecbc04d-2d25-469c-b1c1-2d399c6538a3"],
+Cell[132606, 4147, 2922, 78, 262, "Input",ExpressionUUID->"2333da22-af67-41d7-8a8b-416bd88d88e7"],
+Cell[135531, 4227, 2853, 78, 262, "Input",ExpressionUUID->"08a76eab-71dd-4992-b226-379a35f81a02"],
+Cell[138387, 4307, 3138, 86, 285, "Input",ExpressionUUID->"870c0c45-68ae-4e50-b355-4b0170d2160d"],
+Cell[141528, 4395, 3138, 86, 285, "Input",ExpressionUUID->"d0fe5564-63bd-48e7-a777-4b310635b489"],
+Cell[144669, 4483, 1258, 36, 64, "Input",ExpressionUUID->"457f7989-6798-4958-8645-9fbdc490201f"],
+Cell[145930, 4521, 3136, 86, 262, "Input",ExpressionUUID->"59d827f7-bbae-4d05-b1ae-dc3479e2d602"],
+Cell[149069, 4609, 3145, 86, 285, "Input",ExpressionUUID->"59cddce6-574e-406f-80c1-1605e5c3ffba"],
+Cell[152217, 4697, 3022, 85, 285, "Input",ExpressionUUID->"608d61da-a235-451f-a032-a0f0956f3618"],
+Cell[155242, 4784, 486, 14, 31, "Input",ExpressionUUID->"dfbca436-8200-4960-acb0-ac8604eac34e"],
 Cell[CellGroupData[{
-Cell[27690, 853, 766, 18, 31, "Input",ExpressionUUID->"fd9ba5e8-c93f-4f2f-a6f0-217070cb919c"],
-Cell[28459, 873, 3916, 124, 206, "Output",ExpressionUUID->"66f30be1-66ac-4fd9-8a66-f88ba555ebdf"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[32412, 1002, 1583, 45, 147, "Input",ExpressionUUID->"90f5b20c-10e7-4bb6-ad4c-f3a497e0c8e3"],
-Cell[33998, 1049, 7114, 220, 318, "Output",ExpressionUUID->"095ff2b8-d1fd-4711-b71e-54f18c49bb73"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[41149, 1274, 1412, 41, 124, "Input",ExpressionUUID->"0b8c0799-0fb2-46b4-abed-33ac4ebbd6b2"],
-Cell[42564, 1317, 2617, 87, 112, "Output",ExpressionUUID->"59670455-416e-42f6-b9f7-96c8613c6226"]
-}, Open  ]],
-Cell[45196, 1407, 249, 6, 31, "Input",ExpressionUUID->"2cf3b85e-b571-4a38-bb9a-b5b62d5babc3"],
-Cell[CellGroupData[{
-Cell[45470, 1417, 1262, 38, 78, "Input",ExpressionUUID->"ef3f4531-b81d-46c1-9d25-0eaaf143301c"],
-Cell[46735, 1457, 2893, 103, 128, "Output",ExpressionUUID->"a3ce246d-6852-44ef-a84d-d725833aa3e9"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[49665, 1565, 1302, 35, 101, "Input",ExpressionUUID->"cbfdc6a2-2bb5-44a6-a29c-cb67c13de116"],
-Cell[50970, 1602, 3490, 121, 137, "Output",ExpressionUUID->"3bbf602b-2cc0-4fe8-9e53-b5c6055b9f09"]
+Cell[155753, 4802, 413, 9, 31, "Input",ExpressionUUID->"35b212d6-d40c-41a2-b745-5ba8aee0a886"],
+Cell[156169, 4813, 1629, 48, 53, "Output",ExpressionUUID->"3a643be1-40a0-4397-a8f5-dfe782f777ea"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[54497, 1728, 1338, 36, 78, "Input",ExpressionUUID->"bb05f39d-8de9-4989-bd33-27b431b853dc"],
-Cell[55838, 1766, 3376, 118, 134, "Output",ExpressionUUID->"430805fa-8f3b-48aa-9a55-a5c82c8b8dfc"]
-}, Open  ]],
-Cell[59229, 1887, 377, 7, 193, "Input",ExpressionUUID->"ada5b68f-1135-4226-a760-14c94875c24e"],
-Cell[CellGroupData[{
-Cell[59631, 1898, 320, 8, 31, "Input",ExpressionUUID->"29cff7f8-a84a-465d-9ac1-c6520b57ef3a"],
-Cell[59954, 1908, 176, 3, 35, "Output",ExpressionUUID->"c94f37f2-590c-4cf3-b7d3-09e99213e7d5"]
-}, Open  ]],
-Cell[60145, 1914, 152, 3, 31, "Input",ExpressionUUID->"1e7872ab-3442-45db-ac47-e0a3660c1f44"],
-Cell[CellGroupData[{
-Cell[60322, 1921, 371, 8, 31, "Input",ExpressionUUID->"6875d3f9-c63d-4366-ae9f-13c550d80787"],
-Cell[60696, 1931, 1175, 40, 79, "Output",ExpressionUUID->"5ca030fd-ff62-480c-bc50-25c67a168426"]
-}, Open  ]],
-Cell[61886, 1974, 151, 3, 31, "Input",ExpressionUUID->"e794d4d3-2a55-4c40-9591-6c9c3198edc4"],
-Cell[CellGroupData[{
-Cell[62062, 1981, 320, 8, 31, "Input",ExpressionUUID->"ec802f6c-28d3-4e58-8f2d-a8d4a7d713ea"],
-Cell[62385, 1991, 343, 9, 59, "Output",ExpressionUUID->"087a7536-e43b-4232-bd42-0fa2ba7ebbec"]
-}, Open  ]],
-Cell[62743, 2003, 149, 3, 55, "Input",ExpressionUUID->"1a7c4101-dd7c-41d2-93ed-5669cc07ff56"],
-Cell[CellGroupData[{
-Cell[62917, 2010, 296, 7, 31, "Input",ExpressionUUID->"ce322371-6ee8-45a1-9c41-047ee94a06fa"],
-Cell[63216, 2019, 1196, 41, 80, "Output",ExpressionUUID->"9a5dc5aa-165b-4910-8d5e-17b41cdd30aa"]
-}, Open  ]],
-Cell[64427, 2063, 152, 3, 31, "Input",ExpressionUUID->"38b0f927-ebda-412b-beee-cb5740b94581"],
-Cell[CellGroupData[{
-Cell[64604, 2070, 393, 8, 31, "Input",ExpressionUUID->"6c630199-cbfb-4903-87ca-04015f70daac"],
-Cell[65000, 2080, 1808, 60, 90, "Output",ExpressionUUID->"08373fbe-d90f-40ac-914c-a237ce06ebe5"]
-}, Open  ]],
-Cell[66823, 2143, 152, 3, 31, "Input",ExpressionUUID->"9505df15-7e35-47d5-804d-8297670ac329"],
-Cell[CellGroupData[{
-Cell[67000, 2150, 297, 7, 31, "Input",ExpressionUUID->"35d50237-4c54-46a7-969f-c4e46636cd81"],
-Cell[67300, 2159, 1666, 57, 80, "Output",ExpressionUUID->"a254bee8-b1c7-48ef-97cd-67337b6d824b"]
-}, Open  ]],
-Cell[68981, 2219, 152, 3, 31, "Input",ExpressionUUID->"fec3d7b1-5b9e-4d52-a7a1-739be9cfba85"],
-Cell[CellGroupData[{
-Cell[69158, 2226, 341, 8, 31, "Input",ExpressionUUID->"7052c7a7-0d3e-463f-8dfa-7d80a490ba0f"],
-Cell[69502, 2236, 152, 3, 68, "Output",ExpressionUUID->"eb21e795-fd9c-4d15-82e1-433053f31938"]
-}, Open  ]],
-Cell[69669, 2242, 151, 3, 31, "Input",ExpressionUUID->"fee18e4b-000f-44ec-afa0-4e732947baf9"],
-Cell[CellGroupData[{
-Cell[69845, 2249, 420, 9, 31, "Input",ExpressionUUID->"3bb3a62c-cc99-4609-b090-87e4bb0e10d5"],
-Cell[70268, 2260, 1778, 58, 85, "Output",ExpressionUUID->"d4cddc29-15d3-4148-a614-65638f500e2e"]
-}, Open  ]],
-Cell[72061, 2321, 152, 3, 31, "Input",ExpressionUUID->"ead25bef-dd33-4a85-b6dd-d4d4b276b2c9"],
-Cell[CellGroupData[{
-Cell[72238, 2328, 368, 8, 31, "Input",ExpressionUUID->"c63e3159-f9b2-4b82-a93d-7075a2fe52a1"],
-Cell[72609, 2338, 319, 9, 59, "Output",ExpressionUUID->"7476178d-cbb0-446c-8bf0-3d135d3ae3f0"]
-}, Open  ]],
-Cell[72943, 2350, 355, 7, 170, "Input",ExpressionUUID->"8bd83783-6ec1-412c-a8a3-203a72b5fd87"],
-Cell[CellGroupData[{
-Cell[73323, 2361, 275, 7, 31, "Input",ExpressionUUID->"79f5b5f8-a3df-4cad-a8ca-c631f14ee43e"],
-Cell[73601, 2370, 934, 32, 83, "Output",ExpressionUUID->"9c71008e-1eeb-4ed7-acdc-f738b835a002"]
+Cell[157835, 4866, 202, 5, 31, "Input",ExpressionUUID->"f2b18006-f057-443e-b36c-da4c92526eb1"],
+Cell[158040, 4873, 1999, 57, 53, "Output",ExpressionUUID->"d233aa3f-e6a6-4231-a34c-d18fe7d95107"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[74572, 2407, 325, 8, 31, "Input",ExpressionUUID->"c7e9bcfd-f704-4e6b-bb55-04b84f2ff30f"],
-Cell[74900, 2417, 1179, 40, 79, "Output",ExpressionUUID->"25122814-e19e-4a1b-a2d7-e42a59693493"]
+Cell[160076, 4935, 200, 5, 31, "Input",ExpressionUUID->"e8d82ec4-48b5-4990-a9e0-0ad37638ebb6"],
+Cell[160279, 4942, 1933, 56, 53, "Output",ExpressionUUID->"097e52bf-bd02-4d2b-93b9-e799335f23d7"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[76116, 2462, 344, 8, 31, "Input",ExpressionUUID->"2e1608a6-4ef9-4051-94f1-82223c9a0317"],
-Cell[76463, 2472, 721, 26, 71, "Output",ExpressionUUID->"9aefdbca-80e8-4cf3-a791-a46b6f4ec747"]
-}, Open  ]],
-Cell[77199, 2501, 2006, 50, 193, "Input",ExpressionUUID->"a4c43139-dd3b-4104-a72f-9a445ad11d24"],
-Cell[79208, 2553, 1712, 46, 170, "Input",ExpressionUUID->"69b95069-ce9b-4a1e-a606-fcf788e3761a"],
-Cell[80923, 2601, 1740, 47, 170, "Input",ExpressionUUID->"2b05eefb-695d-41a8-9f88-d30ff7c1807b"],
-Cell[82666, 2650, 3227, 88, 308, "Input",ExpressionUUID->"c3358a0e-f879-4f00-aa34-e1baaa04cf03"],
-Cell[85896, 2740, 3162, 87, 308, "Input",ExpressionUUID->"cecbc04d-2d25-469c-b1c1-2d399c6538a3"],
-Cell[89061, 2829, 2922, 78, 262, "Input",ExpressionUUID->"2333da22-af67-41d7-8a8b-416bd88d88e7"],
-Cell[91986, 2909, 2853, 78, 262, "Input",ExpressionUUID->"08a76eab-71dd-4992-b226-379a35f81a02"],
-Cell[94842, 2989, 3138, 86, 285, "Input",ExpressionUUID->"870c0c45-68ae-4e50-b355-4b0170d2160d"],
-Cell[97983, 3077, 3138, 86, 285, "Input",ExpressionUUID->"d0fe5564-63bd-48e7-a777-4b310635b489"],
-Cell[101124, 3165, 1258, 36, 64, "Input",ExpressionUUID->"457f7989-6798-4958-8645-9fbdc490201f"],
-Cell[102385, 3203, 3136, 86, 262, "Input",ExpressionUUID->"59d827f7-bbae-4d05-b1ae-dc3479e2d602"],
-Cell[105524, 3291, 3145, 86, 285, "Input",ExpressionUUID->"59cddce6-574e-406f-80c1-1605e5c3ffba"],
-Cell[108672, 3379, 3022, 85, 285, "Input",ExpressionUUID->"608d61da-a235-451f-a032-a0f0956f3618"],
-Cell[111697, 3466, 486, 14, 31, "Input",ExpressionUUID->"dfbca436-8200-4960-acb0-ac8604eac34e"],
-Cell[CellGroupData[{
-Cell[112208, 3484, 413, 9, 31, "Input",ExpressionUUID->"35b212d6-d40c-41a2-b745-5ba8aee0a886"],
-Cell[112624, 3495, 1629, 48, 53, "Output",ExpressionUUID->"3a643be1-40a0-4397-a8f5-dfe782f777ea"]
+Cell[162249, 5003, 200, 5, 31, "Input",ExpressionUUID->"4d17ca8d-b06e-48aa-93ac-87ae83f87e33"],
+Cell[162452, 5010, 1961, 57, 53, "Output",ExpressionUUID->"8c47f185-35ce-4577-9ec8-66ada8032a13"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[114290, 3548, 202, 5, 31, "Input",ExpressionUUID->"f2b18006-f057-443e-b36c-da4c92526eb1"],
-Cell[114495, 3555, 1999, 57, 53, "Output",ExpressionUUID->"d233aa3f-e6a6-4231-a34c-d18fe7d95107"]
+Cell[164450, 5072, 184, 4, 31, "Input",ExpressionUUID->"24ea4742-8a4b-4f50-a806-c768e7bdc729"],
+Cell[164637, 5078, 1956, 57, 53, "Output",ExpressionUUID->"4f9dc42a-fdb5-4f11-824f-3bebfd238986"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[116531, 3617, 200, 5, 31, "Input",ExpressionUUID->"e8d82ec4-48b5-4990-a9e0-0ad37638ebb6"],
-Cell[116734, 3624, 1933, 56, 53, "Output",ExpressionUUID->"097e52bf-bd02-4d2b-93b9-e799335f23d7"]
+Cell[166630, 5140, 182, 4, 31, "Input",ExpressionUUID->"f5039eb0-c755-440e-886b-392d9857a181"],
+Cell[166815, 5146, 1928, 56, 53, "Output",ExpressionUUID->"2c7b8375-97a4-4842-9fcf-8f474b09ec01"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[118704, 3685, 200, 5, 31, "Input",ExpressionUUID->"4d17ca8d-b06e-48aa-93ac-87ae83f87e33"],
-Cell[118907, 3692, 1961, 57, 53, "Output",ExpressionUUID->"8c47f185-35ce-4577-9ec8-66ada8032a13"]
+Cell[168780, 5207, 186, 4, 31, "Input",ExpressionUUID->"c5dde040-8c49-48cf-b2d8-540c7fe92bc4"],
+Cell[168969, 5213, 1970, 57, 53, "Output",ExpressionUUID->"8799687e-099b-40dc-92a4-c6eb57915259"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[120905, 3754, 184, 4, 31, "Input",ExpressionUUID->"24ea4742-8a4b-4f50-a806-c768e7bdc729"],
-Cell[121092, 3760, 1956, 57, 53, "Output",ExpressionUUID->"4f9dc42a-fdb5-4f11-824f-3bebfd238986"]
+Cell[170976, 5275, 823, 22, 31, "Input",ExpressionUUID->"a6f66fa2-a1e9-498e-8b6d-17e351e44ecd"],
+Cell[171802, 5299, 267, 7, 35, "Output",ExpressionUUID->"4be4dbcf-b765-416f-b066-37c2ab6a2188"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[123085, 3822, 182, 4, 31, "Input",ExpressionUUID->"f5039eb0-c755-440e-886b-392d9857a181"],
-Cell[123270, 3828, 1928, 56, 53, "Output",ExpressionUUID->"2c7b8375-97a4-4842-9fcf-8f474b09ec01"]
+Cell[172106, 5311, 520, 15, 31, "Input",ExpressionUUID->"36f0a7e1-659b-4bd3-a1b2-69df9cf2e701"],
+Cell[172629, 5328, 1287, 37, 86, "Output",ExpressionUUID->"c1e631f2-6f6c-49eb-9114-057cc69e7bbd"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[125235, 3889, 186, 4, 31, "Input",ExpressionUUID->"c5dde040-8c49-48cf-b2d8-540c7fe92bc4"],
-Cell[125424, 3895, 1970, 57, 53, "Output",ExpressionUUID->"8799687e-099b-40dc-92a4-c6eb57915259"]
+Cell[173953, 5370, 847, 26, 31, "Input",ExpressionUUID->"4b12a074-c5c9-48df-a76a-13ddbe9988a4"],
+Cell[174803, 5398, 3060, 95, 61, "Output",ExpressionUUID->"943108cf-e4b0-4b6d-a998-e41b9cabb739"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[127431, 3957, 823, 22, 31, "Input",ExpressionUUID->"a6f66fa2-a1e9-498e-8b6d-17e351e44ecd"],
-Cell[128257, 3981, 267, 7, 35, "Output",ExpressionUUID->"4be4dbcf-b765-416f-b066-37c2ab6a2188"]
+Cell[177900, 5498, 448, 14, 39, "Input",ExpressionUUID->"e511afd5-57aa-4e0c-8410-970147fe7c70"],
+Cell[178351, 5514, 281, 9, 37, "Output",ExpressionUUID->"3bb29a31-b7a1-464d-a727-c9726edf974f"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[128561, 3993, 520, 15, 31, "Input",ExpressionUUID->"36f0a7e1-659b-4bd3-a1b2-69df9cf2e701"],
-Cell[129084, 4010, 1287, 37, 86, "Output",ExpressionUUID->"c1e631f2-6f6c-49eb-9114-057cc69e7bbd"]
+Cell[178669, 5528, 290, 8, 39, "Input",ExpressionUUID->"326b47fc-f7b8-4e46-a52a-1cd787f49a03"],
+Cell[178962, 5538, 333, 11, 43, "Output",ExpressionUUID->"0e775f6e-03a0-46a0-ba9f-0dd77b5e51c8"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[130408, 4052, 847, 26, 31, "Input",ExpressionUUID->"4b12a074-c5c9-48df-a76a-13ddbe9988a4"],
-Cell[131258, 4080, 3060, 95, 61, "Output",ExpressionUUID->"943108cf-e4b0-4b6d-a998-e41b9cabb739"]
+Cell[179332, 5554, 529, 17, 31, "Input",ExpressionUUID->"f826913d-d530-4fc4-a5d7-17d2a4c63dfc"],
+Cell[179864, 5573, 2526, 78, 61, "Output",ExpressionUUID->"6b0bbdcd-31c3-4a6f-a4e3-23881ab868ac"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[134355, 4180, 448, 14, 39, "Input",ExpressionUUID->"e511afd5-57aa-4e0c-8410-970147fe7c70"],
-Cell[134806, 4196, 281, 9, 37, "Output",ExpressionUUID->"3bb29a31-b7a1-464d-a727-c9726edf974f"]
+Cell[182427, 5656, 262, 8, 31, "Input",ExpressionUUID->"c079f906-542b-4d42-b827-c079d38231b6"],
+Cell[182692, 5666, 343, 12, 37, "Output",ExpressionUUID->"7573c0b5-48aa-4233-9fdc-b556519d6076"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[135124, 4210, 290, 8, 39, "Input",ExpressionUUID->"326b47fc-f7b8-4e46-a52a-1cd787f49a03"],
-Cell[135417, 4220, 333, 11, 43, "Output",ExpressionUUID->"0e775f6e-03a0-46a0-ba9f-0dd77b5e51c8"]
+Cell[183072, 5683, 357, 11, 39, "Input",ExpressionUUID->"015668ae-05d6-463f-908e-d821b7dded9b"],
+Cell[183432, 5696, 262, 8, 37, "Output",ExpressionUUID->"05aa341e-3af8-4e5a-b8e1-c5aa2f0823f9"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[135787, 4236, 529, 17, 31, "Input",ExpressionUUID->"f826913d-d530-4fc4-a5d7-17d2a4c63dfc"],
-Cell[136319, 4255, 2526, 78, 61, "Output",ExpressionUUID->"6b0bbdcd-31c3-4a6f-a4e3-23881ab868ac"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[138882, 4338, 262, 8, 31, "Input",ExpressionUUID->"c079f906-542b-4d42-b827-c079d38231b6"],
-Cell[139147, 4348, 343, 12, 37, "Output",ExpressionUUID->"7573c0b5-48aa-4233-9fdc-b556519d6076"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[139527, 4365, 357, 11, 39, "Input",ExpressionUUID->"015668ae-05d6-463f-908e-d821b7dded9b"],
-Cell[139887, 4378, 262, 8, 37, "Output",ExpressionUUID->"05aa341e-3af8-4e5a-b8e1-c5aa2f0823f9"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[140186, 4391, 272, 7, 39, "Input",ExpressionUUID->"81e6c43d-cf79-44d4-938c-ad3fc932516f"],
-Cell[140461, 4400, 289, 9, 43, "Output",ExpressionUUID->"c71f67a4-e90c-4f7c-959c-ed9851a9c2fa"]
+Cell[183731, 5709, 272, 7, 39, "Input",ExpressionUUID->"81e6c43d-cf79-44d4-938c-ad3fc932516f"],
+Cell[184006, 5718, 289, 9, 43, "Output",ExpressionUUID->"c71f67a4-e90c-4f7c-959c-ed9851a9c2fa"]
 }, Open  ]]
 }
 ]

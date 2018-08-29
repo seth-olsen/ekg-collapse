@@ -306,23 +306,23 @@ inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, doubl
 inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
   return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
 
-// set res_vals to be -residual = -L[f] for rhs of jacobian.delta = -residual
+// set res_vals to be residual = L[f] for rhs of jacobian.(-delta) = residual
 void get_ell_res(double *res_vals, const vector<double>& xi, const vector<double>& pi,
-		   const vector<double>& alpha, const vector<double>& beta,
-		   const vector<double>& psi, int lastpt, int N, double dr, double rmin) {
-  res_vals[0] = -neumann0res(alpha);
-  res_vals[1] = -dirichlet0res(beta);
-  res_vals[2] = -neumann0res(psi);
-  double rval = rmin + dr;
+		 const vector<double>& alpha, const vector<double>& beta,
+		 const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  res_vals[0] = neumann0res(alpha);
+  res_vals[1] = dirichlet0res(beta);
+  res_vals[2] = neumann0res(psi);
   for (int k = 1; k < lastpt; ++k) {
-    res_vals[3*k] = -fda_resalpha(xi, pi, alpha, beta, psi, k, dr, rval);
-    res_vals[3*k+1] = -fda_resbeta(xi, pi, alpha, beta, psi, k, dr, rval);
-    res_vals[3*k+2] = -fda_respsi(xi, pi, alpha, beta, psi, k, dr, rval);
-    rval += dr;
+    r += dr;
+    res_vals[3*k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k+1] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k+2] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
   }
-  res_vals[N-3] = -fdaR_resalpha(alpha, lastpt, dr, rval);
-  res_vals[N-2] = -fdaR_resbeta(beta, lastpt, dr, rval);
-  res_vals[N-1] = -fdaR_respsi(psi, lastpt, dr, rval);
+  r += dr;
+  res_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, r);
+  res_vals[N-2] = fdaR_resbeta(beta, lastpt, dr, r);
+  res_vals[N-1] = fdaR_respsi(psi, lastpt, dr, r);
   return;
 }
 
@@ -333,8 +333,8 @@ void get_ell_res(double *res_vals, const vector<double>& xi, const vector<double
 inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2*sqin(dr) - 8*M_PI*sq(pi[ind]) +
-    2*pw4(psi[ind])*sqin(alpha[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r); }
+  return -2/sq(dr) - 8*M_PI*sq(pi[ind]) +
+    2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*sq(alpha[ind])); }
 
 inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -351,7 +351,7 @@ inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
 inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2*(ddr_c(alpha,ind,dr)*ddr_c(psi,ind,dr)*sqin(psi[ind]) +
-	     4*pow(psi[ind],3)*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind])); }
+	     4*pw3(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind])); }
 
 inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -363,26 +363,26 @@ inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
 inline double jac_ba(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return 12*M_PI*xi[ind]*pi[ind]*sqin(psi[ind]) +
-    ddr_c(alpha,ind,dr)*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r); }
+  return 12*M_PI*xi[ind]*pi[ind] / sq(psi[ind]) +
+    ddr_c(alpha,ind,dr)*(ddr_c(beta,ind,dr) - beta[ind]/r) / sq(alpha[ind]); }
 
 inline double jac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*0.5*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*alpha[ind]); }
+  return -p_m*0.5*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*alpha[ind]); }
 
 inline double jac_bb(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2*sqin(dr) - (2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr))/dr; }
+  return -2/sq(dr) - (2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr)/psi[ind])/r; }
 
 inline double jac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return sqin(dr) + p_m*0.5*(2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr))/dr; }
+  return sqin(dr) + p_m*0.5*(2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr)/psi[ind])/dr; }
 
 inline double jac_bp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -24*M_PI*xi[ind]*pi[ind]*alpha[ind]/pow(psi[ind],3) -
-    6*ddr_c(psi,ind,dr)*sqin(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r); }
+  return -6*(4*M_PI*xi[ind]*pi[ind]*alpha[ind]*p3in(psi[ind]) +
+	     ddr_c(psi,ind,dr)*sqin(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r)); }
 
 inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -392,23 +392,23 @@ inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
 
 inline double jac_pa(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -pow(psi[ind],5)*(ddr_c(beta,ind,dr) - beta[ind]/r) / (6*pow(alpha[ind],3)); }
+  return -pw5(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (6*pw3(alpha[ind])); }
 
 inline double jac_pa_pm() { return 0; }
 
 inline double jac_pb(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -pow(psi[ind],5)*sqin(alpha[ind]) / (12*r); }
+  return -pw5(psi[ind]) / (sq(alpha[ind])*12*r); }
 
 inline double jac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*pow(psi[ind],5)*sqin(alpha[ind]) / (24*dr); }
+  return p_m*pw5(psi[ind])*sqin(alpha[ind]) / (24*dr); }
 
 inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2*sqin(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
-    5*pw4(psi[ind])*sqin(alpha[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / 12.0; }
+  return -2/sq(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
+    5*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (12*sq(alpha[ind])); }
 
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -505,7 +505,7 @@ int main(int argc, char **argv)
   // variable to hold constant across resolutions
   string hold_const = "lambda"; // "lambda", "dt", or "dr"
   int nresn = 1; // 1, 2, or 3
-  int resn0 = 8, resn1 = 16, resn2 = 32; // in order of priority
+  int resn0 = 4, resn1 = 8, resn2 = 16; // in order of priority
   int *resns[3] = {&resn0, &resn1, &resn2};
 
   map<string, string *> p_str {{"-outfile",&outfile},
@@ -633,10 +633,6 @@ int main(int argc, char **argv)
   string iresXi_name = "iresXi-" + outfile + ".sdf";
   string iresPi_name = "iresPi-" + outfile + ".sdf";
   char *iresname_arr[2] = {&iresXi_name[0], &iresPi_name[0]};  
-  string mass_file = "mass-" + outfile + ".csv";
-  ofstream ofs_mass;
-  ofs_mass.open(mass_file, ofstream::out);
-  ofs_mass << "save=" << save_step <<","<< "check=" << check_step << endl;
   string itn_file = "itns-" + outfile + ".csv";
   ofstream ofs_itn;
   if (wr_itn) { ofs_itn.open(itn_file, ofstream::out); }
@@ -815,11 +811,25 @@ int main(int argc, char **argv)
 	xi[j] += dissipate(dspn, old_xi, j);
 	pi[j] += dissipate(dspn, old_pi, j);
       }
+
+      
+
+// ***********************************************************************
+// ***********************************************************************
+// ***********************************************************************
+// *********************     ERROR BELOW HERE     ************************
+// ***********************************************************************
+// ***********************************************************************
+// ***********************************************************************
+
+
+      
 // ***********************************************************************
 // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
 // ***********************************************************************
       // get initial residual
-      get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+      r = rmin;
+      get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, r);
       ell_res = max(*max_element(res_vals, res_vals+N),
 		    abs(*min_element(res_vals, res_vals+N)));
       ell_itn = 0;
@@ -827,8 +837,9 @@ int main(int argc, char **argv)
       //ell_res = 0; // DEBUGGING
       // ************
       while (ell_res > ell_tol) {
-	r = rmin + dr;
+	r = rmin;
 	for (j = 1; j < lastpt; ++j) {
+	  r += dr;
 	  set_inds(col_inds, 3*j);
 	  set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
 	  ierr = MatSetValues(jac, 1, &indices[3*j], 9, col_inds, mat_vals, INSERT_VALUES);
@@ -839,7 +850,6 @@ int main(int argc, char **argv)
 	  set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
 	  ierr = MatSetValues(jac, 1, &indices[3*j+2], 9, col_inds, mat_vals, INSERT_VALUES);
 	  CHKERRQ(ierr);	
-	  r += dr;
 	}
       // matrix/vector assembly & checking
 	ierr = MatAssemblyBegin(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
@@ -848,6 +858,15 @@ int main(int argc, char **argv)
 	ierr = VecSetValues(abpres, N, &indices[0], &res_vals[0], INSERT_VALUES); CHKERRQ(ierr);
 	ierr = VecAssemblyBegin(abpres); CHKERRQ(ierr);
 	ierr = VecAssemblyEnd(abpres); CHKERRQ(ierr);
+
+	if (i == 0) {
+	  PetscViewer viewer;
+	  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
+	  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
+	  ierr = MatView(jac, viewer); CHKERRQ(ierr);
+	  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+	  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+	}
       
 	// solve linear system
 	ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
@@ -855,9 +874,9 @@ int main(int argc, char **argv)
 	// add displacements to metric functions
 	ierr = VecGetArray(abpres, &deltas); CHKERRQ(ierr);
 	for (j = 0; j < npts; ++j) {
-	  alpha[j] += deltas[3*j];
-	  beta[j] += deltas[3*j+1];
-	  psi[j] += deltas[3*j+2];
+	  alpha[j] -= deltas[3*j];
+	  beta[j] -= deltas[3*j+1];
+	  psi[j] -= deltas[3*j+2];
 	}
 	ierr = VecRestoreArray(abpres, &deltas); CHKERRQ(ierr);
 	
@@ -872,6 +891,20 @@ int main(int argc, char **argv)
 // **************************************************************************
     ++hyp_ell_itn;
     }
+
+
+
+// ***********************************************************************
+// ***********************************************************************
+// ***********************************************************************
+// *********************     ERROR ABOVE HERE     ************************
+// ***********************************************************************
+// ***********************************************************************
+// ***********************************************************************
+
+
+
+    
 // ***********************************************************************
 // ***********************************************************************
 // ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
@@ -905,7 +938,6 @@ int main(int argc, char **argv)
   }
   // close outfiles
   gft_close_all();
-  ofs_mass.close();
   if (wr_itn) { ofs_itn.close(); }
   // print resolution runtime
   cout << difftime(time(NULL), start_time) << " seconds elapsed" << endl;
