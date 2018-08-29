@@ -246,22 +246,22 @@ inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, doubl
 inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
   return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
 
-double get_ell_res(double *vec_vals, const vector<double>& xi, const vector<double>& pi,
-		 const vector<double>& alpha, const vector<double>& beta,
-		 const vector<double>& psi, int lastpt, double dr, double rmin) {
+void get_ell_res(double *vec_vals, const vector<double>& xi, const vector<double>& pi,
+		   const vector<double>& alpha, const vector<double>& beta,
+		   const vector<double>& psi, int lastpt, int N, double dr, double rmin) {
   vec_vals[0] = neumann0res(alpha);
   vec_vals[1] = dirichlet0res(beta);
   vec_vals[2] = neumann0res(psi);
   double rval = rmin + dr;
-    for (j = 1; j < lastpt; ++j) {
-      vec_vals[3*j] = fda_resalpha(xi, pi, alpha, beta, psi, j, dr, rval);
-      vec_vals[3*j+1] = fda_resbeta(xi, pi, alpha, beta, psi, j, dr, rval);
-      vec_vals[3*j+2] = fda_respsi(xi, pi, alpha, beta, psi, j, dr, rval);
-      rval += dr;
-    }
-    vec_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, rval);
-    vec_vals[N-2] = fdaR_resbeta(beta, lastpt, dr, rval);
-    vec_vals[N-1] = fdaR_respsi(psi, lastpt, dr, rval);
+  for (int k = 1; k < lastpt; ++k) {
+    vec_vals[3*k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, rval);
+    vec_vals[3*k+1] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, rval);
+    vec_vals[3*k+2] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, rval);
+    rval += dr;
+  }
+  vec_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, rval);
+  vec_vals[N-2] = fdaR_resbeta(beta, lastpt, dr, rval);
+  vec_vals[N-1] = fdaR_respsi(psi, lastpt, dr, rval);
   return;
 }
 
@@ -390,13 +390,13 @@ inline void set_betavals(double *vals, const vector<double>& xi, const vector<do
 inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  vals[0] = jac_pa_pm(alpha, beta, psi, ind, -1, dr, r),
+  vals[0] = jac_pa_pm(),
     vals[1] = jac_pb_pm(alpha, beta, psi, ind, -1, dr, r),
     vals[2] = jac_pp_pm(alpha, beta, psi, ind, -1, dr, r),
     vals[3] = jac_pa(alpha, beta, psi, ind, dr, r),
     vals[4] = jac_pb(alpha, beta, psi, ind, dr, r),
     vals[5] = jac_pp(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[6] = jac_pa_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[6] = jac_pa_pm(),
     vals[7] = jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
     vals[8] = jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
@@ -597,7 +597,6 @@ int main(int argc, char **argv)
   PetscErrorCode ierr;
   PetscInt N = 3 * npts; // size of vectors
   PetscInt nz = 9;
-  PetscInt i, rstart, rend; 
   // matrices and vectors
   Mat jac;
   Vec abpres;
@@ -662,7 +661,7 @@ int main(int argc, char **argv)
 
   // create linear solver context
   ierr = KSPCreate(comm, &ksp); CHKERRQ(ierr);
-  ierr = KSPSetType(ksp, KSPPREONLY)
+  ierr = KSPSetType(ksp, KSPPREONLY); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc); CHKERRQ(ierr);
   ierr = PCSetType(pc,PCLU); CHKERRQ(ierr);
   ierr = KSPSetTolerances(ksp, 1e-9, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
@@ -714,6 +713,8 @@ int main(int argc, char **argv)
       bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
     }
     // reset itn and set res > tol to enter GAUSS-SEIDEL ITERATIVE SOLVER
+    // and the direct linear solver for the elliptic equations
+    // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
     ell_itn = 2;
     while (ell_itn > 1) {
@@ -789,7 +790,7 @@ int main(int argc, char **argv)
     // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
     // ***********************************************************************
     // get initial residual
-    get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, dr, rmin);
+    get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
     ell_res = max(*max_element(vec_vals, vec_vals+N), abs(*min_element(vec_vals, vec_vals+N)));
     ell_itn = 0;
     while (ell_res > ell_tol) {
@@ -827,7 +828,7 @@ int main(int argc, char **argv)
       ierr = VecRestoreArray(abpres, &vec_vals); CHKERRQ(ierr);
 
       // get new residual
-      get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, dr, rmin);
+      get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
       ell_res = max(*max_element(vec_vals, vec_vals+N), abs(*min_element(vec_vals, vec_vals+N)));
       ++ell_itn;
     }
@@ -862,7 +863,6 @@ int main(int argc, char **argv)
   ierr = MatDestroy(&jac); CHKERRQ(ierr);
   //ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
   //ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
-  ierr = VecDestroy(&abp); CHKERRQ(ierr);
   ierr = VecDestroy(&abpres); CHKERRQ(ierr);
 
   ierr = PetscFinalize();
