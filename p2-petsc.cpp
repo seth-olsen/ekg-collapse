@@ -57,7 +57,7 @@ inline double dmdr_scalar(double xival, double pival, double alphaval,
 
 inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
-  return r*pow(psi[k],6)*sqin(alpha[k])*sq(r*ddr_c(beta,k,dr) - beta[k])/18.0 -
+  return r*pw6(psi[k])*sq(r*ddr_c(beta,k,dr) - beta[k]) / (18*sq(alpha[k])) -
     2*sq(r)*ddr_c(psi,k,dr)*(psi[k] + r*ddr_c(psi,k,dr)); }
 
 inline double mass_aspect0(const vector<double>& alpha, const vector<double>& beta,
@@ -274,13 +274,13 @@ inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, int ind, double lam, double dr, double r) {
   return 0.25*lam*(beta[ind]*(psi[ind+1] - psi[ind-1]) +
-		   psi[ind]*(beta[ind+1] +4*beta[ind]/r - beta[ind-1])); }
+		   psi[ind]*(beta[ind+1] + 4*beta[ind]/r - beta[ind-1])); }
 
 inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
-  return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r + sqin(alpha[ind])*
-    (ddr_c(beta,ind,dr) - beta[ind]/r)*psi[ind]*pw4(psi[ind])/12.0 + 
+  return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r +
+    (ddr_c(beta,ind,dr) - beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
     M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
@@ -315,9 +315,10 @@ void get_ell_res(double *res_vals, const vector<double>& xi, const vector<double
   res_vals[2] = neumann0res(psi);
   for (int k = 1; k < lastpt; ++k) {
     r += dr;
-    res_vals[3*k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
-    res_vals[3*k+1] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
-    res_vals[3*k+2] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
+    // MAYBE NEED TO CHANGE BACK TO NO sq(dr)
+    res_vals[3*k] = sq(dr)*fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k+1] = sq(dr)*fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k+2] = sq(dr)*fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
   }
   r += dr;
   res_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, r);
@@ -423,43 +424,43 @@ inline void set_inds(int *cols, int indalpha) {
 inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  vals[0] = jac_aa_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[1] = jac_ab_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[2] = jac_ap_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[3] = jac_aa(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[4] = jac_ab(alpha, beta, psi, ind, dr, r),
-    vals[5] = jac_ap(alpha, beta, psi, ind, dr, r),
-    vals[6] = jac_aa_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[7] = jac_ab_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[8] = jac_ap_pm(alpha, beta, psi, ind, 1, dr, r);
+  vals[0] = sq(dr)*jac_aa_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = sq(dr)*jac_ab_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = sq(dr)*jac_ap_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = sq(dr)*jac_aa(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[4] = sq(dr)*jac_ab(alpha, beta, psi, ind, dr, r),
+    vals[5] = sq(dr)*jac_ap(alpha, beta, psi, ind, dr, r),
+    vals[6] = sq(dr)*jac_aa_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = sq(dr)*jac_ab_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = sq(dr)*jac_ap_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
 
 inline void set_betavals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  vals[0] = jac_ba_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[1] = jac_bb_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[2] = jac_bp_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[3] = jac_ba(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[4] = jac_bb(alpha, beta, psi, ind, dr, r),
-    vals[5] = jac_bp(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[6] = jac_ba_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[7] = jac_bb_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[8] = jac_bp_pm(alpha, beta, psi, ind, 1, dr, r);
+  vals[0] = sq(dr)*jac_ba_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = sq(dr)*jac_bb_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = sq(dr)*jac_bp_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = sq(dr)*jac_ba(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[4] = sq(dr)*jac_bb(alpha, beta, psi, ind, dr, r),
+    vals[5] = sq(dr)*jac_bp(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[6] = sq(dr)*jac_ba_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = sq(dr)*jac_bb_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = sq(dr)*jac_bp_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
 
 inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   vals[0] = jac_pa_pm(),
-    vals[1] = jac_pb_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[2] = jac_pp_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[3] = jac_pa(alpha, beta, psi, ind, dr, r),
-    vals[4] = jac_pb(alpha, beta, psi, ind, dr, r),
-    vals[5] = jac_pp(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[1] = sq(dr)*jac_pb_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = sq(dr)*jac_pp_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = sq(dr)*jac_pa(alpha, beta, psi, ind, dr, r),
+    vals[4] = sq(dr)*jac_pb(alpha, beta, psi, ind, dr, r),
+    vals[5] = sq(dr)*jac_pp(xi, pi, alpha, beta, psi, ind, dr, r),
     vals[6] = jac_pa_pm(),
-    vals[7] = jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[8] = jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
+    vals[7] = sq(dr)*jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = sq(dr)*jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
 
 
@@ -487,8 +488,9 @@ int main(int argc, char **argv)
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
-  double ell_tol = tol;
+  double ell_tol = tol; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
+  int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 1.0; // gaussian amplitude
@@ -558,7 +560,7 @@ int main(int argc, char **argv)
   PetscMPIInt rank;
   PetscMPIInt size;
   PetscErrorCode ierr;
-  PetscInt nz = 9;
+  PetscInt nz = 9, petsc_itn;
   PetscScalar mat_vals[nz];
   PetscInt col_inds[nz];
   ierr = PetscInitialize(&argc, &argv, (char *)0, help);
@@ -655,7 +657,7 @@ int main(int argc, char **argv)
   string resxi_fname = "resXi-" + outfile + ".sdf";
   string respi_fname = "resPi-" + outfile + ".sdf";
   char *resname_arr[2] = {&resxi_fname[0], &respi_fname[0]};
-  int maxit_count = 0;
+  int maxit_count = 0, ell_maxit_count = 0;
 
   // *********************************************
   // **************** PETSC **********************
@@ -859,6 +861,7 @@ int main(int argc, char **argv)
 	ierr = VecAssemblyBegin(abpres); CHKERRQ(ierr);
 	ierr = VecAssemblyEnd(abpres); CHKERRQ(ierr);
 
+	/*
 	if (i == 0) {
 	  PetscViewer viewer;
 	  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
@@ -867,10 +870,16 @@ int main(int argc, char **argv)
 	  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
 	  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
 	}
+	*/
       
 	// solve linear system
 	ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
 	ierr = KSPSolve(ksp, abpres, abpres); CHKERRQ(ierr);
+	/*
+	ierr = KSPGetIterationNumber(ksp, &petsc_itn); CHKERRQ(ierr);
+	if (petsc_itn < 2 || petsc_itn > ell_maxit) {
+	  cout << i << " petsc_itn= " << petsc_itn << " at ell_itn " << ell_itn << endl; }
+	*/
 	// add displacements to metric functions
 	ierr = VecGetArray(abpres, &deltas); CHKERRQ(ierr);
 	for (j = 0; j < npts; ++j) {
@@ -884,7 +893,12 @@ int main(int argc, char **argv)
 	get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
 	ell_res = max(*max_element(res_vals, res_vals+N),
 		      abs(*min_element(res_vals, res_vals+N)));
-	++ell_itn;
+	++ell_itn; 
+	if (ell_itn % ell_maxit == 0) {
+	  ell_res = 0.0;
+	  ++ell_maxit_count;
+	  if (i % 500*factor == 0) { cout << i << " ell_res= " << res << " at " << ell_itn << endl; }
+	}
       }
 // **************************************************************************
 // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
@@ -927,8 +941,6 @@ int main(int argc, char **argv)
   // close and destroy objects then finalize mpi/petsc
   ierr = KSPDestroy(&ksp); CHKERRQ(ierr);
   ierr = MatDestroy(&jac); CHKERRQ(ierr);
-  //ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
-  //ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
   ierr = VecDestroy(&abpres); CHKERRQ(ierr);
   
   // write final time step
@@ -942,7 +954,8 @@ int main(int argc, char **argv)
   // print resolution runtime
   cout << difftime(time(NULL), start_time) << " seconds elapsed" << endl;
   //*************DEBUG************
-  cout << maxit_count << " steps reached maxit=" << maxit << "\n" << endl;
+  cout << maxit_count << " hyperbolic steps reached maxit=" << maxit << endl;
+  cout << ell_maxit_count << " elliptic steps reached maxit=" << ell_maxit << "\n" << endl;
   
   }
   // ******************** DONE LOOPING OVER RESOLUTIONS *********************
