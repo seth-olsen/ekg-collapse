@@ -22,10 +22,6 @@ p2-conv-test: fda-io.h
 	$(CXX) $(LDFLAGS) p2-conv-test.o $(LDLIBS) -o p2-conv-test
 	rm -f p2-conv-test.o
 
-.PHONY: clean
-clean :
-	rm -f *.o
-
 
 # "make" uses the following implicit rule to compile
 # a .c file into a .o file:
