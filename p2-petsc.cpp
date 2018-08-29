@@ -210,6 +210,66 @@ inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
   // d3pi_f(beta, pi, alpha, xi, psi, ind, dr, r)
 }
 
+// set rhs of A.x(t_n+1) = b(t_n)
+inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
+		    const vector<double>& old_xi, const vector<double>& old_pi,
+		    const vector<double>& alpha, const vector<double>& beta,
+		    const vector<double>& psi, double lam, double dr, double r,
+		    int j, int lastpt) {
+  if (r != 0) {
+    bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
+    bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, dr, r);
+  }
+  for (j = 1; j < lastpt; ++j) {
+    r += dr;
+    bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, psi, j, lam);
+    bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
+  }
+  return;
+}
+
+// perform gauss-seidel update
+inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
+		      vector<double>& resxi, vector<double>& respi,
+		      vector<double>& xi, vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, double lam, double dr, double r,
+		      double rmin, int j, int lastpt, bool somm_cond, double somm_coeff) {
+  if (r == 0) { neumann0(pi); }
+  else {
+    xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
+    pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, dr, r);
+  }
+  r += dr;
+  xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
+  pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
+  for (j = 2; j < lastpt; ++j) {
+    r += dr;
+    xi[j] = bxi[j] + fda_xi(xi, pi, alpha, beta, psi, j, lam);
+    pi[j] = bpi[j] + fda_pi(xi, pi, alpha, beta, psi, j, lam, dr, r);
+    resxi[j-1] = abs(xi[j-1] - bxi[j-1] -
+		     fda_xi(xi, pi, alpha, beta, psi, j-1, lam));
+    respi[j-1] = abs(pi[j-1] - bpi[j-1] -
+		     fda_pi(xi, pi, alpha, beta, psi, j-1, lam, dr, r-dr));
+  }
+  resxi[0] = abs(xi[0] - bxi[0] -
+		 fda0_xi(xi, pi, alpha, beta, psi, lam));
+  respi[0] = abs(pi[0] - bpi[0] -
+		 fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
+  // UPDATE BOUNDARY
+  if (somm_cond) {
+    sommerfeld(xi, xi, lastpt, lam, somm_coeff);
+    sommerfeld(pi, pi, lastpt, lam, somm_coeff);
+  }
+  
+  resxi[lastpt-1] = abs(xi[lastpt-1] - bxi[lastpt-1] -
+			fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
+  respi[lastpt-1] = abs(pi[lastpt-1] - bpi[lastpt-1] -
+			fda_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, dr, r));
+  return;
+}
+  
+
 inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, int ind, double lam, double dr, double r) {
@@ -246,22 +306,23 @@ inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, doubl
 inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
   return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
 
-void get_ell_res(double *vec_vals, const vector<double>& xi, const vector<double>& pi,
+// set res_vals to be -residual = -L[f] for rhs of jacobian.delta = -residual
+void get_ell_res(double *res_vals, const vector<double>& xi, const vector<double>& pi,
 		   const vector<double>& alpha, const vector<double>& beta,
 		   const vector<double>& psi, int lastpt, int N, double dr, double rmin) {
-  vec_vals[0] = neumann0res(alpha);
-  vec_vals[1] = dirichlet0res(beta);
-  vec_vals[2] = neumann0res(psi);
+  res_vals[0] = -neumann0res(alpha);
+  res_vals[1] = -dirichlet0res(beta);
+  res_vals[2] = -neumann0res(psi);
   double rval = rmin + dr;
   for (int k = 1; k < lastpt; ++k) {
-    vec_vals[3*k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, rval);
-    vec_vals[3*k+1] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, rval);
-    vec_vals[3*k+2] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, rval);
+    res_vals[3*k] = -fda_resalpha(xi, pi, alpha, beta, psi, k, dr, rval);
+    res_vals[3*k+1] = -fda_resbeta(xi, pi, alpha, beta, psi, k, dr, rval);
+    res_vals[3*k+2] = -fda_respsi(xi, pi, alpha, beta, psi, k, dr, rval);
     rval += dr;
   }
-  vec_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, rval);
-  vec_vals[N-2] = fdaR_resbeta(beta, lastpt, dr, rval);
-  vec_vals[N-1] = fdaR_respsi(psi, lastpt, dr, rval);
+  res_vals[N-3] = -fdaR_resalpha(alpha, lastpt, dr, rval);
+  res_vals[N-2] = -fdaR_resbeta(beta, lastpt, dr, rval);
+  res_vals[N-1] = -fdaR_respsi(psi, lastpt, dr, rval);
   return;
 }
 
@@ -492,19 +553,32 @@ int main(int argc, char **argv)
 
   vector<double> sol(((wr_sol) ? wr_shape : 1), 0.0);
   vector<double> maspect(((wr_mass) ? wr_shape : 1), 0.0);
+
+  // initialize petsc/mpi
+  PetscMPIInt rank;
+  PetscMPIInt size;
+  PetscErrorCode ierr;
+  PetscInt nz = 9;
+  PetscScalar mat_vals[nz];
+  PetscInt col_inds[nz];
+  ierr = PetscInitialize(&argc, &argv, (char *)0, help);
+  if (ierr) { return ierr; }
+  MPI_Comm comm = PETSC_COMM_WORLD;
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &size);
   
-  // **************************************************************
-  // **************************************************************
-  //                 LOOP PROGRAM OVER RESOLUTIONS
-  // **************************************************************
-  // **************************************************************
+// **************************************************************
+// **************************************************************
+//                 LOOP PROGRAM OVER RESOLUTIONS
+// **************************************************************
+// **************************************************************
 
   int lastpt0 = lastpt; 
   int save_pt0 = save_pt;
   int nsteps0 = nsteps;
   int save_step0 = save_step;
   string outfile0 = outfile;
-  double lam0 = lam;
+  double lam0 = lam;  
   
   for (int factor : resolutions) {
     if (hold_const == "lambda") {
@@ -547,9 +621,9 @@ int main(int argc, char **argv)
 			zero_pi,somm_cond,dspn_bound);
   specs.close();
   
-  // **********************************************************
-  // ***************** OBJECT DECLARATIONS ********************
-  // **********************************************************
+// **********************************************************
+// ***************** OBJECT DECLARATIONS ********************
+// **********************************************************
   
   // outfiles
   string solname = "sol-" + outfile + ".sdf";
@@ -591,12 +665,8 @@ int main(int argc, char **argv)
   // **************** PETSC **********************
   // *********************************************
 
-  // petsc object declaration
-  PetscMPIInt rank;
-  PetscMPIInt size;
-  PetscErrorCode ierr;
+  // petsc object declaration  
   PetscInt N = 3 * npts; // size of vectors
-  PetscInt nz = 9;
   // matrices and vectors
   Mat jac;
   Vec abpres;
@@ -605,22 +675,14 @@ int main(int argc, char **argv)
   // checking matrix
   //PetscViewer viewer;
   PetscInt indices[N];
-  PetscScalar vec_vals[N];
-  PetscScalar mat_vals[9];
-  PetscInt col_inds[9];
-
-  //start petsc/mpi
-  ierr = PetscInitialize(&argc, &argv, (char *)0, help);
-  if (ierr) { return ierr; }
-  MPI_Comm comm = PETSC_COMM_WORLD;
-  MPI_Comm_rank(comm, &rank);
-  MPI_Comm_size(comm, &size);
+  PetscScalar res_vals[N];
+  PetscScalar *deltas;
 
   time_t start_time = time(NULL); // time for rough performance measure
   
-  // **********************************************************
-  // ******************* INITIAL DATA ************************
-  // **********************************************************
+// **********************************************************
+// ******************* INITIAL DATA ************************
+// **********************************************************
 
   int i, j, itn = 0, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
   double res = tol + 1.0, ell_res = ell_tol + 1;// declare residual indicators
@@ -650,12 +712,18 @@ int main(int argc, char **argv)
     PetscInt col_indsNm3[3] = {N-9, N-6, N-3}, col_indsNm2[3] = {N-8, N-5, N-2}, col_indsNm1[3] = {N-7, N-4, N-1};
     PetscScalar mat_vals02[3] = {-3, 4, -1}, mat_vals1[1] = {1};
     PetscScalar mat_valsNm123[3] = {1, -4, 2*dr/rmax + 3};
-    ierr = MatSetValues(jac, 1, &indices[0], 3, col_inds0, mat_vals02, INSERT_VALUES); CHKERRQ(ierr);
-    ierr = MatSetValues(jac, 1, &indices[1], 1, col_inds1, mat_vals1, INSERT_VALUES); CHKERRQ(ierr);
-    ierr = MatSetValues(jac, 1, &indices[2], 3, col_inds2, mat_vals02, INSERT_VALUES); CHKERRQ(ierr);
-    ierr = MatSetValues(jac, 1, &indices[N-3], 3, col_indsNm3, mat_valsNm123, INSERT_VALUES); CHKERRQ(ierr);
-    ierr = MatSetValues(jac, 1, &indices[N-2], 3, col_indsNm2, mat_valsNm123, INSERT_VALUES); CHKERRQ(ierr);
-    ierr = MatSetValues(jac, 1, &indices[N-1], 3, col_indsNm1, mat_valsNm123, INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[0], 3, col_inds0, mat_vals02, INSERT_VALUES);
+    CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[1], 1, col_inds1, mat_vals1, INSERT_VALUES);
+    CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[2], 3, col_inds2, mat_vals02, INSERT_VALUES);
+    CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[N-3], 3, col_indsNm3, mat_valsNm123, INSERT_VALUES);
+    CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[N-2], 3, col_indsNm2, mat_valsNm123, INSERT_VALUES);
+    CHKERRQ(ierr);
+    ierr = MatSetValues(jac, 1, &indices[N-1], 3, col_indsNm1, mat_valsNm123, INSERT_VALUES);
+    CHKERRQ(ierr);
   }
   else { cout << "\n\n\n\n****ERROR: NOT USING SINGLE PROCESSOR****\n\n\n\n" << endl; }
 
@@ -667,10 +735,10 @@ int main(int argc, char **argv)
   ierr = KSPSetTolerances(ksp, 1e-9, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
   //ierr = KSPSetFromOptions(ksp); CHKERRQ(ierr);
   
-  // **********************************************************
-  // ******************* TIME STEPPING ************************
-  // *******************   & WRITING   ************************
-  // **********************************************************
+// **********************************************************
+// ******************* TIME STEPPING ************************
+// *******************   & WRITING   ************************
+// **********************************************************
   
   gft_set_multi(); // start bbhutil file i/o
   for (i = 0; i < nsteps; ++i) {
@@ -697,83 +765,44 @@ int main(int argc, char **argv)
     old_xi = xi;
     old_pi = pi;
     
-    // ******************************************************************
-    // ******************************************************************
-    //         SOLVE HYPERBOLIC & ELLIPTIC EQUATIONS ITERATIVELY
-    // ******************************************************************
-    // ******************************************************************
+// ******************************************************************
+// ******************************************************************
+//         SOLVE HYPERBOLIC & ELLIPTIC EQUATIONS ITERATIVELY
+// ******************************************************************
+// ******************************************************************
     r = rmin;
-    if (rmin != 0) {
-      bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
-      bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, dr, rmin);
-    }
-    for (j = 1; j < lastpt; ++j) {
-      r += dr;
-      bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, psi, j, lam);
-      bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
-    }
-    // reset itn and set res > tol to enter GAUSS-SEIDEL ITERATIVE SOLVER
-    // and the direct linear solver for the elliptic equations
+    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, j, lastpt);
+    // reset res > tol to enter gauss-seidel solver for hyperbolic equations
+    // reset ell_itn > 1 to enter direct linear solver for the elliptic equations
     // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
     ell_itn = 2;
     while (ell_itn > 1) {
-      // ***********************************************************************
-      // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
-      // ***********************************************************************
+// ***********************************************************************
+// ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
+// ***********************************************************************
       itn = 0, res = tol + 1;
       while (res > tol) {
-      
-      r = rmin;
-      // UPDATE INTERIOR and collect residuals
-      if (rmin == 0) { neumann0(pi); }
-      else {
-	xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
-	pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin);
+	
+	r = rmin;
+	gs_update(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, r, rmin,
+		  j, lastpt, somm_cond, somm_coeff);
+	// CHECK RESIDUAL
+	res = max(*max_element(resxi.begin(), resxi.end()),
+		  *max_element(respi.begin(), respi.end())); // can use 1-norm or 2-norm
+	++itn; 
+	if (itn % maxit == 0) {
+	  res = 0.0;
+	  ++maxit_count;
+	  if (i % 500*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
+	}
       }
-      r += dr;
-      xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
-      pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
-      for (j = 2; j < lastpt; ++j) {
-        r += dr;
-        xi[j] = bxi[j] + fda_xi(xi, pi, alpha, beta, psi, j, lam);
-	pi[j] = bpi[j] + fda_pi(xi, pi, alpha, beta, psi, j, lam, dr, r);
-	resxi[j-1] = abs(xi[j-1] - bxi[j-1] -
-			 fda_xi(xi, pi, alpha, beta, psi, j-1, lam));
-	respi[j-1] = abs(pi[j-1] - bpi[j-1] -
-			 fda_pi(xi, pi, alpha, beta, psi, j-1, lam, dr, r-dr));
-      }
-      resxi[0] = abs(xi[0] - bxi[0] -
-		     fda0_xi(xi, pi, alpha, beta, psi, lam));
-      respi[0] = abs(pi[0] - bpi[0] -
-		     fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
-      // UPDATE BOUNDARY
-      if (somm_cond) {
-	sommerfeld(xi, xi, lastpt, lam, somm_coeff);
-	sommerfeld(pi, pi, lastpt, lam, somm_coeff);
-      }
-      
-      resxi[lastpt-1] = abs(xi[lastpt-1] - bxi[lastpt-1] -
-			    fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
-      respi[lastpt-1] = abs(pi[lastpt-1] - bpi[lastpt-1] -
-			    fda_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, dr, r));
-      
-      // CHECK RESIDUAL
-      res = max(*max_element(resxi.begin(), resxi.end()), *max_element(respi.begin(), respi.end())); // can also use 1-norm or 2-norm
-
-      ++itn; 
-      if (itn % maxit == 0) {
-	res = 0.0;
-	++maxit_count;
-	if (i % 500*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
-      }
-    }
-    if (wr_itn) { ofs_itn << itn << endl; } // record itn count
-    // ****************************************************************************
-    // ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
-    // ****************************************************************************
+      if (wr_itn) { ofs_itn << itn << endl; } // record itn count
+// ****************************************************************************
+// ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
+// ****************************************************************************
     
-    // ****************** kreiss-oliger DISSIPATION ********************
+// ****************** kreiss-oliger DISSIPATION ********************
     // at ind next to boundaries can call dissipate on ind+/-1 or ind+/-2
       if (rmin == 0) {
 	xi[1] += antidiss1(dspn, old_xi);
@@ -782,67 +811,72 @@ int main(int argc, char **argv)
 	  pi[0] += symdiss0(dspn, old_pi);
 	}
       }
-    for (j = 2; j < lastpt-1; ++j) {
-      xi[j] += dissipate(dspn, old_xi, j);
-      pi[j] += dissipate(dspn, old_pi, j);
-    }
-    // ***********************************************************************
-    // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
-    // ***********************************************************************
-    // get initial residual
-    get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-    ell_res = max(*max_element(vec_vals, vec_vals+N), abs(*min_element(vec_vals, vec_vals+N)));
-    ell_itn = 0;
-    while (ell_res > ell_tol) {
-      r = rmin + dr;
-      for (j = 1; j < lastpt; ++j) {
-	set_inds(col_inds, 3*j);
-	set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-	ierr = MatSetValues(jac, 1, &indices[3*j], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-	set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-	ierr = MatSetValues(jac, 1, &indices[3*j+1], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-	
-	set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-	ierr = MatSetValues(jac, 1, &indices[3*j+2], 9, col_inds, mat_vals, INSERT_VALUES); CHKERRQ(ierr);
-	
-	r += dr;
+      for (j = 2; j < lastpt-1; ++j) {
+	xi[j] += dissipate(dspn, old_xi, j);
+	pi[j] += dissipate(dspn, old_pi, j);
       }
+// ***********************************************************************
+// ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
+// ***********************************************************************
+      // get initial residual
+      get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+      ell_res = max(*max_element(res_vals, res_vals+N),
+		    abs(*min_element(res_vals, res_vals+N)));
+      ell_itn = 0;
+      // ************
+      //ell_res = 0; // DEBUGGING
+      // ************
+      while (ell_res > ell_tol) {
+	r = rmin + dr;
+	for (j = 1; j < lastpt; ++j) {
+	  set_inds(col_inds, 3*j);
+	  set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	  ierr = MatSetValues(jac, 1, &indices[3*j], 9, col_inds, mat_vals, INSERT_VALUES);
+	  CHKERRQ(ierr);
+	  set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	  ierr = MatSetValues(jac, 1, &indices[3*j+1], 9, col_inds, mat_vals, INSERT_VALUES);
+	  CHKERRQ(ierr);	
+	  set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	  ierr = MatSetValues(jac, 1, &indices[3*j+2], 9, col_inds, mat_vals, INSERT_VALUES);
+	  CHKERRQ(ierr);	
+	  r += dr;
+	}
       // matrix/vector assembly & checking
-      ierr = MatAssemblyBegin(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-      ierr = MatAssemblyEnd(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+	ierr = MatAssemblyBegin(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+	ierr = MatAssemblyEnd(jac, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+	
+	ierr = VecSetValues(abpres, N, &indices[0], &res_vals[0], INSERT_VALUES); CHKERRQ(ierr);
+	ierr = VecAssemblyBegin(abpres); CHKERRQ(ierr);
+	ierr = VecAssemblyEnd(abpres); CHKERRQ(ierr);
       
-      ierr = VecSetValues(abpres, N, &indices[0], &vec_vals[0], INSERT_VALUES); CHKERRQ(ierr);
-      ierr = VecAssemblyBegin(abpres); CHKERRQ(ierr);
-      ierr = VecAssemblyEnd(abpres); CHKERRQ(ierr);
-      
-      // solve linear system
-      ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
-      ierr = KSPSolve(ksp, abpres, abpres); CHKERRQ(ierr);
-      // add displacements to metric functions
-      ierr = VecGetArray(abpres, &vec_vals); CHKERRQ(ierr);
-      for (j = 0; j < npts; ++j) {
-	alpha[j] += vec_vals[3*j];
-	beta[j] += vec_vals[3*j+1];
-	psi[j] += vec_vals[3*j+2];
+	// solve linear system
+	ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
+	ierr = KSPSolve(ksp, abpres, abpres); CHKERRQ(ierr);
+	// add displacements to metric functions
+	ierr = VecGetArray(abpres, &deltas); CHKERRQ(ierr);
+	for (j = 0; j < npts; ++j) {
+	  alpha[j] += deltas[3*j];
+	  beta[j] += deltas[3*j+1];
+	  psi[j] += deltas[3*j+2];
+	}
+	ierr = VecRestoreArray(abpres, &deltas); CHKERRQ(ierr);
+	
+	// get new residual
+	get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+	ell_res = max(*max_element(res_vals, res_vals+N),
+		      abs(*min_element(res_vals, res_vals+N)));
+	++ell_itn;
       }
-      ierr = VecRestoreArray(abpres, &vec_vals); CHKERRQ(ierr);
-
-      // get new residual
-      get_ell_res(vec_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-      ell_res = max(*max_element(vec_vals, vec_vals+N), abs(*min_element(vec_vals, vec_vals+N)));
-      ++ell_itn;
-    }
-    // **************************************************************************
-    // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
-    // **************************************************************************
-
+// **************************************************************************
+// ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
+// **************************************************************************
     ++hyp_ell_itn;
     }
-    // ***********************************************************************
-    // ***********************************************************************
-    // ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
-    // ***********************************************************************
-    // ***********************************************************************
+// ***********************************************************************
+// ***********************************************************************
+// ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
+// ***********************************************************************
+// ***********************************************************************
     
     // ****************** WRITE MASS & update field **********************
     if (wr_mass && i % check_step*save_step == 0) {
@@ -859,14 +893,10 @@ int main(int argc, char **argv)
 
   // close and destroy objects then finalize mpi/petsc
   ierr = KSPDestroy(&ksp); CHKERRQ(ierr);
-  ierr = PCDestroy(&pc); CHKERRQ(ierr);
   ierr = MatDestroy(&jac); CHKERRQ(ierr);
   //ierr = PetscViewerDestroy(&lhs_viewer); CHKERRQ(ierr);
   //ierr = PetscViewerDestroy(&rhs_viewer); CHKERRQ(ierr);
   ierr = VecDestroy(&abpres); CHKERRQ(ierr);
-
-  ierr = PetscFinalize();
-  if (ierr) { return ierr; }
   
   // write final time step
   if (nsteps % save_step == 0) {
@@ -884,6 +914,8 @@ int main(int argc, char **argv)
   
   }
   // ******************** DONE LOOPING OVER RESOLUTIONS *********************
+  ierr = PetscFinalize();
+  if (ierr) { return ierr; }
   
   return 0;
 }
