@@ -280,7 +280,7 @@ inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r +
-    (ddr_c(beta,ind,dr) - beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
+    (0.5*d_c(beta,ind) - dr*beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
     M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
@@ -288,13 +288,13 @@ inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& psi, int ind, double dr, double r) {
   return  ddr2_c(beta,ind,dr) + 12*M_PI*sqin(psi[ind])*alpha[ind]*xi[ind]*pi[ind]
     + (2/r + 6*ddr_c(psi,ind,dr)/psi[ind] - ddr_c(alpha,ind,dr)/alpha[ind])*
-    (ddr_c(beta,ind,dr) - beta[ind]/r); }
+    (0.5*d_c(beta,ind) - dr*beta[ind]/r); }
 
 inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
 			   const vector<double>& alpha, const vector<double>& beta,
 			   const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
-    - 2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
+    - 2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r)/(3*alpha[ind])
     - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
 
 inline double fdaR_respsi(const vector<double>& psi, int ind, double dr, double r) {
@@ -316,9 +316,9 @@ void get_ell_res(double *res_vals, const vector<double>& xi, const vector<double
   for (int k = 1; k < lastpt; ++k) {
     r += dr;
     // MAYBE NEED TO CHANGE BACK TO NO sq(dr)
-    res_vals[3*k] = sq(dr)*fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
-    res_vals[3*k+1] = sq(dr)*fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
-    res_vals[3*k+2] = sq(dr)*fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k+1] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
+    res_vals[3*k+2] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
   }
   r += dr;
   res_vals[N-3] = fdaR_resalpha(alpha, lastpt, dr, r);
@@ -334,29 +334,29 @@ void get_ell_res(double *res_vals, const vector<double>& xi, const vector<double
 inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2/sq(dr) - 8*M_PI*sq(pi[ind]) +
-    2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*sq(alpha[ind])); }
+  return -2 - 8*M_PI*sq(dr)*sq(pi[ind]) +
+    2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*sq(alpha[ind])); }
 
 inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return sqin(dr) + p_m*(ddr_c(psi,ind,dr)/psi[ind] + 1/r)/dr; }
+  return 1 + p_m*(0.5*d_c(psi,ind)/psi[ind] + dr/r); }
 
 inline double jac_ab(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return 4*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
+  return 4*dr*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]*r); }
 
 inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return -p_m*2*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
+  return -p_m*2*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]); }
 
 inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2*(ddr_c(alpha,ind,dr)*ddr_c(psi,ind,dr)*sqin(psi[ind]) +
-	     4*pw3(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind])); }
+  return -0.5*d_c(alpha,ind)*d_c(psi,ind) / sq(psi[ind]) -
+	     8*pw3(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]); }
 
 inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*ddr_c(alpha,ind, dr) / (dr*psi[ind]); }
+  return p_m*0.5*d_c(alpha,ind) / psi[ind]; }
 
 
 // ***********************  row beta(ind)   ***********************
@@ -364,56 +364,56 @@ inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
 inline double jac_ba(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return 12*M_PI*xi[ind]*pi[ind] / sq(psi[ind]) +
-    ddr_c(alpha,ind,dr)*(ddr_c(beta,ind,dr) - beta[ind]/r) / sq(alpha[ind]); }
+  return 12*M_PI*sq(dr)*xi[ind]*pi[ind] / sq(psi[ind]) +
+    0.5*d_c(alpha,ind)*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / sq(alpha[ind]); }
 
 inline double jac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return -p_m*0.5*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*alpha[ind]); }
+  return -p_m*0.5*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / alpha[ind]; }
 
 inline double jac_bb(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2/sq(dr) - (2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr)/psi[ind])/r; }
+  return -2*(1 + sq(dr)/sq(r)) - 0.5*dr*(d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind])/r; }
 
 inline double jac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return sqin(dr) + p_m*0.5*(2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr)/psi[ind])/dr; }
+  return 1 + p_m*0.25*(4*dr/r - d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind]); }
 
 inline double jac_bp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -6*(4*M_PI*xi[ind]*pi[ind]*alpha[ind]*p3in(psi[ind]) +
-	     ddr_c(psi,ind,dr)*sqin(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r)); }
+  return -6*(4*M_PI*sq(dr)*xi[ind]*pi[ind]*alpha[ind] / pw3(psi[ind]) +
+	     0.5*d_c(psi,ind)*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / sq(psi[ind])); }
 
 inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*3*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*psi[ind]); }
+  return p_m*3*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / psi[ind]; }
 
 // ***********************  row psi(ind)   ***********************
 
 inline double jac_pa(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -pw5(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (6*pw3(alpha[ind])); }
+  return -dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*pw3(alpha[ind])); }
 
 inline double jac_pa_pm() { return 0; }
 
 inline double jac_pb(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -pw5(psi[ind]) / (sq(alpha[ind])*12*r); }
+  return -sq(dr)*pw5(psi[ind]) / (12*sq(alpha[ind])*r); }
 
 inline double jac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*pw5(psi[ind])*sqin(alpha[ind]) / (24*dr); }
+  return p_m*dr*pw5(psi[ind]) / (24*sq(alpha[ind])); }
 
 inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2/sq(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
-    5*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (12*sq(alpha[ind])); }
+  return -2 + M_PI*sq(dr)*(sq(xi[ind]) + sq(pi[ind])) +
+    5*dr*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
 
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return sqin(dr) + p_m/(r*dr); }
+  return 1 + p_m*dr/r; }
 
 inline void set_inds(int *cols, int indalpha) {
   cols[0] = indalpha-3, cols[1] = indalpha-2, cols[2] = indalpha-1,
@@ -424,43 +424,43 @@ inline void set_inds(int *cols, int indalpha) {
 inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  vals[0] = sq(dr)*jac_aa_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[1] = sq(dr)*jac_ab_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[2] = sq(dr)*jac_ap_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[3] = sq(dr)*jac_aa(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[4] = sq(dr)*jac_ab(alpha, beta, psi, ind, dr, r),
-    vals[5] = sq(dr)*jac_ap(alpha, beta, psi, ind, dr, r),
-    vals[6] = sq(dr)*jac_aa_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[7] = sq(dr)*jac_ab_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[8] = sq(dr)*jac_ap_pm(alpha, beta, psi, ind, 1, dr, r);
+  vals[0] = jac_aa_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = jac_ab_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = jac_ap_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = jac_aa(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[4] = jac_ab(alpha, beta, psi, ind, dr, r),
+    vals[5] = jac_ap(alpha, beta, psi, ind, dr, r),
+    vals[6] = jac_aa_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = jac_ab_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = jac_ap_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
 
 inline void set_betavals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  vals[0] = sq(dr)*jac_ba_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[1] = sq(dr)*jac_bb_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[2] = sq(dr)*jac_bp_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[3] = sq(dr)*jac_ba(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[4] = sq(dr)*jac_bb(alpha, beta, psi, ind, dr, r),
-    vals[5] = sq(dr)*jac_bp(xi, pi, alpha, beta, psi, ind, dr, r),
-    vals[6] = sq(dr)*jac_ba_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[7] = sq(dr)*jac_bb_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[8] = sq(dr)*jac_bp_pm(alpha, beta, psi, ind, 1, dr, r);
+  vals[0] = jac_ba_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[1] = jac_bb_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = jac_bp_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = jac_ba(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[4] = jac_bb(alpha, beta, psi, ind, dr, r),
+    vals[5] = jac_bp(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[6] = jac_ba_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[7] = jac_bb_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = jac_bp_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
 
 inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   vals[0] = jac_pa_pm(),
-    vals[1] = sq(dr)*jac_pb_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[2] = sq(dr)*jac_pp_pm(alpha, beta, psi, ind, -1, dr, r),
-    vals[3] = sq(dr)*jac_pa(alpha, beta, psi, ind, dr, r),
-    vals[4] = sq(dr)*jac_pb(alpha, beta, psi, ind, dr, r),
-    vals[5] = sq(dr)*jac_pp(xi, pi, alpha, beta, psi, ind, dr, r),
+    vals[1] = jac_pb_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[2] = jac_pp_pm(alpha, beta, psi, ind, -1, dr, r),
+    vals[3] = jac_pa(alpha, beta, psi, ind, dr, r),
+    vals[4] = jac_pb(alpha, beta, psi, ind, dr, r),
+    vals[5] = jac_pp(xi, pi, alpha, beta, psi, ind, dr, r),
     vals[6] = jac_pa_pm(),
-    vals[7] = sq(dr)*jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
-    vals[8] = sq(dr)*jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
+    vals[7] = jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
+    vals[8] = jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
 
 
@@ -489,6 +489,7 @@ int main(int argc, char **argv)
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
   double ell_tol = tol; // will not auto change if tol changed
+  double petsc_tol = tol; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
   int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
@@ -517,7 +518,9 @@ int main(int argc, char **argv)
       {"-check_step", &check_step}, {"-nresn", &nresn},
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
-      {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},			      {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
+      {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},
+      {"-petsc_tol",&petsc_tol},
+      {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res},
@@ -730,7 +733,7 @@ int main(int argc, char **argv)
   ierr = KSPSetType(ksp, KSPPREONLY); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc); CHKERRQ(ierr);
   ierr = PCSetType(pc,PCLU); CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp, 1e-9, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp, petsc_tol, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
   //ierr = KSPSetFromOptions(ksp); CHKERRQ(ierr);
   
 // **********************************************************

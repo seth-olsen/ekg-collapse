@@ -46,13 +46,13 @@ inline double d2_b(const vector<double>& u, int ind)
 { return 2*u[ind] - 5*u[ind-1] + 4*u[ind-2] - u[ind-3]; }
 
 inline double ddr2_c(const vector<double>& u, int ind, double dr)
-{ return sqin(dr) * d2_c(u, ind); }
+{ return d2_c(u, ind) / sq(dr); }
 
 inline double ddr2_f(const vector<double>& u, int ind, double dr)
-{ return sqin(dr) * d2_f(u, ind); }
+{ return d2_f(u, ind) / sq(dr); }
 
 inline double ddr2_b(const vector<double>& u, int ind, double dr)
-{ return sqin(dr) * d2_b(u, ind); }
+{ return d2_b(u, ind) / sq(dr); }
 
 
 // ******* DIFFERENCE OPERATORS FOR EKG-COLLAPSE
@@ -280,4 +280,115 @@ inline double irespi_f(const vector<double>& xi, const vector<double>& pi,
 		   *dr2a4_f(psi, ind, dr, r))
     - (lam/3.0)* pi[ind]*( d_f(beta, ind) + beta[ind]*(6*d_f(psi, ind)/psi[ind] + 4*dr/r) ); }
 
+
+// ***********************  JACOBIAN  ***********************
+
+// ***********************  row alpha(ind)   ***********************
+
+inline double oldjac_aa(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2/sq(dr) - 8*M_PI*sq(pi[ind]) +
+    2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*sq(alpha[ind])); }
+
+inline double oldjac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return sqin(dr) + p_m*(ddr_c(psi,ind,dr)/psi[ind] + 1/r)/dr; }
+
+inline double oldjac_ab(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return 4*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*r); }
+
+inline double oldjac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return -p_m*2*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind]*dr); }
+
+inline double oldjac_ap(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2*(ddr_c(alpha,ind,dr)*ddr_c(psi,ind,dr)*sqin(psi[ind]) +
+	     4*pw3(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r) / (3*alpha[ind])); }
+
+inline double oldjac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*ddr_c(alpha,ind, dr) / (dr*psi[ind]); }
+
+
+// ***********************  row beta(ind)   ***********************
+
+inline double oldjac_ba(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return 12*M_PI*xi[ind]*pi[ind] / sq(psi[ind]) +
+    ddr_c(alpha,ind,dr)*(ddr_c(beta,ind,dr) - beta[ind]/r) / sq(alpha[ind]); }
+
+inline double oldjac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return -p_m*0.5*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*alpha[ind]); }
+
+inline double oldjac_bb(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2/sq(dr) - (2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr)/psi[ind])/r; }
+
+inline double oldjac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return sqin(dr) + p_m*0.5*(2/r - ddr_c(alpha,ind,dr)/alpha[ind] + 6*ddr_c(psi,ind,dr)/psi[ind])/dr; }
+
+inline double oldjac_bp(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -6*(4*M_PI*xi[ind]*pi[ind]*alpha[ind]*p3in(psi[ind]) +
+	     ddr_c(psi,ind,dr)*sqin(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r)); }
+
+inline double oldjac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*3*(ddr_c(beta,ind,dr) - beta[ind]/r) / (dr*psi[ind]); }
+
+// ***********************  row psi(ind)   ***********************
+
+inline double oldjac_pa(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -pw5(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (6*pw3(alpha[ind])); }
+
+inline double oldjac_pa_pm() { return 0; }
+
+inline double oldjac_pb(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -pw5(psi[ind]) / (sq(alpha[ind])*12*r); }
+
+inline double oldjac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*pw5(psi[ind])*sqin(alpha[ind]) / (24*dr); }
+
+inline double oldjac_pp(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2/sq(dr) + M_PI*(sq(xi[ind]) + sq(pi[ind])) +
+    5*pw4(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (12*sq(alpha[ind])); }
+
+inline double oldjac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return sqin(dr) + p_m/(r*dr); }
+
+// OLD VERSIONS DON'T HAVE 1/dr^2 FACTORED OUT
+
+inline double oldfda_respsi(const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double dr, double r) {
+  return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r +
+    (ddr_c(beta,ind,dr) - beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
+    M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
+
+inline double oldfda_resbeta(const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double dr, double r) {
+  return  ddr2_c(beta,ind,dr) + 12*M_PI*sqin(psi[ind])*alpha[ind]*xi[ind]*pi[ind]
+    + (2/r + 6*ddr_c(psi,ind,dr)/psi[ind] - ddr_c(alpha,ind,dr)/alpha[ind])*
+    (ddr_c(beta,ind,dr) - beta[ind]/r); }
+
+inline double oldfda_resalpha(const vector<double>& xi, const vector<double>& pi,
+			   const vector<double>& alpha, const vector<double>& beta,
+			   const vector<double>& psi, int ind, double dr, double r) {
+  return ddr2_c(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
+    - 2*pw4(psi[ind])*sq(ddr_c(beta,ind,dr) - beta[ind]/r)/(3*alpha[ind])
+    - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
 
