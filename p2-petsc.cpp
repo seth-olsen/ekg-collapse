@@ -62,12 +62,12 @@ inline double mass_aspect(const vector<double>& alpha, const vector<double>& bet
 
 inline double mass_aspect0(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, double dr, double r) {
-  return r*pow(psi[0],6)*sqin(alpha[0])*sq(r*ddr_f(beta,0,dr) - beta[0])/18.0 -
+  return r*pw6(psi[0])*sq(r*ddr_f(beta,0,dr) - beta[0]) / (18*sq(alpha[0])) -
     2*sq(r)*ddr_f(psi,0,dr)*(psi[0] + r*ddr_f(psi,0,dr)); }
 
 inline double mass_aspectR(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
-  return r*pow(psi[k],6)*sqin(alpha[k])*sq(r*ddr_b(beta,k,dr) - beta[k])/18.0 -
+  return r*pw6(psi[k])*sq(r*ddr_b(beta,k,dr) - beta[k]) / (18*sq(alpha[0])) -
     2*sq(r)*ddr_b(psi,k,dr)*(psi[k] + r*ddr_b(psi,k,dr)); }
     
 // compute and write mass
@@ -215,12 +215,12 @@ inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
 		    const vector<double>& old_xi, const vector<double>& old_pi,
 		    const vector<double>& alpha, const vector<double>& beta,
 		    const vector<double>& psi, double lam, double dr, double r,
-		    int j, int lastpt) {
+		    int lastpt) {
   if (r != 0) {
     bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
     bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, dr, r);
   }
-  for (j = 1; j < lastpt; ++j) {
+  for (int j = 1; j < lastpt; ++j) {
     r += dr;
     bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, psi, j, lam);
     bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
@@ -234,7 +234,7 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
 		      vector<double>& xi, vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, double lam, double dr, double r,
-		      double rmin, int j, int lastpt, bool somm_cond, double somm_coeff) {
+		      double rmin, int lastpt, double somm_coeff) {
   if (r == 0) { neumann0(pi); }
   else {
     xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
@@ -243,7 +243,7 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
   r += dr;
   xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
   pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
-  for (j = 2; j < lastpt; ++j) {
+  for (int j = 2; j < lastpt; ++j) {
     r += dr;
     xi[j] = bxi[j] + fda_xi(xi, pi, alpha, beta, psi, j, lam);
     pi[j] = bpi[j] + fda_pi(xi, pi, alpha, beta, psi, j, lam, dr, r);
@@ -252,15 +252,16 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
     respi[j-1] = abs(pi[j-1] - bpi[j-1] -
 		     fda_pi(xi, pi, alpha, beta, psi, j-1, lam, dr, r-dr));
   }
-  resxi[0] = abs(xi[0] - bxi[0] -
-		 fda0_xi(xi, pi, alpha, beta, psi, lam));
-  respi[0] = abs(pi[0] - bpi[0] -
-		 fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
-  // UPDATE BOUNDARY
-  if (somm_cond) {
-    sommerfeld(xi, xi, lastpt, lam, somm_coeff);
-    sommerfeld(pi, pi, lastpt, lam, somm_coeff);
+  if (rmin == 0) { respi[0] = abs(neumann0res(pi)); }
+  else {
+    resxi[0] = abs(xi[0] - bxi[0] -
+		   fda0_xi(xi, pi, alpha, beta, psi, lam));
+    respi[0] = abs(pi[0] - bpi[0] -
+		   fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
   }
+  // UPDATE BOUNDARY
+  sommerfeld(xi, xi, lastpt, lam, somm_coeff);
+  sommerfeld(pi, pi, lastpt, lam, somm_coeff);
   
   resxi[lastpt-1] = abs(xi[lastpt-1] - bxi[lastpt-1] -
 			fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
@@ -279,23 +280,23 @@ inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
 inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
-  return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r +
-    (0.5*d_c(beta,ind) - dr*beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
-    M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
+  return d2_c(psi,ind) + dr*d_c(psi,ind)/r +
+    dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])) + 
+    M_PI*sq(dr)*psi[ind]*(sq(xi[ind]) + sq(pi[ind])); }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int ind, double dr, double r) {
-  return  ddr2_c(beta,ind,dr) + 12*M_PI*sqin(psi[ind])*alpha[ind]*xi[ind]*pi[ind]
-    + (2/r + 6*ddr_c(psi,ind,dr)/psi[ind] - ddr_c(alpha,ind,dr)/alpha[ind])*
+  return  d2_c(beta,ind) + 12*M_PI*sq(dr)*alpha[ind]*xi[ind]*pi[ind] / sq(psi[ind])
+    + (2*dr/r + 3*d_c(psi,ind)/psi[ind] - 0.5*d_c(alpha,ind)/alpha[ind])*
     (0.5*d_c(beta,ind) - dr*beta[ind]/r); }
 
 inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
 			   const vector<double>& alpha, const vector<double>& beta,
 			   const vector<double>& psi, int ind, double dr, double r) {
-  return ddr2_c(alpha,ind,dr) + 2*(1/r + ddr_c(psi,ind,dr)/psi[ind])*ddr_c(alpha,ind,dr)
-    - 2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r)/(3*alpha[ind])
-    - 8*M_PI*alpha[ind]*sq(pi[ind]) ; }
+  return d2_c(alpha,ind) + d_c(alpha,ind)*(dr/r + 0.5*d_c(psi,ind)/psi[ind])
+    - 2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind])
+    - 8*M_PI*sq(dr)*alpha[ind]*sq(pi[ind]) ; }
 
 inline double fdaR_respsi(const vector<double>& psi, int ind, double dr, double r) {
   return d_b(psi,ind) + 2*dr*(psi[ind] - 1)/r; }
@@ -489,7 +490,7 @@ int main(int argc, char **argv)
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
   double ell_tol = tol; // will not auto change if tol changed
-  double petsc_tol = tol; // will not auto change if tol changed
+  double petsc_rtol = tol; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
   int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
@@ -519,7 +520,7 @@ int main(int argc, char **argv)
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
       {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},
-      {"-petsc_tol",&petsc_tol},
+      {"-petsc_rtol",&petsc_rtol},
       {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
@@ -733,7 +734,7 @@ int main(int argc, char **argv)
   ierr = KSPSetType(ksp, KSPPREONLY); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc); CHKERRQ(ierr);
   ierr = PCSetType(pc,PCLU); CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp, petsc_tol, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp, petsc_rtol, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); CHKERRQ(ierr);
   //ierr = KSPSetFromOptions(ksp); CHKERRQ(ierr);
   
 // **********************************************************
@@ -772,7 +773,7 @@ int main(int argc, char **argv)
 // ******************************************************************
 // ******************************************************************
     r = rmin;
-    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, j, lastpt);
+    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, lastpt);
     // reset res > tol to enter gauss-seidel solver for hyperbolic equations
     // reset ell_itn > 1 to enter direct linear solver for the elliptic equations
     // solution is accepted when elliptic equations take less than 2 updates
@@ -787,7 +788,7 @@ int main(int argc, char **argv)
 	
 	r = rmin;
 	gs_update(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, r, rmin,
-		  j, lastpt, somm_cond, somm_coeff);
+		  lastpt, somm_coeff);
 	// CHECK RESIDUAL
 	res = max(*max_element(resxi.begin(), resxi.end()),
 		  *max_element(respi.begin(), respi.end())); // can use 1-norm or 2-norm
