@@ -345,6 +345,7 @@ inline double oldjac_bp_pm(const vector<double>& alpha, const vector<double>& be
 
 // ***********************  row psi(ind)   ***********************
 
+// THESE ARE WRONG (just the dr2psi eqns, from typo in fda-eom-gen.nb)
 inline double oldjac_pa(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -pw5(psi[ind])*(ddr_c(beta,ind,dr) - beta[ind]/r) / (6*pw3(alpha[ind])); }
@@ -368,6 +369,7 @@ inline double oldjac_pp(const vector<double>& xi, const vector<double>& pi,
 inline double oldjac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
   return sqin(dr) + p_m/(r*dr); }
+// WRONG
 
 // OLD VERSIONS DON'T HAVE 1/dr^2 FACTORED OUT
 
@@ -375,7 +377,7 @@ inline double oldfda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
   return ddr2_c(psi,ind,dr) + 2*ddr_c(psi,ind,dr)/r +
-    (ddr_c(beta,ind,dr) - beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
+    sq(ddr_c(beta,ind,dr) - beta[ind]/r)*pw5(psi[ind]) / (12*sq(alpha[ind])) + 
     M_PI*(sq(xi[ind]) + sq(pi[ind]))*psi[ind] ; }
 
 inline double oldfda_resbeta(const vector<double>& xi, const vector<double>& pi,

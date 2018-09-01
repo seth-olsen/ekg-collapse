@@ -281,7 +281,7 @@ inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
   return d2_c(psi,ind) + dr*d_c(psi,ind)/r +
-    dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])) + 
+    pw5(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])) + 
     M_PI*sq(dr)*psi[ind]*(sq(xi[ind]) + sq(pi[ind])); }
 
 inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
@@ -394,23 +394,23 @@ inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
 
 inline double jac_pa(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*pw3(alpha[ind])); }
+  return -pw5(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*pw3(alpha[ind])); }
 
 inline double jac_pa_pm() { return 0; }
 
 inline double jac_pb(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -sq(dr)*pw5(psi[ind]) / (12*sq(alpha[ind])*r); }
+  return -dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*sq(alpha[ind])*r); }
 
 inline double jac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*dr*pw5(psi[ind]) / (24*sq(alpha[ind])); }
+  return p_m*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
 
 inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
   return -2 + M_PI*sq(dr)*(sq(xi[ind]) + sq(pi[ind])) +
-    5*dr*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
+    5*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
 
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
@@ -490,7 +490,7 @@ int main(int argc, char **argv)
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
   double ell_tol = tol; // will not auto change if tol changed
-  double petsc_rtol = tol; // will not auto change if tol changed
+  double petsc_rtol = 0.000000001; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
   int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
