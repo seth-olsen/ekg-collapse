@@ -9,7 +9,7 @@ CXXFLAGS = -std=c++11 -c $(LDFLAGS) $(LDLIBS)
 
 p2 : p2.o
 
-p2.o : fda-fns.h fda-io.h
+p2.o : ekg-fns.h
 
 p2-ctest : p2-ctest.o
 

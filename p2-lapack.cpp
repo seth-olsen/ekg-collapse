@@ -24,6 +24,7 @@ default values can be found at the start of main()
 */
 
 #include "ekg-fns.h"
+#include <lapacke.h>
 
 int main(int argc, char **argv)
 {
@@ -43,7 +44,10 @@ int main(int argc, char **argv)
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
+  double ell_tol = tol; // will not auto change if tol changed
+  double lapack_rtol = 0.000000001; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
+  int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 1.0; // gaussian amplitude
@@ -60,7 +64,7 @@ int main(int argc, char **argv)
   // variable to hold constant across resolutions
   string hold_const = "lambda"; // "lambda", "dt", or "dr"
   int nresn = 1; // 1, 2, or 3
-  int resn0 = 8, resn1 = 16, resn2 = 32; // in order of priority
+  int resn0 = 4, resn1 = 8, resn2 = 16; // in order of priority
   int *resns[3] = {&resn0, &resn1, &resn2};
 
   map<string, string *> p_str {{"-outfile",&outfile},
@@ -70,8 +74,9 @@ int main(int argc, char **argv)
       {"-check_step", &check_step}, {"-nresn", &nresn},
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
-      {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ic_Dsq",&ic_Dsq},
-      {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
+      {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},
+      {"-petsc_rtol",&petsc_rtol},
+      {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res},
@@ -109,19 +114,19 @@ int main(int argc, char **argv)
 
   vector<double> sol(((wr_sol) ? wr_shape : 1), 0.0);
   vector<double> maspect(((wr_mass) ? wr_shape : 1), 0.0);
-  
-  // **************************************************************
-  // **************************************************************
-  //                 LOOP PROGRAM OVER RESOLUTIONS
-  // **************************************************************
-  // **************************************************************
+
+// **************************************************************
+// **************************************************************
+//                 LOOP PROGRAM OVER RESOLUTIONS
+// **************************************************************
+// **************************************************************
 
   int lastpt0 = lastpt; 
   int save_pt0 = save_pt;
   int nsteps0 = nsteps;
   int save_step0 = save_step;
   string outfile0 = outfile;
-  double lam0 = lam;
+  double lam0 = lam;  
   
   for (int factor : resolutions) {
     if (hold_const == "lambda") {
@@ -151,7 +156,7 @@ int main(int argc, char **argv)
     double dt = lam * dr;
     double somm_coeff = 0.75*lam + 0.5*dt/rmax; // for outer bc
     
-  // OUTPUT parameter data
+    // OUTPUT parameter data
     cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
 			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
 			zero_pi,somm_cond,dspn_bound);
@@ -162,10 +167,11 @@ int main(int argc, char **argv)
   specs << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
 			dspn,tol,maxit,ic_Dsq,ic_r0,ic_Amp,check_step,dr,dt,
 			zero_pi,somm_cond,dspn_bound);
+  specs.close();
   
-  // **********************************************************
-  // ***************** OBJECT DECLARATIONS ********************
-  // **********************************************************
+// **********************************************************
+// ***************** OBJECT DECLARATIONS ********************
+// **********************************************************
   
   // outfiles
   string solname = "sol-" + outfile + ".sdf";
@@ -175,10 +181,6 @@ int main(int argc, char **argv)
   string iresXi_name = "iresXi-" + outfile + ".sdf";
   string iresPi_name = "iresPi-" + outfile + ".sdf";
   char *iresname_arr[2] = {&iresXi_name[0], &iresPi_name[0]};  
-  string mass_file = "mass-" + outfile + ".csv";
-  ofstream ofs_mass;
-  ofs_mass.open(mass_file, ofstream::out);
-  ofs_mass << "save=" << save_step <<","<< "check=" << check_step << endl;
   string itn_file = "itns-" + outfile + ".csv";
   ofstream ofs_itn;
   if (wr_itn) { ofs_itn.open(itn_file, ofstream::out); }
@@ -201,16 +203,36 @@ int main(int argc, char **argv)
   string resxi_fname = "resXi-" + outfile + ".sdf";
   string respi_fname = "resPi-" + outfile + ".sdf";
   char *resname_arr[2] = {&resxi_fname[0], &respi_fname[0]};
-  int maxit_count = 0;
+  int maxit_count = 0, ell_maxit_count = 0;
+
+  // *********************************************
+  // **************** PETSC **********************
+  // *********************************************
+
+
+  lapack_int kl = 8;
+  lapack_int ku = 8;
+  lapack_int nrhs = 1;
+  
+  // lapack object declaration  
+  lapack_int N = 3 * npts; // size of vectors
+  // matrices and vectors
+  vector< vector<double> > jac;
+  vector<double> abpres;
+  double *deltas = &abpres[0];
+
+  vector<int> indices(N);
+  vector<double> res_vals(N);
+  
 
   time_t start_time = time(NULL); // time for rough performance measure
   
-  // **********************************************************
-  // ******************* INITIAL DATA ************************
-  // **********************************************************
+// **********************************************************
+// ******************* INITIAL DATA ************************
+// **********************************************************
 
-  int i, j, itn = 0; // declare loop integers
-  double res = tol + 1.0; // declare residual indicator
+  int i, j, itn = 0, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
+  double res = tol + 1.0, ell_res = ell_tol + 1;// declare residual indicators
   double r = rmin, t = 0.0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
     alpha[j] = ic_alpha(r, r2m);
@@ -220,6 +242,7 @@ int main(int argc, char **argv)
     if (!zero_pi) { pi[j] = ic_pi(r, ic_Amp, ic_Dsq, ic_r0, sq(psi[j])/alpha[j], 1 - beta[j]); }
     if ((wr_sol) && (j%save_pt == 0)) {
       sol[j/save_pt] = ic_sol(r, ic_Amp, ic_Dsq, ic_r0); }
+    indices[3*j] = 3*j, indices[3*j+1] = 3*j+1, indices[3*j+2] = 3*j+2;
     r += dr;
   }
   if (rmin == 0) {
@@ -227,10 +250,19 @@ int main(int argc, char **argv)
     neumann0(pi);
   }
 
-  // **********************************************************
-  // ******************* TIME STEPPING ************************
-  // *******************   & WRITING   ************************
-  // **********************************************************
+  // BOUNDARY CONDITIONS
+  int col_inds0[3] = {0, 3, 6}, col_inds1[1] = {1}, col_inds2[3] = {2, 5, 8};
+  int col_indsNm3[3] = {N-9, N-6, N-3}, col_indsNm2[3] = {N-8, N-5, N-2}, col_indsNm1[3] = {N-7, N-4, N-1};
+  double mat_vals02[3] = {-3, 4, -1}, mat_vals1[1] = {1};
+  double mat_valsNm123[3] = {1, -4, 2*dr/rmax + 3};
+ 
+  // START MAKING MATRIX
+  // ***********LAPACK*************
+  
+// **********************************************************
+// ******************* TIME STEPPING ************************
+// *******************   & WRITING   ************************
+// **********************************************************
   
   gft_set_multi(); // start bbhutil file i/o
   for (i = 0; i < nsteps; ++i) {
@@ -256,73 +288,45 @@ int main(int argc, char **argv)
     // now set old_xi/pi to t(n) so that xi/pi can be updated to t(n+1)
     old_xi = xi;
     old_pi = pi;
-
-    // **********************************************************
-    //         SOLVE EVOLUTION EQUATION Ax = b for x(n+1)
-    // **********************************************************   
-    // create rhs vec b in A_lhs.x(n+1) = A_rhs.x(n) := b
-    r = rmin;
-    if (rmin != 0) {
-      bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
-      bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, dr, rmin);
-    }
-    for (j = 1; j < lastpt; ++j) {
-      r += dr;
-      bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, psi, j, lam);
-      bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
-    }
-    // reset itn and set res > tol to enter GAUSS-SEIDEL ITERATIVE SOLVER
-    itn = 0, res = tol + 1.0;
-    while (res > tol) {
-      
-      r = rmin;
-      // UPDATE INTERIOR and collect residuals
-      if (rmin == 0) { neumann0(pi); }
-      else {
-	xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
-	pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin);
-      }
-      r += dr;
-      xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
-      pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
-      for (j = 2; j < lastpt; ++j) {
-        r += dr;
-        xi[j] = bxi[j] + fda_xi(xi, pi, alpha, beta, psi, j, lam);
-	pi[j] = bpi[j] + fda_pi(xi, pi, alpha, beta, psi, j, lam, dr, r);
-	resxi[j-1] = abs(xi[j-1] - bxi[j-1] -
-			 fda_xi(xi, pi, alpha, beta, psi, j-1, lam));
-	respi[j-1] = abs(pi[j-1] - bpi[j-1] -
-			 fda_pi(xi, pi, alpha, beta, psi, j-1, lam, dr, r-dr));
-      }
-      resxi[0] = abs(xi[0] - bxi[0] -
-		     fda0_xi(xi, pi, alpha, beta, psi, lam));
-      respi[0] = abs(pi[0] - bpi[0] -
-		     fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
-      // UPDATE BOUNDARY
-      if (somm_cond) {
-	sommerfeld(xi, xi, lastpt, lam, somm_coeff);
-	sommerfeld(pi, pi, lastpt, lam, somm_coeff);
-      }
-      
-      resxi[lastpt-1] = abs(xi[lastpt-1] - bxi[lastpt-1] -
-			    fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
-      respi[lastpt-1] = abs(pi[lastpt-1] - bpi[lastpt-1] -
-			    fda_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, dr, r));
-      
-      // CHECK RESIDUAL
-      res = max(*max_element(resxi.begin(), resxi.end()), *max_element(respi.begin(), respi.end())); // can also use 1-norm or 2-norm
-
-      ++itn; 
-      if (itn % maxit == 0) {
-	res = 0.0;
-	++maxit_count;
-	if (i % 500*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
-      }
-    }
-    if (wr_itn) { ofs_itn << itn << endl; } // record itn count
-    // ****************** ITERATIVE SOLUTION COMPLETE ******************
     
-    // ****************** kreiss-oliger DISSIPATION ********************
+// ******************************************************************
+// ******************************************************************
+//         SOLVE HYPERBOLIC & ELLIPTIC EQUATIONS ITERATIVELY
+// ******************************************************************
+// ******************************************************************
+    r = rmin;
+    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, lastpt);
+    // reset res > tol to enter gauss-seidel solver for hyperbolic equations
+    // reset ell_itn > 1 to enter direct linear solver for the elliptic equations
+    // solution is accepted when elliptic equations take less than 2 updates
+    hyp_ell_itn = 0;
+    ell_itn = 2;
+    while (ell_itn > 1) {
+// ***********************************************************************
+// ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
+// ***********************************************************************
+      itn = 0, res = tol + 1;
+      while (res > tol) {
+	
+	r = rmin;
+	gs_update(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, r, rmin,
+		  lastpt, somm_coeff);
+	// CHECK RESIDUAL
+	res = max(*max_element(resxi.begin(), resxi.end()),
+		  *max_element(respi.begin(), respi.end())); // can use 1-norm or 2-norm
+	++itn; 
+	if (itn % maxit == 0) {
+	  res = 0.0;
+	  ++maxit_count;
+	  if (i % 500*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
+	}
+      }
+      if (wr_itn) { ofs_itn << itn << endl; } // record itn count
+// ****************************************************************************
+// ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
+// ****************************************************************************
+    
+// ****************** kreiss-oliger DISSIPATION ********************
     // at ind next to boundaries can call dissipate on ind+/-1 or ind+/-2
       if (rmin == 0) {
 	xi[1] += antidiss1(dspn, old_xi);
@@ -331,23 +335,96 @@ int main(int argc, char **argv)
 	  pi[0] += symdiss0(dspn, old_pi);
 	}
       }
-    for (j = 2; j < lastpt-1; ++j) {
-      xi[j] += dissipate(dspn, old_xi, j);
-      pi[j] += dissipate(dspn, old_pi, j);
+      for (j = 2; j < lastpt-1; ++j) {
+	xi[j] += dissipate(dspn, old_xi, j);
+	pi[j] += dissipate(dspn, old_pi, j);
+      }
+      
+// ***********************************************************************
+// ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
+// ***********************************************************************
+      // get initial residual
+      r = rmin;
+      get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, r);
+      ell_res = max(*max_element(res_vals, res_vals+N),
+		    abs(*min_element(res_vals, res_vals+N)));
+      ell_itn = 0;
+      // ************
+      //ell_res = 0; // DEBUGGING
+      // ************
+      while (ell_res > ell_tol) {
+	r = rmin;
+	for (j = 1; j < lastpt; ++j) {
+	  r += dr;
+	  set_inds(col_inds, 3*j);
+	  set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	  ierr = MatSetValues;
+	  set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	  ierr = MatSetValues;	
+	  set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
+	  ierr = MatSetValues;	
+	}
+      
+	// solve linear system
+	ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
+	ierr = KSPSolve(ksp, abpres, abpres); CHKERRQ(ierr);
+	/*
+	ierr = KSPGetIterationNumber(ksp, &petsc_itn); CHKERRQ(ierr);
+	if (petsc_itn < 2 || petsc_itn > ell_maxit) {
+	  cout << i << " petsc_itn= " << petsc_itn << " at ell_itn " << ell_itn << endl; }
+	*/
+	// add displacements to metric functions
+	ierr = VecGetArray(abpres, &deltas); CHKERRQ(ierr);
+	for (j = 0; j < npts; ++j) {
+	  alpha[j] -= deltas[3*j];
+	  beta[j] -= deltas[3*j+1];
+	  psi[j] -= deltas[3*j+2];
+	}
+	ierr = VecRestoreArray(abpres, &deltas); CHKERRQ(ierr);
+	
+	// get new residual
+	get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+	ell_res = max(*max_element(res_vals, res_vals+N),
+		      abs(*min_element(res_vals, res_vals+N)));
+	++ell_itn; 
+	if (ell_itn % ell_maxit == 0) {
+	  ell_res = 0.0;
+	  ++ell_maxit_count;
+	  if (i % 500*factor == 0) { cout << i << " ell_res= " << res << " at " << ell_itn << endl; }
+	}
+      }
+// **************************************************************************
+// ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
+// **************************************************************************
+    ++hyp_ell_itn;
     }
-
+    
+// ***********************************************************************
+// ***********************************************************************
+// ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
+// ***********************************************************************
+// ***********************************************************************
+    
     // ****************** WRITE MASS & update field **********************
     if (wr_mass && i % check_step*save_step == 0) {
       //mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
       maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
+      r = rmin;
       for (j = 1; j < lastwr; ++j) {
-	maspect[j] = mass_aspect(alpha, beta, psi, j, dr, rmin + j*save_pt*dr); }
+	r += save_pt*dr;
+	maspect[j] = mass_aspect(alpha, beta, psi, j, dr, r);
+      }
       maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);
       gft_out_bbox(&maspect_name[0], t, bbh_shape, bbh_rank, coords, &maspect[0]);
     }
     if (wr_sol) { update_sol(xi, pi, alpha, beta, psi, sol, dt, save_pt, wr_shape); } 
   }
   // ******************** DONE TIME STEPPING *********************
+
+  // close and destroy objects then finalize mpi/petsc
+  ierr = KSPDestroy(&ksp); CHKERRQ(ierr);
+  ierr = MatDestroy(&jac); CHKERRQ(ierr);
+  ierr = VecDestroy(&abpres); CHKERRQ(ierr);
   
   // write final time step
   if (nsteps % save_step == 0) {
@@ -356,15 +433,27 @@ int main(int argc, char **argv)
   }
   // close outfiles
   gft_close_all();
-  ofs_mass.close();
   if (wr_itn) { ofs_itn.close(); }
   // print resolution runtime
   cout << difftime(time(NULL), start_time) << " seconds elapsed" << endl;
   //*************DEBUG************
-  cout << maxit_count << " steps reached maxit=" << maxit << "\n" << endl;
+  cout << maxit_count << " hyperbolic steps reached maxit=" << maxit << endl;
+  cout << ell_maxit_count << " elliptic steps reached maxit=" << ell_maxit << "\n" << endl;
   
   }
   // ******************** DONE LOOPING OVER RESOLUTIONS *********************
+  ierr = PetscFinalize();
+  if (ierr) { return ierr; }
   
   return 0;
 }
+
+  //TEST ierr = VecView(abp, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
+
+    /*
+  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
+  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
+  ierr = MatView(jac, viewer); CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
+  */

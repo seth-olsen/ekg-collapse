@@ -1,30 +1,24 @@
-# NEED TO SET PETSC_ARCH=arch_opt
+# NEED TO SET PETSC_ARCH=arch-linux2-c-debug
 CC		 = gcc
 CXX		 = g++
-DEBUG		 = 
+DEBUG		 = -g
 OPTFLAGS	 = -O2
-CFLAGS		 = -std=c++11 ${OPTFLAGS}
-CXXFLAGS         = -std=c++11 ${OPTFLAGS}
-LDFLAGS	 	 = 
-LDLIBS		 = -lbbhutil
-MANSEC           = KSP
+CFLAGS		 = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS}
+CXXFLAGS         = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS}
+LIBDIR_LAPACK	 = /usr/bin
+LGFORTRAN_PATH	 = /usr/bin
+LDFLAGS	 	 = -Wall ${DEBUG}
+LDLIBS		 = -lbbhutil -L$(LIBDIR_LAPACK) -llapacke -llapack -lblas -L$(LGFORTRAN_PATH) -lgfortran -lm
 LOCDIR		 = home/seth/research
 
-include ${PETSC_DIR}/lib/petsc/conf/variables
-include ${PETSC_DIR}/lib/petsc/conf/rules
-
-p2-petsc: p2-petsc.o chkopts ekg-fns.h fda-fns.h fda-io.h
-	-${CLINKER} -o p2-petsc p2-petsc.o ${PETSC_KSP_LIB} ${LDLIBS}
+p2-lapack: p2-lapack.o chkopts ekg-fns.h fda-fns.h fda-io.h
+	-${CC} -o p2-lapack p2-lapack.o ${PETSC_KSP_LIB} ${LDLIBS}
 	rm -f p2-petsc.o
 
 p2-conv-test: fda-io.h
 	$(CXX) -c $(CXXFLAGS) p2-conv-test.cpp
 	$(CXX) $(LDFLAGS) p2-conv-test.o $(LDLIBS) -o p2-conv-test
 	rm -f p2-conv-test.o
-
-.PHONY: clean
-clean :
-	rm -f *.o
 
 
 # "make" uses the following implicit rule to compile
