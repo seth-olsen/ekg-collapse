@@ -13,7 +13,7 @@ LOCDIR		 = home/seth/research
 include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 
-p2-petsc: p2-petsc.o chkopts ek-fns.h fda-fns.h fda-io.h
+p2-petsc: p2-petsc.o chkopts ekg-fns.h fda-fns.h fda-io.h
 	-${CLINKER} -o p2-petsc p2-petsc.o ${PETSC_KSP_LIB} ${LDLIBS}
 	rm -f p2-petsc.o
 
