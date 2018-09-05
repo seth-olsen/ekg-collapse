@@ -3,21 +3,19 @@ CC		 = gcc
 CXX		 = g++
 DEBUG		 = -g
 OPTFLAGS	 = -O2
-LIBDIR_LAPACK	 = /usr/lib/lapack-3.8.0
-LGFORTRAN_PATH	 = /usr/lib/gfortran
-INCLUDE		 = $(LIBDIR_LAPACK)/LAPACKE/include
-CFLAGS		 = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS} -I$(INCLUDE)
-CXXFLAGS         = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS} -I$(INCLUDE)
+CFLAGS		 = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS}
+CXXFLAGS         = -std=c++11 -Wall ${DEBUG} ${OPTFLAGS}
 LDFLAGS	 	 = -Wall ${DEBUG}
-LDLIBS		 = -lbbhutil -L$(LIBDIR_LAPACK) -llapacke -llapack -lblas -L$(LGFORTRAN_PATH) -lgfortran -lm
+LDLIBS		 = -lbbhutil
+MANSEC           = KSP
 LOCDIR		 = home/seth/research
 
-p2-lapack: p2-lapack.o
-	-${CXX} -o p2-lapack p2-lapack.o ${LDLIBS}
-	rm -f p2-lapack.o
+include ${PETSC_DIR}/lib/petsc/conf/variables
+include ${PETSC_DIR}/lib/petsc/conf/rules
 
-p2-lapack.o: ekg-fns.h fda-fns.h fda-io.h
-	$(CXX) -c $(CXXFLAGS) p2-lapack.cpp
+p2-petsc: p2-petsc.o chkopts ekg-fns.h fda-fns.h fda-io.h
+	-${CLINKER} -o p2-petsc p2-petsc.o ${PETSC_KSP_LIB} ${LDLIBS}
+	rm -f p2-petsc.o
 
 p2-conv-test: fda-io.h
 	$(CXX) -c $(CXXFLAGS) p2-conv-test.cpp
