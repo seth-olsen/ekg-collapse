@@ -2,18 +2,16 @@
 
 ekg scalar field collapse to black hole 
 
-compile with:
-
-   g++ -std=c++11 -g -Wall -O2 p1.cpp -o p1 -lbbhutil
+compile with lapack-makefile
 
 input parameters in terminal as:
 (do NOT include .sdf extension in outfile)
 
  ./p1 <outfile> <lastpt> <save_pt> <nsteps> <save_step>
-      <lam> <r2m> <rmin> <rmax> <dspn> <tol> <maxit>
+      <lam> <r2m> <rmin> <rmax> <dspn> <tol> <ell_tol> <maxit>
       <ic_Dsq> <ic_r0> <ic_Amp> <check_step> <zero_pi> 
       <somm_cond> <dspn_bound> <wr_ires> <wr_res>
-      <wr_sol> <wr_itn> <hold_const>
+      <wr_sol> <wr_itn> <wr_mass> <hold_const>
 
 where the value of any <parameter> can be set with the
 following ordered pair of command line arguments:
@@ -43,9 +41,8 @@ int main(int argc, char **argv)
   double rmin = 0.0;
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
-  double tol = 0.000000000001; // iterative method tolerance
+  double tol = 0.0000000001; // iterative method tolerance
   double ell_tol = tol; // will not auto change if tol changed
-  double lapack_rtol = 0.000000001; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
   int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
@@ -75,7 +72,6 @@ int main(int argc, char **argv)
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
       {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},
-      {"-petsc_rtol",&petsc_rtol},
       {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
@@ -208,22 +204,19 @@ int main(int argc, char **argv)
   // *********************************************
   // **************** PETSC **********************
   // *********************************************
-
-
-  lapack_int kl = 8;
-  lapack_int ku = 8;
-  lapack_int nrhs = 1;
   
   // lapack object declaration  
   lapack_int N = 3 * npts; // size of vectors
+  lapack_int kl = 6;
+  lapack_int ku = 6;
+  lapack_int nrhs = 1;
+  lapack_int ldab = 2*kl + ku + 1;
+  lapack_int ldb = N;
+  lapack_int info;
+  vector<lapack_int> ipiv(N);
   // matrices and vectors
-  vector< vector<double> > jac;
-  vector<double> abpres;
-  double *deltas = &abpres[0];
-
-  vector<int> indices(N);
-  vector<double> res_vals(N);
-  
+  vector<double> jac(ldab*N, 0.0);
+  vector<double> abpres(ldb, 0.0);
 
   time_t start_time = time(NULL); // time for rough performance measure
   
@@ -242,7 +235,6 @@ int main(int argc, char **argv)
     if (!zero_pi) { pi[j] = ic_pi(r, ic_Amp, ic_Dsq, ic_r0, sq(psi[j])/alpha[j], 1 - beta[j]); }
     if ((wr_sol) && (j%save_pt == 0)) {
       sol[j/save_pt] = ic_sol(r, ic_Amp, ic_Dsq, ic_r0); }
-    indices[3*j] = 3*j, indices[3*j+1] = 3*j+1, indices[3*j+2] = 3*j+2;
     r += dr;
   }
   if (rmin == 0) {
@@ -250,14 +242,35 @@ int main(int argc, char **argv)
     neumann0(pi);
   }
 
-  // BOUNDARY CONDITIONS
-  int col_inds0[3] = {0, 3, 6}, col_inds1[1] = {1}, col_inds2[3] = {2, 5, 8};
-  int col_indsNm3[3] = {N-9, N-6, N-3}, col_indsNm2[3] = {N-8, N-5, N-2}, col_indsNm1[3] = {N-7, N-4, N-1};
-  double mat_vals02[3] = {-3, 4, -1}, mat_vals1[1] = {1};
-  double mat_valsNm123[3] = {1, -4, 2*dr/rmax + 3};
- 
-  // START MAKING MATRIX
-  // ***********LAPACK*************
+  // SOLVE ELLIPTIC EQUATIONS FOR t=0
+  // get initial residual
+  get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		abs(*min_element(abpres.begin(), abpres.end())));
+  ell_itn = 0;
+  // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
+  while (ell_res > ell_tol) {
+    set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    //set_jac_matRM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "INITIAL info= " << info << endl; }
+    for (j = 0; j < npts; ++j) {
+      alpha[j] -= abpres[3*j];
+      beta[j] -= abpres[3*j+1];
+      psi[j] -= abpres[3*j+2];
+    }	
+    // get new residual
+    get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++ell_itn; 
+    if (ell_itn % ell_maxit == 0) {
+      ell_res = 0.0;
+      ++ell_maxit_count;
+      cout << "INITIAL ell_res= " << res << " at " << ell_itn << endl;
+    }
+  }
+  
   
 // **********************************************************
 // ******************* TIME STEPPING ************************
@@ -307,9 +320,7 @@ int main(int argc, char **argv)
 // ***********************************************************************
       itn = 0, res = tol + 1;
       while (res > tol) {
-	
-	r = rmin;
-	gs_update(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, r, rmin,
+	gs_update(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, rmin, rmin,
 		  lastpt, somm_coeff);
 	// CHECK RESIDUAL
 	res = max(*max_element(resxi.begin(), resxi.end()),
@@ -344,48 +355,24 @@ int main(int argc, char **argv)
 // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
 // ***********************************************************************
       // get initial residual
-      r = rmin;
-      get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, r);
-      ell_res = max(*max_element(res_vals, res_vals+N),
-		    abs(*min_element(res_vals, res_vals+N)));
+      get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+      ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		    abs(*min_element(abpres.begin(), abpres.end())));
       ell_itn = 0;
-      // ************
-      //ell_res = 0; // DEBUGGING
-      // ************
+      // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
       while (ell_res > ell_tol) {
-	r = rmin;
-	for (j = 1; j < lastpt; ++j) {
-	  r += dr;
-	  set_inds(col_inds, 3*j);
-	  set_alphavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-	  ierr = MatSetValues;
-	  set_betavals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-	  ierr = MatSetValues;	
-	  set_psivals(mat_vals, xi, pi, alpha, beta, psi, j, dr, r);
-	  ierr = MatSetValues;	
-	}
-      
-	// solve linear system
-	ierr = KSPSetOperators(ksp, jac, jac); CHKERRQ(ierr);
-	ierr = KSPSolve(ksp, abpres, abpres); CHKERRQ(ierr);
-	/*
-	ierr = KSPGetIterationNumber(ksp, &petsc_itn); CHKERRQ(ierr);
-	if (petsc_itn < 2 || petsc_itn > ell_maxit) {
-	  cout << i << " petsc_itn= " << petsc_itn << " at ell_itn " << ell_itn << endl; }
-	*/
-	// add displacements to metric functions
-	ierr = VecGetArray(abpres, &deltas); CHKERRQ(ierr);
+	set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+        info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+	if (info != 0) { cout << i << " info= " << info << endl; }
 	for (j = 0; j < npts; ++j) {
-	  alpha[j] -= deltas[3*j];
-	  beta[j] -= deltas[3*j+1];
-	  psi[j] -= deltas[3*j+2];
-	}
-	ierr = VecRestoreArray(abpres, &deltas); CHKERRQ(ierr);
-	
+	  alpha[j] -= abpres[3*j];
+	  beta[j] -= abpres[3*j+1];
+	  psi[j] -= abpres[3*j+2];
+	}	
 	// get new residual
-	get_ell_res(res_vals, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-	ell_res = max(*max_element(res_vals, res_vals+N),
-		      abs(*min_element(res_vals, res_vals+N)));
+	get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+        ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		      abs(*min_element(abpres.begin(), abpres.end())));
 	++ell_itn; 
 	if (ell_itn % ell_maxit == 0) {
 	  ell_res = 0.0;
@@ -393,6 +380,7 @@ int main(int argc, char **argv)
 	  if (i % 500*factor == 0) { cout << i << " ell_res= " << res << " at " << ell_itn << endl; }
 	}
       }
+      
 // **************************************************************************
 // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
 // **************************************************************************
@@ -420,11 +408,6 @@ int main(int argc, char **argv)
     if (wr_sol) { update_sol(xi, pi, alpha, beta, psi, sol, dt, save_pt, wr_shape); } 
   }
   // ******************** DONE TIME STEPPING *********************
-
-  // close and destroy objects then finalize mpi/petsc
-  ierr = KSPDestroy(&ksp); CHKERRQ(ierr);
-  ierr = MatDestroy(&jac); CHKERRQ(ierr);
-  ierr = VecDestroy(&abpres); CHKERRQ(ierr);
   
   // write final time step
   if (nsteps % save_step == 0) {
@@ -442,18 +425,6 @@ int main(int argc, char **argv)
   
   }
   // ******************** DONE LOOPING OVER RESOLUTIONS *********************
-  ierr = PetscFinalize();
-  if (ierr) { return ierr; }
   
   return 0;
 }
-
-  //TEST ierr = VecView(abp, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
-
-    /*
-  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
-  ierr = MatView(jac, viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
-  */
