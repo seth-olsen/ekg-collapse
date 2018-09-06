@@ -46,7 +46,7 @@ int main(int argc, char **argv)
   double rmin = 0;
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
-  double tol = 0.0000000001; // iterative method tolerance
+  double tol = 0.000000000001; // iterative method tolerance
   int maxit = 25; // max iterations for debugging
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center

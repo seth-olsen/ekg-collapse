@@ -38,7 +38,7 @@ def get_csv_data_skip(filename, col, skip):
     file.close()
     return [times, data]
 
-def plot_data(data, names):
+def plot_Qdata(data, names):
     for i in range(len(data)):
         plt.plot(data[i][0], data[i][1], label=names[i])
     plt.xlabel('time')
@@ -46,11 +46,11 @@ def plot_data(data, names):
     plt.legend(loc='best')
     return
 
-def plot_data(data, names):
+def plot_Mdata(data, names):
     for i in range(len(data)):
         plt.plot(data[i][0], data[i][1], label=names[i])
     plt.xlabel('time')
-    plt.ylabel('Q(t)')
+    plt.ylabel('M(t, R)')
     plt.legend(loc='best')
     return
 

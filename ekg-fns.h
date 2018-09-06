@@ -35,6 +35,8 @@ void mass_check(const vector<double>& xi, const vector<double>& pi,
 		const vector<double>& psi, double dr, double rmin,
 		double t, ofstream& out_stream);
 // get coarsened arrays from fields for writing
+void get_wr_f(const vector<double>& f, vector<double>& wr,
+	      int one_past_last, int savept);
 void get_wr_arr(const vector<double>& f1, const vector<double>& f2,
 		vector<double>& wr1, vector<double>& wr2,
 		int one_past_last, int savept);
@@ -761,9 +763,20 @@ void mass_check(const vector<double>& xi, const vector<double>& pi,
   return;
 }
 
+void get_wr_f(const vector<double>& f, vector<double>& wr,
+	      int one_past_last, int savept)
+{
+  int k, s = 0;
+  for (k = 0; k < one_past_last; ++k) {
+    wr[k] = f[s];
+    s += savept;
+  }
+  return;
+}
+
 void get_wr_arr(const vector<double>& f1, const vector<double>& f2,
-		    vector<double>& wr1, vector<double>& wr2,
-		    int one_past_last, int savept)
+		vector<double>& wr1, vector<double>& wr2,
+		int one_past_last, int savept)
 {
   int k, s = 0;
   for (k = 0; k < one_past_last; ++k) {

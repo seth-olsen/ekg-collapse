@@ -11,7 +11,7 @@ input parameters in terminal as:
       <lam> <r2m> <rmin> <rmax> <dspn> <tol> <ell_tol> <maxit>
       <ic_Dsq> <ic_r0> <ic_Amp> <check_step> <zero_pi> 
       <somm_cond> <dspn_bound> <wr_ires> <wr_res>
-      <wr_sol> <wr_itn> <wr_mass> <hold_const>
+      <wr_sol> <wr_itn> <wr_mass> <wr_xp> <wr_abp> <hold_const>
 
 where the value of any <parameter> can be set with the
 following ordered pair of command line arguments:
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
   double rmin = 0.0;
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
-  double tol = 0.0000000001; // iterative method tolerance
+  double tol = 0.000000000001; // iterative method tolerance
   double ell_tol = tol; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
   int ell_maxit = 2*maxit; // will not auto change if maxit changed
@@ -53,11 +53,16 @@ int main(int argc, char **argv)
   bool zero_pi = false; // zero initial time derivative?
   bool somm_cond = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
-  bool wr_ires = false; // write ires?
-  bool wr_res = false; // write res?
-  bool wr_sol = false; // write sol?
+  bool wr_ires = false; // write ires? won't trigger without wr_xp
+  bool wr_res = false; // write res? won't trigger without wr_xp
+  bool wr_sol = true; // write sol?
   bool wr_itn = false; // write itn counts?
   bool wr_mass = false; // write mass aspect?
+  bool wr_xp = false; // write xi and pi?
+  bool wr_abp = false; // write metric fields (alpha, beta, psi)?
+  bool wr_alpha = true; // only triggered if wr_abp=true
+  bool wr_beta = true; // only triggered if wr_abp=true
+  bool wr_psi = true; // only triggered if wr_abp=true
   // variable to hold constant across resolutions
   string hold_const = "lambda"; // "lambda", "dt", or "dr"
   int nresn = 1; // 1, 2, or 3
@@ -76,7 +81,9 @@ int main(int argc, char **argv)
   map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res},
-      {"-wr_sol",&wr_sol}, {"-wr_itn",&wr_itn}, {"-wr_mass",&wr_mass}};
+      {"-wr_sol",&wr_sol}, {"-wr_itn",&wr_itn}, {"-wr_mass",&wr_mass},
+      {"-wr_xp",&wr_xp}, {"-wr_abp",&wr_abp},
+      {"-wr_alpha",&wr_alpha}, {"-wr_beta",&wr_beta}, {"-wr_psi",&wr_psi}};
   map<string, string> params;
   param_collect(argv, argc, params);
   param_set(params, p_str, p_int, p_dbl, p_bool);
@@ -171,6 +178,9 @@ int main(int argc, char **argv)
   
   // outfiles
   string solname = "sol-" + outfile + ".sdf";
+  string alphaname = "alpha-" + outfile + ".sdf";
+  string betaname = "beta-" + outfile + ".sdf";
+  string psiname = "psi-" + outfile + ".sdf";
   string outfileXi_name = "Xi-" + outfile + ".sdf";
   string outfilePi_name = "Pi-" + outfile + ".sdf";
   char *name_arr[2] = {&outfileXi_name[0], &outfilePi_name[0]};
@@ -286,23 +296,37 @@ int main(int argc, char **argv)
   gft_set_multi(); // start bbhutil file i/o
   for (i = 0; i < nsteps; ++i) {
     t = i * dt;
-    // *************  WRITE the fields (& res, ires) at t(n)  **************
+    // *************  WRITE the fields (& res, ires, sol) at t(n)  **************
     if (i % save_step == 0) {
-      if (wr_ires) {
-	get_wr_arr_ires(xi, pi, old_xi, old_pi, alpha, beta, psi, wr_xi, wr_pi, 
-			iresxi, irespi, lastwr, save_pt, lam, dr, rmin);
-	wr_step(ires_arr, 2, iresname_arr, t, bbh_shape, bbh_rank, coords);
+      if (wr_sol) {
+	gft_out_bbox(&solname[0], t, bbh_shape, bbh_rank, coords, &sol[0]); }
+      if (wr_xp) {
+	if (wr_ires) {
+	  get_wr_arr_ires(xi, pi, old_xi, old_pi, alpha, beta, psi, wr_xi, wr_pi, 
+			  iresxi, irespi, lastwr, save_pt, lam, dr, rmin);
+	  wr_step(ires_arr, 2, iresname_arr, t, bbh_shape, bbh_rank, coords);
+	}
+	else { get_wr_arr(xi, pi, wr_xi, wr_pi, wr_shape, save_pt); }
+	wr_step(field_arr, 2, name_arr, t, bbh_shape, bbh_rank, coords);
+	if (wr_res) {
+	  get_wr_arr(resxi, respi, wr_xi, wr_pi, wr_shape, save_pt);
+	  wr_step(field_arr, 2, resname_arr, t, bbh_shape, bbh_rank, coords);
+	}
       }
-      else { get_wr_arr(xi, pi, wr_xi, wr_pi, wr_shape, save_pt); }
-      
-      wr_step(field_arr, 2, name_arr, t, bbh_shape, bbh_rank, coords);
-      
-      if (wr_res) {
-	get_wr_arr(resxi, respi, wr_xi, wr_pi, wr_shape, save_pt);
-	wr_step(field_arr, 2, resname_arr, t, bbh_shape, bbh_rank, coords);
-      }
-      if (wr_sol) { gft_out_bbox(&solname[0], t, bbh_shape, bbh_rank,
-				      coords, &sol[0]); }	
+      if (wr_abp) {
+	if (wr_alpha) {
+	  get_wr_f(alpha, wr_xi, wr_shape, save_pt);
+	  gft_out_bbox(&alphaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+	}
+	if (wr_beta) {
+	  get_wr_f(beta, wr_xi, wr_shape, save_pt);
+	  gft_out_bbox(&betaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+	}
+	if (wr_psi) {
+	  get_wr_f(psi, wr_xi, wr_shape, save_pt);
+	  gft_out_bbox(&psiname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+	}
+      }	      	
     }
     // now set old_xi/pi to t(n) so that xi/pi can be updated to t(n+1)
     old_xi = xi;
