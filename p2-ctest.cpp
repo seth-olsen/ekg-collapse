@@ -35,20 +35,20 @@ using namespace std;
 int main(int argc, char **argv)
 {
   // coarse simulation parameters
-  string outfile = "d5";
+  string outfile = "ekg";
   string pre1 = "Xi-", pre2 = "Pi-";
   int lastpt = 1000; // grid size
   int save_pt = 1; // write only every (save_pt)th grid point
   int nsteps = 4000; // time steps
   int save_step = 8; // write only every (save_step)th time step
   double lam = 0.25; // dt/dr
-  double r2m = 2.0;
-  double rmin = 1.5;
+  double r2m = 0;
+  double rmin = 0;
   double rmax = 100.0;
-  double dspn = 0.8; // dissipation coefficient
-  double tol = 0.000000000001; // iterative method tolerance
+  double dspn = 0.5; // dissipation coefficient
+  double tol = 0.0000000001; // iterative method tolerance
   int maxit = 25; // max iterations for debugging
-  double ic_Dsq = 5.0; // gaussian width
+  double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 1.0; // gaussian amplitude
   bool zero_pi = false; // zero initial time derivative?
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   bool same_times = true;
   bool same_grids = true;
   // resolution factors
-  int resn0 = 8, resn1 = 16, resn2 = 32; // in order of priority
+  int resn0 = 4, resn1 = 8, resn2 = 16; // 4h, 4h, and h
 
   // get parameters from command line
   map<string, string *> p_str {{"-outfile",&outfile}, {"-pre1",&pre1},
