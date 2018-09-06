@@ -46,6 +46,17 @@ void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& psi, vector<double>& wrxi, vector<double>& wrpi,
 		     vector<double>& iresxi, vector<double>& irespi,
 		     int lastwrite, int savept, double lam, double dr, double rmin);
+inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<double>& wr_pi,
+		    double *field_arr[2], int *bbh_shape, int bbh_rank, double *coords,
+		    bool wr_sol, string solname, vector<double>& sol, bool wr_xp,
+		    char *name_arr[2], const vector<double>& xi, const vector<double>& pi,
+		    const vector<double>& old_xi, const vector<double>& old_pi,
+		    const vector<double>& alpha, const vector<double>& beta,
+		    const vector<double>& psi, vector<double>& iresxi, vector<double>& irespi,
+		    const vector<double>& resxi, const vector<double>& respi, bool wr_res,
+		    char *resname_arr[2], bool wr_ires, double *ires_arr[2], char *iresname_arr[2],
+		    bool wr_abp, bool wr_alpha, string alphaname, bool wr_beta, string betaname,
+		    bool wr_psi, string psiname, int save_pt, double lam, double dr, double rmin, double t);
 // fda implementations
 inline void update_sol(const vector<double>& xi, const vector<double>& pi,
 		       const vector<double>& alpha, const vector<double>& beta,
@@ -60,16 +71,16 @@ inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& psi, int ind, double lam, double dr, double r);
 inline double fda0_xi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double lam);
+		     const vector<double>& psi, double lam);
 inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double lam, double dr, double r);
+		     const vector<double>& psi, double lam, double dr, double r);
 inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, int ind, double lam, double dr, double r);
 inline double fda0_psi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
-		      const vector<double>& psi, int ind, double lam, double dr, double r);
+		      const vector<double>& psi, double lam, double dr, double r);
 // set rhs of A.x(t_n+1) = b(t_n) for xi, pi (xpp version for including psi)
 inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
 		    const vector<double>& old_xi, const vector<double>& old_pi,
@@ -79,7 +90,7 @@ inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
 inline void set_rhs_xpp(vector<double>& bxi, vector<double>& bpi, vector<double> bpsi,
 			const vector<double>& old_xi, const vector<double>& old_pi,
 			const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, const vector<double>& old_psi,
+			const vector<double>& psi, vector<double>& old_psi,
 			double lam, double dr, double r, int lastpt);
 // perform gauss-seidel update on xi, pi (xpp version for including psi)
 inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
@@ -89,12 +100,12 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
 		      const vector<double>& psi, double lam, double dr, double r,
 		      double rmin, int lastpt, double somm_coeff);
 inline void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
-		      vector<double>& resxi, vector<double>& respi,
+		      const vector<double>& bpsi, vector<double>& resxi,
+		      vector<double>& respi, vector<double>& respsi,
 		      vector<double>& xi, vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
-		      vector<double>& psi, const vector<double>& bpsi,
-		      double lam, double dr, double r, double rmin,
-		      int lastpt, double somm_coeff);
+		      vector<double>& psi, double lam, double dr, double r,
+		      double rmin, int lastpt, double somm_coeff);
 inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r);
@@ -116,7 +127,46 @@ inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, dou
 void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<double>& pi,
 		 const vector<double>& alpha, const vector<double>& beta,
 		 const vector<double>& psi, int lastpt, int N, double dr, double r);
+
+// **********************************************************
+// **********************************************************
+//             INITIAL AND BOUNDARY CONDITIONS
+// **********************************************************
+// **********************************************************
+
+inline double ic_alpha(double r, double r2m) { return 1.0; }
+
+inline double ic_beta(double r, double r2m) { return 0; }
+
+inline double ic_psi(double r, double r2m) { return 1.0; }
+
+// for gaussian field or sin(coeff*r)*cos(coeff*t)/(coeff*r)
+inline double ic_sol(double r, double amp, double dsq, double r0)
+{ return amp * exp(-(r - r0)*(r - r0)/dsq); }
+
+inline double ic_xi(double r, double amp, double dsq, double r0)
+{ return -2 * (r - r0) * amp * exp(-(r - r0)*(r - r0)/dsq) / dsq; }
+
+inline double ic_pi(double r, double amp, double dsq, double r0, double ctot, double cxi)
+{ return ctot*(cxi*ic_xi(r, amp, dsq, r0) + ic_sol(r, amp, dsq, r0)/r); }
+
 // ***********************  JACOBIAN  ***********************
+
+//  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
+inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			  int N, int ldab, int kl, int ku, int last, double dr, double r);
+inline void set_inds(int *cols, int indalpha);
+inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double dr, double r);
+inline void set_betavals(double *vals, const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double dr, double r);
+inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
+			const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, double dr, double r);
+
 // ***********************  row alpha(ind)   ***********************
 inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
@@ -199,45 +249,6 @@ inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
   return 1 + p_m*dr/r; }
 
-//  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
-inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
-			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
-			  int N, int ldab, int kl, int ku, int last, double dr, double r);
-
-inline void set_inds(int *cols, int indalpha);
-
-inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
-			  const vector<double>& alpha, const vector<double>& beta,
-			  const vector<double>& psi, int ind, double dr, double r);
-inline void set_betavals(double *vals, const vector<double>& xi, const vector<double>& pi,
-			 const vector<double>& alpha, const vector<double>& beta,
-			 const vector<double>& psi, int ind, double dr, double r);
-inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
-			const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, double dr, double r);
-
-// **********************************************************
-// **********************************************************
-//             INITIAL AND BOUNDARY CONDITIONS
-// **********************************************************
-// **********************************************************
-
-inline double ic_alpha(double r, double r2m) { return 1.0; }
-
-inline double ic_beta(double r, double r2m) { return 0; }
-
-inline double ic_psi(double r, double r2m) { return 1.0; }
-
-// for gaussian field or sin(coeff*r)*cos(coeff*t)/(coeff*r)
-inline double ic_sol(double r, double amp, double dsq, double r0)
-{ return amp * exp(-(r - r0)*(r - r0)/dsq); }
-
-inline double ic_xi(double r, double amp, double dsq, double r0)
-{ return -2 * (r - r0) * amp * exp(-(r - r0)*(r - r0)/dsq) / dsq; }
-
-inline double ic_pi(double r, double amp, double dsq, double r0, double ctot, double cxi)
-{ return ctot*(cxi*ic_xi(r, amp, dsq, r0) + ic_sol(r, amp, dsq, r0)/r); }
-
 // **********************************************************
 // **********************************************************
 //                    FDA IMPLEMENTATIONS
@@ -298,9 +309,9 @@ inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
   return 0.25*lam*(beta[ind]*d_c(psi,ind) + psi[ind]*(4*dr*beta[ind]/r + d_c(beta,ind))/6.0); }
 
 inline double fda0_psi(const vector<double>& xi, const vector<double>& pi,
-		      const vector<double>& alpha, const vector<double>& beta,
-		      const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return 0.25*lam*(beta[ind]*d_f(psi,ind) + psi[ind]*(4*dr*beta[ind]/r + d_f(beta,ind))/6.0); }
+		       const vector<double>& alpha, const vector<double>& beta,
+		       const vector<double>& psi, double lam, double dr, double r) {
+  return 0.25*lam*(beta[0]*d_f(psi,0) + psi[0]*(4*dr*beta[0]/r + d_f(beta,0))/6.0); }
 
 
 // set rhs of A.x(t_n+1) = b(t_n)
@@ -323,19 +334,19 @@ inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
 inline void set_rhs_xpp(vector<double>& bxi, vector<double>& bpi, vector<double>& bpsi,
 			const vector<double>& old_xi, const vector<double>& old_pi,
 			const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, const vector<double>& old_psi,
+			const vector<double>& psi, vector<double>& old_psi,
 			double lam, double dr, double r, int lastpt) {
-  //***********************************************
-  //*********   UNFINISHED ************************
-  //***********************************************
+  old_psi = psi;
   if (r != 0) {
-    bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, psi, lam);
-    bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, psi, lam, dr, r);
+    bxi[0] = old_xi[0] + fda0_xi(old_xi, old_pi, alpha, beta, old_psi, lam);
+    bpi[0] = old_pi[0] + fda0_pi(old_xi, old_pi, alpha, beta, old_psi, lam, dr, r);
+    bpsi[0] = old_psi[0] + fda0_psi(old_xi, old_pi, alpha, beta, old_psi, lam, dr, r);
   }
   for (int j = 1; j < lastpt; ++j) {
     r += dr;
-    bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, psi, j, lam);
-    bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, psi, j, lam, dr, r);
+    bxi[j] = old_xi[j] + fda_xi(old_xi, old_pi, alpha, beta, old_psi, j, lam);
+    bpi[j] = old_pi[j] + fda_pi(old_xi, old_pi, alpha, beta, old_psi, j, lam, dr, r);
+    bpsi[j] = old_psi[j] + fda_psi(old_xi, old_pi, alpha, beta, old_psi, j, lam, dr, r);
   }
   return;
 }
@@ -384,12 +395,12 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
 
 // perform gauss-seidel update on xi, pi, and psi
 inline void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
-		      vector<double>& resxi, vector<double>& respi,
+		      const vector<double>& bpsi, vector<double>& resxi,
+		      vector<double>& respi, vector<double>& respsi,
 		      vector<double>& xi, vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
-		      vector<double>& psi, const vector<double>& bpsi,
-		      double lam, double dr, double r, double rmin,
-		      int lastpt, double somm_coeff) {
+		      vector<double>& psi, double lam, double dr, double r,
+		      double rmin, int lastpt, double somm_coeff) {
   //***********************************************
   //*********   UNFINISHED ************************
   //***********************************************
@@ -470,94 +481,6 @@ void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<
   abpres[N-1] = fdaR_respsi(psi, lastpt, dr, r);
   return;
 }
-
-// ***********************  JACOBIAN  ***********************
-
-// ***********************  row alpha(ind)   ***********************
-
-inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
-		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2 - 8*M_PI*sq(dr)*sq(pi[ind]) +
-    2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*sq(alpha[ind])); }
-
-inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return 1 + p_m*(0.5*d_c(psi,ind)/psi[ind] + dr/r); }
-
-inline double jac_ab(const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return 4*dr*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]*r); }
-
-inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return -p_m*2*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]); }
-
-inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -0.5*d_c(alpha,ind)*d_c(psi,ind) / sq(psi[ind]) -
-	     8*pw3(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]); }
-
-inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*0.5*d_c(alpha,ind) / psi[ind]; }
-
-
-// ***********************  row beta(ind)   ***********************
-
-inline double jac_ba(const vector<double>& xi, const vector<double>& pi,
-		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return 12*M_PI*sq(dr)*xi[ind]*pi[ind] / sq(psi[ind]) +
-    0.5*d_c(alpha,ind)*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / sq(alpha[ind]); }
-
-inline double jac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return -p_m*0.5*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / alpha[ind]; }
-
-inline double jac_bb(const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2*(1 + sq(dr)/sq(r)) - 0.5*dr*(d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind])/r; }
-
-inline double jac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return 1 + p_m*0.25*(4*dr/r - d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind]); }
-
-inline double jac_bp(const vector<double>& xi, const vector<double>& pi,
-		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -6*(4*M_PI*sq(dr)*xi[ind]*pi[ind]*alpha[ind] / pw3(psi[ind]) +
-	     0.5*d_c(psi,ind)*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / sq(psi[ind])); }
-
-inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*3*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / psi[ind]; }
-
-// ***********************  row psi(ind)   ***********************
-
-inline double jac_pa(const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -pw5(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*pw3(alpha[ind])); }
-
-inline double jac_pa_pm() { return 0; }
-
-inline double jac_pb(const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*sq(alpha[ind])*r); }
-
-inline double jac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return p_m*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
-
-inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
-		     const vector<double>& alpha, const vector<double>& beta,
-		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2 + M_PI*sq(dr)*(sq(xi[ind]) + sq(pi[ind])) +
-    5*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
-
-inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
-			const vector<double>& psi, int ind, int p_m, double dr, double r) {
-  return 1 + p_m*dr/r; }
 
 //  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
 inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
@@ -897,3 +820,46 @@ void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
   return;
 }
 
+inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<double>& wr_pi,
+		    double *field_arr[2], int *bbh_shape, int bbh_rank, double *coords,
+		    bool wr_sol, string solname, vector<double>& sol, bool wr_xp,
+		    char *name_arr[2], const vector<double>& xi, const vector<double>& pi,
+		    const vector<double>& old_xi, const vector<double>& old_pi,
+		    const vector<double>& alpha, const vector<double>& beta,
+		    const vector<double>& psi, vector<double>& iresxi, vector<double>& irespi,
+		    const vector<double>& resxi, const vector<double>& respi, bool wr_res,
+		    char *resname_arr[2], bool wr_ires, double *ires_arr[2], char *iresname_arr[2],
+		    bool wr_abp, bool wr_alpha, string alphaname, bool wr_beta, string betaname,
+		    bool wr_psi, string psiname, int save_pt, double lam, double dr, double rmin, double t)
+{
+  if (wr_sol) {
+    gft_out_bbox(&solname[0], t, bbh_shape, bbh_rank, coords, &sol[0]); }
+  if (wr_xp) {
+    if (wr_ires) {
+      get_wr_arr_ires(xi, pi, old_xi, old_pi, alpha, beta, psi, wr_xi, wr_pi, 
+		      iresxi, irespi, lastwr, save_pt, lam, dr, rmin);
+      wr_step(ires_arr, 2, iresname_arr, t, bbh_shape, bbh_rank, coords);
+    }
+    else { get_wr_arr(xi, pi, wr_xi, wr_pi, wr_shape, save_pt); }
+    wr_step(field_arr, 2, name_arr, t, bbh_shape, bbh_rank, coords);
+    if (wr_res) {
+      get_wr_arr(resxi, respi, wr_xi, wr_pi, wr_shape, save_pt);
+      wr_step(field_arr, 2, resname_arr, t, bbh_shape, bbh_rank, coords);
+    }
+  }
+  if (wr_abp) {
+    if (wr_alpha) {
+      get_wr_f(alpha, wr_xi, wr_shape, save_pt);
+      gft_out_bbox(&alphaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+    }
+    if (wr_beta) {
+      get_wr_f(beta, wr_xi, wr_shape, save_pt);
+      gft_out_bbox(&betaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+    }
+    if (wr_psi) {
+      get_wr_f(psi, wr_xi, wr_shape, save_pt);
+      gft_out_bbox(&psiname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+    }
+  }
+  return;
+}

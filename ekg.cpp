@@ -114,8 +114,8 @@ int main(int argc, char **argv)
   double coord_lims[2] = {rmin, rmax};
   double *coords = &coord_lims[0];
   
-  int ires_size = ((wr_ires) ? wr_shape : 1);
-  vector<double> iresxi(ires_size, 0.0), irespi(ires_size, 0.0);
+  int vlen = ((wr_ires) ? wr_shape : 1);
+  vector<double> iresxi(vlen, 0.0), irespi(vlen, 0.0);
   double *ires_arr[2] = {&iresxi[0], &irespi[0]};
 
   vector<double> sol(((wr_sol) ? wr_shape : 1), 0.0);
@@ -207,12 +207,12 @@ int main(int argc, char **argv)
   vector<double> bxi(npts, 0.0), bpi(npts, 0.0);
   vector<double> resxi(npts, 0.0), respi(npts, 0.0);
   vector<double> alpha(npts, 0.0), beta(npts, 0.0), psi(npts, 0.0);
-  ires_size = ((psi_hyp) ? npts : 1);
-  vector<double> old_psi(ires_size, 0.0), bpsi(ires_size, 0.0);
-  ires_size = ((wr_ires) ? npts : 1);
-  vector<double> xic1(ires_size, 0.0),  xic2(ires_size, 0.0),
-    pic1(ires_size, 0.0), pic2(ires_size, 0.0),
-    d1(ires_size, 0.0), d2(ires_size, 0.0);
+  vlen = ((psi_hyp) ? npts : 1);
+  vector<double> old_psi(vlen, 0.0), bpsi(vlen, 0.0), respsi(vlen, 0.0);
+  vlen = ((wr_ires) ? npts : 1);
+  vector<double> xic1(vlen, 0.0),  xic2(vlen, 0.0),
+    pic1(vlen, 0.0), pic2(vlen, 0.0),
+    d1(vlen, 0.0), d2(vlen, 0.0);
 
   // *********************************************
   // **************** DEBUG **********************
@@ -227,9 +227,9 @@ int main(int argc, char **argv)
   // *********************************************
   
   // lapack object declaration  
-  lapack_int N = 3 * npts; // size of vectors
-  lapack_int kl = 6;
-  lapack_int ku = 6;
+  lapack_int N = ((psi_hyp) ? 2 : 3) * npts;
+  lapack_int kl = ((psi_hyp) ? 2 : 3) * 2;
+  lapack_int ku = ((psi_hyp) ? 2 : 3) * 2;
   lapack_int nrhs = 1;
   lapack_int ldab = 2*kl + ku + 1;
   lapack_int ldb = N;
@@ -292,7 +292,6 @@ int main(int argc, char **argv)
     }
   }
   
-  
 // **********************************************************
 // ******************* TIME STEPPING ************************
 // *******************   & WRITING   ************************
@@ -303,35 +302,11 @@ int main(int argc, char **argv)
     t = i * dt;
     // *************  WRITE the fields (& res, ires, sol) at t(n)  **************
     if (i % save_step == 0) {
-      if (wr_sol) {
-	gft_out_bbox(&solname[0], t, bbh_shape, bbh_rank, coords, &sol[0]); }
-      if (wr_xp) {
-	if (wr_ires) {
-	  get_wr_arr_ires(xi, pi, old_xi, old_pi, alpha, beta, psi, wr_xi, wr_pi, 
-			  iresxi, irespi, lastwr, save_pt, lam, dr, rmin);
-	  wr_step(ires_arr, 2, iresname_arr, t, bbh_shape, bbh_rank, coords);
-	}
-	else { get_wr_arr(xi, pi, wr_xi, wr_pi, wr_shape, save_pt); }
-	wr_step(field_arr, 2, name_arr, t, bbh_shape, bbh_rank, coords);
-	if (wr_res) {
-	  get_wr_arr(resxi, respi, wr_xi, wr_pi, wr_shape, save_pt);
-	  wr_step(field_arr, 2, resname_arr, t, bbh_shape, bbh_rank, coords);
-	}
-      }
-      if (wr_abp) {
-	if (wr_alpha) {
-	  get_wr_f(alpha, wr_xi, wr_shape, save_pt);
-	  gft_out_bbox(&alphaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
-	}
-	if (wr_beta) {
-	  get_wr_f(beta, wr_xi, wr_shape, save_pt);
-	  gft_out_bbox(&betaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
-	}
-	if (wr_psi) {
-	  get_wr_f(psi, wr_xi, wr_shape, save_pt);
-	  gft_out_bbox(&psiname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
-	}
-      }	      	
+      writing(lastwr, wr_shape, wr_xi, wr_pi, field_arr, bbh_shape, bbh_rank, coords,
+	      wr_sol, solname, sol, wr_xp, name_arr, xi, pi, old_xi, old_pi, alpha, beta,
+	      psi, iresxi, irespi, resxi, respi, wr_res, resname_arr, wr_ires, ires_arr,
+	      iresname_arr, wr_abp, wr_alpha, alphaname, wr_beta, betaname,
+	      wr_psi, psiname, save_pt, lam, dr, rmin, t);
     }
     // now set old_xi/pi to t(n) so that xi/pi can be updated to t(n+1)
     old_xi = xi;
