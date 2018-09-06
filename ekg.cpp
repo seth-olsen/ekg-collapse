@@ -22,7 +22,7 @@ following ordered pair of command line arguments:
 default values can be found at the start of main()
 */
 
-#include "ekg-fns.h"
+#include "ekg-proc.h"
 #include <lapacke.h>
 
 int main(int argc, char **argv)
@@ -113,7 +113,8 @@ int main(int argc, char **argv)
   int bbh_rank = 1;
   double coord_lims[2] = {rmin, rmax};
   double *coords = &coord_lims[0];
-  
+
+  int n_ell = ((psi_hyp) ? 2 : 3); // number of elliptic eqn fields
   int vlen = ((wr_ires) ? wr_shape : 1);
   vector<double> iresxi(vlen, 0.0), irespi(vlen, 0.0);
   double *ires_arr[2] = {&iresxi[0], &irespi[0]};
@@ -227,9 +228,9 @@ int main(int argc, char **argv)
   // *********************************************
   
   // lapack object declaration  
-  lapack_int N = ((psi_hyp) ? 2 : 3) * npts;
-  lapack_int kl = ((psi_hyp) ? 2 : 3) * 2;
-  lapack_int ku = ((psi_hyp) ? 2 : 3) * 2;
+  lapack_int N = n_ell * npts;
+  lapack_int kl = n_ell * 2;
+  lapack_int ku = n_ell * 2;
   lapack_int nrhs = 1;
   lapack_int ldab = 2*kl + ku + 1;
   lapack_int ldb = N;

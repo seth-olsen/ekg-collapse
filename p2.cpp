@@ -23,7 +23,7 @@ following ordered pair of command line arguments:
 default values can be found at the start of main()
 */
 
-#include "ekg-fns.h"
+#include "ekg-proc.h"
 
 int main(int argc, char **argv)
 {

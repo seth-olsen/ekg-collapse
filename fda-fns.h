@@ -278,3 +278,15 @@ inline double irespi_f(const vector<double>& xi, const vector<double>& pi,
 		   (pi[ind]*beta[ind] + xi[ind]*alpha[ind]*sqin(psi[ind]))*sqin(r*sq(psi[ind]))
 		   *dr2a4_f(psi, ind, dr, r))
     - (lam/3.0)* pi[ind]*( d_f(beta, ind) + beta[ind]*(6*d_f(psi, ind)/psi[ind] + 4*dr/r) ); }
+
+// GET COARSENED ARRAY FOR WRITING
+void get_wr_f(const vector<double>& f, vector<double>& wr,
+	      int one_past_last, int savept)
+{
+  int k, s = 0;
+  for (k = 0; k < one_past_last; ++k) {
+    wr[k] = f[s];
+    s += savept;
+  }
+  return;
+}

@@ -15,7 +15,7 @@ ekg: ekg.o
 	-${CXX} -o ekg ekg.o ${LDLIBS}
 	rm -f ekg.o
 
-ekg.o: ekg-fns.h fda-fns.h fda-io.h
+ekg.o: ekg-proc.h ekg-fns.h fda-fns.h fda-io.h
 	$(CXX) -c $(CXXFLAGS) ekg.cpp
 
 p2-conv-test: fda-io.h

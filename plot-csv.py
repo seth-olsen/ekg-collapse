@@ -38,6 +38,20 @@ def get_csv_data_skip(filename, col, skip):
     file.close()
     return [times, data]
 
+def get_csv_data_c1c2skip(filename, c1, c2, skip):
+    data = []
+    times = []
+    file = open(filename, 'rU')
+    reader = csv.reader(file)
+    get_data = 0
+    for row in reader:
+        get_data += 1
+        if get_data > skip:
+            times.append(float(row[c1]))
+            data.append(float(row[c2]))
+    file.close()
+    return [times, data]
+
 def plot_Qdata(data, names):
     for i in range(len(data)):
         plt.plot(data[i][0], data[i][1], label=names[i])
@@ -53,6 +67,17 @@ def plot_Mdata(data, names):
     plt.ylabel('M(t, R)')
     plt.legend(loc='best')
     return
+
+def plot_Mnames(names, c1, c2, skip):
+    data = []
+    for name in names:
+        data = [get_csv_data_c1c2skip(name, c1, c2, skip)]
+        plt.plot(data[0], data[1], label=name)
+    plt.xlabel('time')
+    plt.ylabel('M(t, R)')
+    plt.legend(loc='best')
+    return
+
 
 """ input: full filename (with extension) as string """
 def get_i1data(filename, i1=1):
