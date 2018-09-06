@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <algorithm> // for max_element()
 #include <fstream> // for mass/itn files
@@ -15,85 +16,191 @@ const double M_PI = 4.0*atan(1.0);
 inline double dmdr_scalar(double xival, double pival, double alphaval,
 			  double betaval, double psival) {
   return pw4(psival)*betaval*xival*pival + 0.5*sq(psival)*alphaval*(sq(xival) + sq(pival)); }
-
+// mass aspect function
 inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
   return r*pw6(psi[k])*sq(r*ddr_c(beta,k,dr) - beta[k]) / (18*sq(alpha[k])) -
     2*sq(r)*ddr_c(psi,k,dr)*(psi[k] + r*ddr_c(psi,k,dr)); }
-
 inline double mass_aspect0(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, double dr, double r) {
   return r*pw6(psi[0])*sq(r*ddr_f(beta,0,dr) - beta[0]) / (18*sq(alpha[0])) -
     2*sq(r)*ddr_f(psi,0,dr)*(psi[0] + r*ddr_f(psi,0,dr)); }
-
 inline double mass_aspectR(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
   return r*pw6(psi[k])*sq(r*ddr_b(beta,k,dr) - beta[k]) / (18*sq(alpha[0])) -
     2*sq(r)*ddr_b(psi,k,dr)*(psi[k] + r*ddr_b(psi,k,dr)); }
-    
 // compute and write mass
 void mass_check(const vector<double>& xi, const vector<double>& pi,
 		const vector<double>& alpha, const vector<double>& beta,
 		const vector<double>& psi, double dr, double rmin,
-		double t, ofstream& out_stream)
-{
-  double mass = 0.0, rval = rmin;
-  int k = 0;
-  for (auto xik : xi) {
-    mass += 4*M_PI*rval*rval*dr*dmdr_scalar(xik, pi[k], alpha[k], beta[k], psi[k]);
-    ++k;
-    rval += dr;
-  }
-  out_stream << t <<","<< mass << endl;
-  return;
-}
-
+		double t, ofstream& out_stream);
 // get coarsened arrays from fields for writing
 void get_wr_arr(const vector<double>& f1, const vector<double>& f2,
-		    vector<double>& wr1, vector<double>& wr2,
-		    int one_past_last, int savept)
-{
-  int k, s = 0;
-  for (k = 0; k < one_past_last; ++k) {
-    wr1[k] = f1[s];
-    wr2[k] = f2[s];
-    s += savept;
-  }
-  return;
-}
-
+		vector<double>& wr1, vector<double>& wr2,
+		int one_past_last, int savept);
 void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& oldxi, const vector<double>& oldpi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, vector<double>& wrxi, vector<double>& wrpi,
 		     vector<double>& iresxi, vector<double>& irespi,
-		     int lastwrite, int savept, double lam, double dr, double rmin)
-{
-  double rval = rmin;
-  wrxi[0] = xi[0];
-  wrpi[0] = pi[0];
-  if (rmin != 0) {
-    iresxi[0] = xi[0] - iresxi_f(xi, pi, alpha, beta, psi, 0, lam)
-      - oldxi[0] - iresxi_f(oldxi, oldpi, alpha, beta, psi, 0, lam);
-    irespi[0] = pi[0] - irespi_f(xi, pi, alpha, beta, psi, 0, lam, dr, rval)
-    - oldpi[0] - irespi_f(oldxi, oldpi, alpha, beta, psi, 0, lam, dr, rval);
-  }
-  int k, s = savept;
-  for (k = 1; k < lastwrite; ++k) {
-    rval += savept*dr;
-    wrxi[k] = xi[s];
-    wrpi[k] = pi[s];
-    iresxi[k] = xi[s] - iresxi_c(xi, pi, alpha, beta, psi, s, lam)
-      - oldxi[s] - iresxi_c(oldxi, oldpi, alpha, beta, psi, s, lam);
-    irespi[k] = pi[s] - irespi_c(xi, pi, alpha, beta, psi, s, lam, dr, rval)
-      - oldpi[s] - irespi_c(oldxi, oldpi, alpha, beta, psi, s, lam, dr, rval);
-    s += savept;
-  }
-  wrxi[lastwrite] = xi[s];
-  wrpi[lastwrite] = pi[s];
-  return;
-  return;
-}
+		     int lastwrite, int savept, double lam, double dr, double rmin);
+// fda implementations
+inline void update_sol(const vector<double>& xi, const vector<double>& pi,
+		       const vector<double>& alpha, const vector<double>& beta,
+		       const vector<double>& psi, vector<double>& sol,
+		       double dt, int savept, int wr_shape);
+// field = oldfield + fda(field) + fda(oldfield)
+inline double fda_xi(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double lam);
+inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double lam, double dr, double r);
+inline double fda0_xi(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double lam);
+inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double lam, double dr, double r);
+inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, int ind, double lam, double dr, double r);
+inline double fda0_psi(const vector<double>& xi, const vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, int ind, double lam, double dr, double r);
+// set rhs of A.x(t_n+1) = b(t_n)
+inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
+		    const vector<double>& old_xi, const vector<double>& old_pi,
+		    const vector<double>& alpha, const vector<double>& beta,
+		    const vector<double>& psi, double lam, double dr, double r,
+		    int lastpt);
+// perform gauss-seidel update
+inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
+		      vector<double>& resxi, vector<double>& respi,
+		      vector<double>& xi, vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, double lam, double dr, double r,
+		      double rmin, int lastpt, double somm_coeff);
+inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double dr, double r);
+inline double fda_resbeta(const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double dr, double r);
+inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
+			   const vector<double>& alpha, const vector<double>& beta,
+			   const vector<double>& psi, int ind, double dr, double r);
+inline double fdaR_respsi(const vector<double>& psi, int ind, double dr, double r) {
+  return d_b(psi,ind) + 2*dr*(psi[ind] - 1)/r; }
+
+inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, double r) {
+  return d_b(beta,ind) + 2*dr*beta[ind]/r; }
+
+inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
+  return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
+// set res_vals to be residual = L[f] for rhs of jacobian.(-delta) = residual
+void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<double>& pi,
+		 const vector<double>& alpha, const vector<double>& beta,
+		 const vector<double>& psi, int lastpt, int N, double dr, double r);
+// ***********************  JACOBIAN  ***********************
+// ***********************  row alpha(ind)   ***********************
+inline double jac_aa(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2 - 8*M_PI*sq(dr)*sq(pi[ind]) +
+    2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*sq(alpha[ind])); }
+
+inline double jac_aa_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return 1 + p_m*(0.5*d_c(psi,ind)/psi[ind] + dr/r); }
+
+inline double jac_ab(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return 4*dr*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]*r); }
+
+inline double jac_ab_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return -p_m*2*pw4(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]); }
+
+inline double jac_ap(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -0.5*d_c(alpha,ind)*d_c(psi,ind) / sq(psi[ind]) -
+	     8*pw3(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind]); }
+
+inline double jac_ap_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*0.5*d_c(alpha,ind) / psi[ind]; }
+
+// ***********************  row beta(ind)   ***********************
+inline double jac_ba(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return 12*M_PI*sq(dr)*xi[ind]*pi[ind] / sq(psi[ind]) +
+    0.5*d_c(alpha,ind)*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / sq(alpha[ind]); }
+
+inline double jac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return -p_m*0.5*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / alpha[ind]; }
+
+inline double jac_bb(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2*(1 + sq(dr)/sq(r)) - 0.5*dr*(d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind])/r; }
+
+inline double jac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return 1 + p_m*0.25*(4*dr/r - d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind]); }
+
+inline double jac_bp(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -6*(4*M_PI*sq(dr)*xi[ind]*pi[ind]*alpha[ind] / pw3(psi[ind]) +
+	     0.5*d_c(psi,ind)*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / sq(psi[ind])); }
+
+inline double jac_bp_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*3*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / psi[ind]; }
+
+// ***********************  row psi(ind)   ***********************
+inline double jac_pa(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -pw5(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*pw3(alpha[ind])); }
+
+inline double jac_pa_pm() { return 0; }
+
+inline double jac_pb(const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -dr*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (6*sq(alpha[ind])*r); }
+
+inline double jac_pb_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return p_m*pw5(psi[ind])*(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
+
+inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, int ind, double dr, double r) {
+  return -2 + M_PI*sq(dr)*(sq(xi[ind]) + sq(pi[ind])) +
+    5*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (12*sq(alpha[ind])); }
+
+inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, int p_m, double dr, double r) {
+  return 1 + p_m*dr/r; }
+
+//  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
+inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			  int N, int ldab, int kl, int ku, int last, double dr, double r);
+
+inline void set_inds(int *cols, int indalpha);
+
+inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double dr, double r);
+inline void set_betavals(double *vals, const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double dr, double r);
+inline void set_psivals(double *vals, const vector<double>& xi, const vector<double>& pi,
+			const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, double dr, double r);
 
 // **********************************************************
 // **********************************************************
@@ -171,6 +278,17 @@ inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
   // d3pi_f(beta, pi, alpha, xi, psi, ind, dr, r)
 }
 
+inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return 0.25*lam*(beta[ind]*d_c(psi,ind) + psi[ind]*(4*dr*beta[ind]/r + d_c(beta,ind))/6.0); }
+
+inline double fda0_psi(const vector<double>& xi, const vector<double>& pi,
+		      const vector<double>& alpha, const vector<double>& beta,
+		      const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return 0.25*lam*(beta[ind]*d_f(psi,ind) + psi[ind]*(4*dr*beta[ind]/r + d_f(beta,ind))/6.0); }
+
+
 // set rhs of A.x(t_n+1) = b(t_n)
 inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
 		    const vector<double>& old_xi, const vector<double>& old_pi,
@@ -232,12 +350,6 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
 }
   
 
-inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
-		      const vector<double>& alpha, const vector<double>& beta,
-		      const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return 0.25*lam*(beta[ind]*(psi[ind+1] - psi[ind-1]) +
-		   psi[ind]*(beta[ind+1] + 4*beta[ind]/r - beta[ind-1])); }
-
 inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double dr, double r) {
@@ -258,15 +370,6 @@ inline double fda_resalpha(const vector<double>& xi, const vector<double>& pi,
   return d2_c(alpha,ind) + d_c(alpha,ind)*(dr/r + 0.5*d_c(psi,ind)/psi[ind])
     - 2*pw4(psi[ind])*sq(0.5*d_c(beta,ind) - dr*beta[ind]/r) / (3*alpha[ind])
     - 8*M_PI*sq(dr)*alpha[ind]*sq(pi[ind]) ; }
-
-inline double fdaR_respsi(const vector<double>& psi, int ind, double dr, double r) {
-  return d_b(psi,ind) + 2*dr*(psi[ind] - 1)/r; }
-
-inline double fdaR_resbeta(const vector<double>& beta, int ind, double dr, double r) {
-  return d_b(beta,ind) + 2*dr*beta[ind]/r; }
-
-inline double fdaR_resalpha(const vector<double>& alpha, int ind, double dr, double r) {
-  return d_b(alpha,ind) + 2*dr*(alpha[ind] - 1)/r; }
 
 // set res_vals to be residual = L[f] for rhs of jacobian.(-delta) = residual
 void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<double>& pi,
@@ -376,12 +479,6 @@ inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
   return 1 + p_m*dr/r; }
-
-inline void set_inds(int *cols, int indalpha) {
-  cols[0] = indalpha-3, cols[1] = indalpha-2, cols[2] = indalpha-1,
-    cols[3] = indalpha, cols[4] = indalpha+1, cols[5] = indalpha+2,
-    cols[6] = indalpha+3, cols[7] = indalpha+4, cols[8] = indalpha+5;
-  return; }
 
 //  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
 inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
@@ -598,6 +695,12 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
 
 // petsc set mat vals
 
+inline void set_inds(int *cols, int indalpha) {
+  cols[0] = indalpha-3, cols[1] = indalpha-2, cols[2] = indalpha-1,
+    cols[3] = indalpha, cols[4] = indalpha+1, cols[5] = indalpha+2,
+    cols[6] = indalpha+3, cols[7] = indalpha+4, cols[8] = indalpha+5;
+  return; }
+
 inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int ind, double dr, double r) {
@@ -639,4 +742,68 @@ inline void set_psivals(double *vals, const vector<double>& xi, const vector<dou
     vals[7] = jac_pb_pm(alpha, beta, psi, ind, 1, dr, r),
     vals[8] = jac_pp_pm(alpha, beta, psi, ind, 1, dr, r);
   return; }
+
+// WRITING
+
+void mass_check(const vector<double>& xi, const vector<double>& pi,
+		const vector<double>& alpha, const vector<double>& beta,
+		const vector<double>& psi, double dr, double rmin,
+		double t, ofstream& out_stream)
+{
+  double mass = 0.0, rval = rmin;
+  int k = 0;
+  for (auto xik : xi) {
+    mass += 4*M_PI*rval*rval*dr*dmdr_scalar(xik, pi[k], alpha[k], beta[k], psi[k]);
+    ++k;
+    rval += dr;
+  }
+  out_stream << t <<","<< mass << endl;
+  return;
+}
+
+void get_wr_arr(const vector<double>& f1, const vector<double>& f2,
+		    vector<double>& wr1, vector<double>& wr2,
+		    int one_past_last, int savept)
+{
+  int k, s = 0;
+  for (k = 0; k < one_past_last; ++k) {
+    wr1[k] = f1[s];
+    wr2[k] = f2[s];
+    s += savept;
+  }
+  return;
+}
+
+void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
+		     const vector<double>& oldxi, const vector<double>& oldpi,
+		     const vector<double>& alpha, const vector<double>& beta,
+		     const vector<double>& psi, vector<double>& wrxi, vector<double>& wrpi,
+		     vector<double>& iresxi, vector<double>& irespi,
+		     int lastwrite, int savept, double lam, double dr, double rmin)
+{
+  double rval = rmin;
+  wrxi[0] = xi[0];
+  wrpi[0] = pi[0];
+  if (rmin != 0) {
+    iresxi[0] = xi[0] - iresxi_f(xi, pi, alpha, beta, psi, 0, lam)
+      - oldxi[0] - iresxi_f(oldxi, oldpi, alpha, beta, psi, 0, lam);
+    irespi[0] = pi[0] - irespi_f(xi, pi, alpha, beta, psi, 0, lam, dr, rval)
+    - oldpi[0] - irespi_f(oldxi, oldpi, alpha, beta, psi, 0, lam, dr, rval);
+  }
+  int k, s = savept;
+  for (k = 1; k < lastwrite; ++k) {
+    rval += savept*dr;
+    wrxi[k] = xi[s];
+    wrpi[k] = pi[s];
+    iresxi[k] = xi[s] - iresxi_c(xi, pi, alpha, beta, psi, s, lam)
+      - oldxi[s] - iresxi_c(oldxi, oldpi, alpha, beta, psi, s, lam);
+    irespi[k] = pi[s] - irespi_c(xi, pi, alpha, beta, psi, s, lam, dr, rval)
+      - oldpi[s] - irespi_c(oldxi, oldpi, alpha, beta, psi, s, lam, dr, rval);
+    s += savept;
+  }
+  wrxi[lastwrite] = xi[s];
+  wrpi[lastwrite] = pi[s];
+  return;
+  return;
+}
 
