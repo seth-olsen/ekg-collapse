@@ -1,4 +1,3 @@
-# NEED TO SET PETSC_ARCH=arch-linux2-c-debug
 CC		 = gcc
 CXX		 = g++
 DEBUG		 = -g
@@ -12,18 +11,21 @@ LDFLAGS	 	 = -Wall ${DEBUG}
 LDLIBS		 = -lbbhutil -L$(LIBDIR_LAPACK) -llapacke -llapack -lblas -L$(LGFORTRAN_PATH) -lgfortran -lm
 LOCDIR		 = home/seth/research
 
-p2-lapack: p2-lapack.o
-	-${CXX} -o p2-lapack p2-lapack.o ${LDLIBS}
-	rm -f p2-lapack.o
+ekg: ekg.o
+	-${CXX} -o ekg ekg.o ${LDLIBS}
+	rm -f ekg.o
 
-p2-lapack.o: ekg-fns.h fda-fns.h fda-io.h
-	$(CXX) -c $(CXXFLAGS) p2-lapack.cpp
+ekg.o: ekg-fns.h fda-fns.h fda-io.h
+	$(CXX) -c $(CXXFLAGS) ekg.cpp
 
 p2-conv-test: fda-io.h
 	$(CXX) -c $(CXXFLAGS) p2-conv-test.cpp
 	$(CXX) $(LDFLAGS) p2-conv-test.o $(LDLIBS) -o p2-conv-test
 	rm -f p2-conv-test.o
 
+.PHONY : clean
+clean :
+	rm -f *.o *~
 
 # "make" uses the following implicit rule to compile
 # a .c file into a .o file:

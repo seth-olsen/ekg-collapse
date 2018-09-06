@@ -31,7 +31,7 @@ int main(int argc, char **argv)
   // **********************************************************
   
   // user-set parameters
-  string outfile = "p2";
+  string outfile = "ekg";
   int lastpt = 1000; // grid size
   int save_pt = 1; // write only every (save_pt)th grid point
   int nsteps = 4000; // time steps
@@ -181,6 +181,12 @@ int main(int argc, char **argv)
   ofstream ofs_itn;
   if (wr_itn) { ofs_itn.open(itn_file, ofstream::out); }
   string maspect_name = "maspect-" + outfile + ".sdf";
+  string mass_file = "mass-" + outfile + ".csv";
+  ofstream ofs_mass;
+  if (!wr_mass) {
+    ofs_mass.open(mass_file, ofstream::out);
+    ofs_mass << "save=" << save_step <<","<< "check=" << check_step << endl;
+  }
 
   // fields and residuals
   vector<double> xi(npts, 0.0), pi(npts, 0.0);
@@ -394,16 +400,20 @@ int main(int argc, char **argv)
 // ***********************************************************************
     
     // ****************** WRITE MASS & update field **********************
-    if (wr_mass && i % check_step*save_step == 0) {
-      //mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
-      maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
-      r = rmin;
-      for (j = 1; j < lastwr; ++j) {
-	r += save_pt*dr;
-	maspect[j] = mass_aspect(alpha, beta, psi, j, dr, r);
+    if (i % check_step*save_step == 0) {
+      if (wr_mass) {
+	maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
+	r = rmin;
+	for (j = 1; j < lastwr; ++j) {
+	  r += save_pt*dr;
+	  maspect[j] = mass_aspect(alpha, beta, psi, j, dr, r);
+	}
+	maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);
+	gft_out_bbox(&maspect_name[0], t, bbh_shape, bbh_rank, coords, &maspect[0]);
       }
-      maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);
-      gft_out_bbox(&maspect_name[0], t, bbh_shape, bbh_rank, coords, &maspect[0]);
+      else {
+	ofs_mass << i <<","<< t <<","<< mass_aspectR(alpha, beta, psi, lastwr, dr, rmax) << endl;
+      }
     }
     if (wr_sol) { update_sol(xi, pi, alpha, beta, psi, sol, dt, save_pt, wr_shape); } 
   }
@@ -417,6 +427,7 @@ int main(int argc, char **argv)
   // close outfiles
   gft_close_all();
   if (wr_itn) { ofs_itn.close(); }
+  if (!wr_mass) { ofs_mass.close(); }
   // print resolution runtime
   cout << difftime(time(NULL), start_time) << " seconds elapsed" << endl;
   //*************DEBUG************
