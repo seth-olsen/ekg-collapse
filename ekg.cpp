@@ -10,8 +10,9 @@ input parameters in terminal as:
  ./p1 <outfile> <lastpt> <save_pt> <nsteps> <save_step>
       <lam> <r2m> <rmin> <rmax> <dspn> <tol> <ell_tol> <maxit>
       <ic_Dsq> <ic_r0> <ic_Amp> <check_step> <zero_pi> 
-      <somm_cond> <dspn_bound> <wr_ires> <wr_res>
-      <wr_sol> <wr_itn> <wr_mass> <wr_xp> <wr_abp> <hold_const>
+      <somm_cond> <dspn_bound> <wr_ires> <wr_res> <wr_sol>
+      <wr_itn> <wr_mtot> <wr_mass> <wr_xp> <wr_abp> 
+      <wr_alpha> <wr_beta> <wr_psi> <hold_const>
 
 where the value of any <parameter> can be set with the
 following ordered pair of command line arguments:
@@ -47,17 +48,19 @@ int main(int argc, char **argv)
   int ell_maxit = 2*maxit; // will not auto change if maxit changed
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
-  double ic_Amp = 1.0; // gaussian amplitude
+  double ic_Amp = 0.01; // gaussian amplitude
   int check_step = 100; // for monitoring invariant mass
   // note: set bools in command line with integers 1=true or 0=false
+  bool psi_hyp = false;
   bool zero_pi = false; // zero initial time derivative?
   bool somm_cond = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
   bool wr_ires = false; // write ires? won't trigger without wr_xp
   bool wr_res = false; // write res? won't trigger without wr_xp
-  bool wr_sol = true; // write sol?
+  bool wr_sol = false; // write sol?
   bool wr_itn = false; // write itn counts?
-  bool wr_mass = false; // write mass aspect?
+  bool wr_mtot = true; // write total mass?
+  bool wr_mass = true; // write mass aspect?
   bool wr_xp = false; // write xi and pi?
   bool wr_abp = false; // write metric fields (alpha, beta, psi)?
   bool wr_alpha = true; // only triggered if wr_abp=true
@@ -78,10 +81,10 @@ int main(int argc, char **argv)
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
       {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},
       {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
-  map<string, bool *> p_bool {{"-zero_pi",&zero_pi},
+  map<string, bool *> p_bool {{"-psi_hyp",&psi_hyp}, {"-zero_pi",&zero_pi},
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
-      {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res},
-      {"-wr_sol",&wr_sol}, {"-wr_itn",&wr_itn}, {"-wr_mass",&wr_mass},
+      {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res}, {"-wr_sol",&wr_sol},
+      {"-wr_itn",&wr_itn}, {"-wr_mtot",&wr_mtot}, {"-wr_mass",&wr_mass},
       {"-wr_xp",&wr_xp}, {"-wr_abp",&wr_abp},
       {"-wr_alpha",&wr_alpha}, {"-wr_beta",&wr_beta}, {"-wr_psi",&wr_psi}};
   map<string, string> params;
@@ -193,7 +196,7 @@ int main(int argc, char **argv)
   string maspect_name = "maspect-" + outfile + ".sdf";
   string mass_file = "mass-" + outfile + ".csv";
   ofstream ofs_mass;
-  if (!wr_mass) {
+  if (wr_mtot) {
     ofs_mass.open(mass_file, ofstream::out);
     ofs_mass << "save=" << save_step <<","<< "check=" << check_step << endl;
   }
@@ -203,7 +206,9 @@ int main(int argc, char **argv)
   vector<double> old_xi(npts, 0.0), old_pi(npts, 0.0);
   vector<double> bxi(npts, 0.0), bpi(npts, 0.0);
   vector<double> resxi(npts, 0.0), respi(npts, 0.0);
-  vector<double> alpha(npts, 0.0), beta(npts, 0.0), psi(npts, 0.0), ap2(npts, 0.0);
+  vector<double> alpha(npts, 0.0), beta(npts, 0.0), psi(npts, 0.0);
+  ires_size = ((psi_hyp) ? npts : 1);
+  vector<double> old_psi(ires_size, 0.0), bpsi(ires_size, 0.0);
   ires_size = ((wr_ires) ? npts : 1);
   vector<double> xic1(ires_size, 0.0),  xic2(ires_size, 0.0),
     pic1(ires_size, 0.0), pic2(ires_size, 0.0),
@@ -331,12 +336,12 @@ int main(int argc, char **argv)
     // now set old_xi/pi to t(n) so that xi/pi can be updated to t(n+1)
     old_xi = xi;
     old_pi = pi;
-    
 // ******************************************************************
 // ******************************************************************
 //         SOLVE HYPERBOLIC & ELLIPTIC EQUATIONS ITERATIVELY
 // ******************************************************************
 // ******************************************************************
+    
     r = rmin;
     set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, lastpt);
     // reset res > tol to enter gauss-seidel solver for hyperbolic equations
@@ -393,7 +398,7 @@ int main(int argc, char **argv)
       while (ell_res > ell_tol) {
 	set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
         info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
-	if (info != 0) { cout << i << " info= " << info << endl; }
+	if (info != 0) { cout << i << " info= " << info << endl; } // lapack error check
 	for (j = 0; j < npts; ++j) {
 	  alpha[j] -= abpres[3*j];
 	  beta[j] -= abpres[3*j+1];
@@ -434,8 +439,9 @@ int main(int argc, char **argv)
 	}
 	maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);
 	gft_out_bbox(&maspect_name[0], t, bbh_shape, bbh_rank, coords, &maspect[0]);
+	if (wr_mtot) { ofs_mass << i <<","<< t <<","<< maspect[lastwr] << endl; }
       }
-      else {
+      else if (wr_mtot) {
 	ofs_mass << i <<","<< t <<","<< mass_aspectR(alpha, beta, psi, lastwr, dr, rmax) << endl;
       }
     }
@@ -451,7 +457,7 @@ int main(int argc, char **argv)
   // close outfiles
   gft_close_all();
   if (wr_itn) { ofs_itn.close(); }
-  if (!wr_mass) { ofs_mass.close(); }
+  if (wr_mtot) { ofs_mass.close(); }
   // print resolution runtime
   cout << difftime(time(NULL), start_time) << " seconds elapsed" << endl;
   //*************DEBUG************
