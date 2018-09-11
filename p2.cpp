@@ -337,7 +337,7 @@ int main(int argc, char **argv)
     }
 
     // ****************** WRITE MASS & update field **********************
-    if (wr_mass && i % check_step*save_step == 0) {
+    if ((wr_mass) && (i % (check_step*save_step) == 0)) {
       //mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
       maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
       for (j = 1; j < lastwr; ++j) {

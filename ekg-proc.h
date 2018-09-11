@@ -394,7 +394,6 @@ void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<
   abpres[2] = neumann0res(psi);
   for (int k = 1; k < lastpt; ++k) {
     r += dr;
-    // MAYBE NEED TO CHANGE BACK TO NO sq(dr)
     abpres[3*k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
     abpres[3*k+1] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
     abpres[3*k+2] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
@@ -410,28 +409,28 @@ void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
-			  int N, int ldab, int kl, int ku, int last, double dr, double r) {
+			  int N, int ldab, int kl, int ku, int one_past_last, double dr, double r) {
   int k = kl + ku;
-  r += dr;
+  double rp1 = r + dr;
   // col 0
   jac[k] = -3; jac[++k] = 0; jac[++k] = 0;
-  jac[++k] = jac_aa_pm(alpha, beta, psi, 1, -1, dr, r);
-  jac[++k] = jac_ba_pm(alpha, beta, psi, 1, -1, dr, r);
+  jac[++k] = jac_aa_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = jac_ba_pm(alpha, beta, psi, 1, -1, dr, rp1);
   jac[++k] = jac_pa_pm(); jac[++k] = 0;
   // col 1
   k += kl + 5;
   jac[++k] = 0; jac[++k] = 1; jac[++k] = 0;
-  jac[++k] = jac_ab_pm(alpha, beta, psi, 1, -1, dr, r);
-  jac[++k] = jac_bb_pm(alpha, beta, psi, 1, -1, dr, r);
-  jac[++k] = jac_pb_pm(alpha, beta, psi, 1, -1, dr, r); jac[++k] = 0; jac[++k] = 0;
+  jac[++k] = jac_ab_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = jac_bb_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = jac_pb_pm(alpha, beta, psi, 1, -1, dr, rp1); jac[++k] = 0; jac[++k] = 0;
   // col 2
   k += kl + 4;
   jac[++k] = 0; jac[++k] = 0; jac[++k] = -3;
-  jac[++k] = jac_ap_pm(alpha, beta, psi, 1, -1, dr, r);
-  jac[++k] = jac_bp_pm(alpha, beta, psi, 1, -1, dr, r);
-  jac[++k] = jac_pp_pm(alpha, beta, psi, 1, -1, dr, r); jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
+  jac[++k] = jac_ap_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = jac_bp_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = jac_pp_pm(alpha, beta, psi, 1, -1, dr, rp1); jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
   // col 3
-  double rp1 = r + dr;
+  r = rp1; rp1 += dr;
   k += kl + 3;
   jac[++k] = 4; jac[++k] = 0; jac[++k] = 0;
   jac[++k] = jac_aa(xi, pi, alpha, beta, psi, 1, dr, r);
@@ -459,7 +458,7 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = jac_bp_pm(alpha, beta, psi, 2, -1, dr, rp1);
   jac[++k] = jac_pp_pm(alpha, beta, psi, 2, -1, dr, rp1); jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
   // col 6
-  double rm1 = r; r += dr; rp1 += dr;
+  double rm1 = r; r = rp1; rp1 += dr;
   k += kl;
   jac[++k] = -1; jac[++k] = 0; jac[++k] = 0;
   jac[++k] = jac_aa_pm(alpha, beta, psi, 1, 1, dr, rm1);
@@ -496,7 +495,7 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = jac_bp_pm(alpha, beta, psi, 3, -1, dr, rp1);
   jac[++k] = jac_pp_pm(alpha, beta, psi, 3, -1, dr, rp1); jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
   int j, jm1 = 2, jp1 = 4;
-  for (j = 3; j < last; ++j) {
+  for (j = 3; j < one_past_last; ++j) {
     // col d/d(alpha)
     rm1 = r; r = rp1; rp1 += dr;
     k += kl; jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
@@ -531,8 +530,9 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
     jac[++k] = jac_ap_pm(alpha, beta, psi, jp1, -1, dr, rp1);
     jac[++k] = jac_bp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
     jac[++k] = jac_pp_pm(alpha, beta, psi, jp1, -1, dr, rp1); jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
-    ++jm1; ++jp1;
+    jm1 = j; ++jp1;
   }
+  j = one_past_last;
   // col N-9
   rm1 = r; r = rp1; rp1 += dr;
   k += kl; jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;
@@ -567,7 +567,7 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = jac_ap_pm(alpha, beta, psi, jp1, -1, dr, rp1);
   jac[++k] = jac_bp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
   jac[++k] = jac_pp_pm(alpha, beta, psi, jp1, -1, dr, rp1); jac[++k] = 0; jac[++k] = 0; jac[++k] = 1;
-  ++jm1; ++j;
+  jm1 = j; ++j;
   // col N-6
   rm1 = r; r = rp1;
   k += kl; jac[++k] = 0; jac[++k] = 0; jac[++k] = 0;

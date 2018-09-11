@@ -33,7 +33,7 @@ inline double fda_xi(const vector<double>& xi, const vector<double>& pi,
 inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ( 0.25*lam*p4in(psi[ind])* sqin(r)*dp_ekg_c(beta, pi, alpha, xi, psi, ind, dr, r)
+  return ( 0.25*lam*dp_ekg_c(beta, pi, alpha, xi, psi, ind, dr, r) / (pw4(psi[ind])*sq(r))
 	   - (lam/3.0)* pi[ind]*( d_c(beta, ind) + beta[ind]*(6*d_c(psi, ind)/psi[ind] + 4*dr/r) ) ); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
@@ -51,7 +51,7 @@ inline double fda0_xi(const vector<double>& xi, const vector<double>& pi,
 inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, double lam, double dr, double r)
-{ return ( 0.25*lam*p4in(psi[0])* sqin(r)*dp_ekg_f(beta, pi, alpha, xi, psi, 0, dr, r)
+{ return ( 0.25*lam*dp_ekg_f(beta, pi, alpha, xi, psi, 0, dr, r) / (pw4(psi[0])*sq(r))
 	   - (lam/3.0)* pi[0]*( d_f(beta, 0) + beta[0]*(6*d_f(psi, 0)/psi[0] + 4*dr/r) ) ); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double fda0_psi(const vector<double>& xi, const vector<double>& pi,
@@ -156,7 +156,7 @@ inline double jac_ba_pm(const vector<double>& alpha, const vector<double>& beta,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double jac_bb(const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double dr, double r) {
-  return -2*(1 + sq(dr)/sq(r)) - 0.5*dr*(d_c(alpha,ind)/alpha[ind] + 6*d_c(psi,ind)/psi[ind])/r; }
+  return -2*(1 + sq(dr)/sq(r)) + 0.5*dr*(d_c(alpha,ind)/alpha[ind] - 6*d_c(psi,ind)/psi[ind])/r; }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double jac_bb_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {

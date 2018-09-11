@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 0.01; // gaussian amplitude
-  int check_step = 100; // for monitoring invariant mass
+  int check_step = 1; // for monitoring invariant mass
   // note: set bools in command line with integers 1=true or 0=false
   bool psi_hyp = false;
   bool zero_pi = false; // zero initial time derivative?
@@ -273,7 +273,6 @@ int main(int argc, char **argv)
   // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
   while (ell_res > ell_tol) {
     set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
-    //set_jac_matRM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
     info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
     if (info != 0) { cout << "INITIAL info= " << info << endl; }
     for (j = 0; j < npts; ++j) {
@@ -405,7 +404,7 @@ int main(int argc, char **argv)
 // ***********************************************************************
     
     // ****************** WRITE MASS & update field **********************
-    if (i % check_step*save_step == 0) {
+    if (i % (check_step*save_step) == 0) {
       if (wr_mass) {
 	maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
 	r = rmin;

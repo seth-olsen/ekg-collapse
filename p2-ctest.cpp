@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 {
   // coarse simulation parameters
   string outfile = "ekg";
-  string pre1 = "Xi-", pre2 = "Pi-";
+  string pre1 = "Xi-", pre2 = "Pi-"; // set pre2 = "0" for 1 field
   int lastpt = 1000; // grid size
   int save_pt = 1; // write only every (save_pt)th grid point
   int nsteps = 4000; // time steps

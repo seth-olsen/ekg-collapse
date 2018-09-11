@@ -462,7 +462,7 @@ int main(int argc, char **argv)
 // ***********************************************************************
     
     // ****************** WRITE MASS & update field **********************
-    if (wr_mass && i % check_step*save_step == 0) {
+    if ((wr_mass) && (i % (check_step*save_step) == 0)) {
       //mass_check(xi, pi, alpha, beta, psi, dr, rmin, t, ofs_mass); }
       maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
       r = rmin;
@@ -503,13 +503,3 @@ int main(int argc, char **argv)
   
   return 0;
 }
-
-  //TEST ierr = VecView(abp, PETSC_VIEWER_STDOUT_WORLD); CHKERRQ(ierr);
-
-    /*
-  ierr = PetscViewerASCIIOpen(comm, "jac-matrix.m", &viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer, PETSC_VIEWER_ASCII_MATHEMATICA); CHKERRQ(ierr);
-  ierr = MatView(jac, viewer); CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer); CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer); CHKERRQ(ierr);
-  */
