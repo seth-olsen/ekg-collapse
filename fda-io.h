@@ -35,7 +35,7 @@ void wr_step(double* fields[], int nfields, char* files[],
 
 
 // read fields using bbhutil
-void read_step(char *files[], int times[], double *fields[], int nfields) {
+void read_step(vector<char *>& files, int times[], vector<double *>& fields, int nfields) {
   for (int k = 0; k < nfields; ++k) {
     gft_read_brief(files[k], times[k], fields[k]);
   }

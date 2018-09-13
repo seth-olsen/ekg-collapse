@@ -32,11 +32,19 @@ default values can be found at the start of main()
 #include "fda-io.h"
 using namespace std;
 
+vector<string> get_unames(string pre, vector<string>& fnames) {
+  vector<string> unames;
+  for (string name : fnames) { unames.push_back(pre + "-" + name + ".sdf"); }
+  return unames;
+}
+
 int main(int argc, char **argv)
 {
   // coarse simulation parameters
   string outfile = "ekg";
-  string pre1 = "Xi-", pre2 = "Pi-"; // set pre2 = "0" for 1 field
+  string outname = "0";
+  string pre1 = "Xi", pre2 = "Pi", pre3 = "0", pre4 = "0", pre5 = "0",
+    pre6 = "0", pre7 = "0", pre8 = "0", pre9 = "0", pre10 = "0";
   int lastpt = 1000; // grid size
   int save_pt = 1; // write only every (save_pt)th grid point
   int nsteps = 4000; // time steps
@@ -63,7 +71,9 @@ int main(int argc, char **argv)
 
   // get parameters from command line
   map<string, string *> p_str {{"-outfile",&outfile}, {"-pre1",&pre1},
-      {"-pre2",&pre2}, {"-hold_const",&hold_const}};
+      {"-pre2",&pre2}, {"-pre3",&pre3}, {"-pre4",&pre4}, {"-pre5",&pre5},
+      {"-pre6",&pre6}, {"-pre7",&pre7}, {"-pre8",&pre8}, {"-pre9",&pre9},
+      {"-pre10",&pre10}, {"-hold_const",&hold_const}, {"-outname",&outname}};
   map<string, int *> p_int {{"-lastpt",&lastpt}, {"-save_pt", &save_pt},
       {"-nsteps", &nsteps}, {"-save_step",&save_step}, {"-maxit",&maxit},
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
@@ -77,49 +87,43 @@ int main(int argc, char **argv)
   param_collect(argv, argc, params);
   param_set(params, p_str, p_int, p_dbl, p_bool);
 
+  vector<string> prefixes{pre1};
+  if (pre2 != "0") { prefixes.push_back(pre2); }
+  if (pre3 != "0") { prefixes.push_back(pre3); }
+  if (pre4 != "0") { prefixes.push_back(pre4); }
+  if (pre5 != "0") { prefixes.push_back(pre5); }
+  if (pre6 != "0") { prefixes.push_back(pre6); }
+  if (pre7 != "0") { prefixes.push_back(pre7); }
+  if (pre8 != "0") { prefixes.push_back(pre8); }
+  if (pre9 != "0") { prefixes.push_back(pre9); }
+  if (pre10 != "0") { prefixes.push_back(pre10); }
+  int nwr = prefixes.size();
+
   // derived parameters from coarse file
   int gs = lastpt / save_pt;
   int num_steps = nsteps / save_step;
   double dr = (rmax - rmin) / ((double) lastpt);
   double dt = lam * dr;
-  
-  // bbhutil parameters & fields
-  string fname0 = to_string(resn0) + "-" + outfile;
-  string fname1 = to_string(resn1) + "-" + outfile;
-  string fname2 = to_string(resn2) + "-" + outfile;
-  string phiname0 = pre1 + fname0 + ".sdf";
-  string phiname1 = pre1 + fname1 + ".sdf";
-  string phiname2 = pre1 + fname2 + ".sdf";
-  string piname0 = pre2 + fname0 + ".sdf";
-  string piname1 = pre2 + fname1 + ".sdf";
-  string piname2 = pre2 + fname2 + ".sdf";
-  bool wr2 = (pre2 == "0") ? false : true;
-  int nwr = (wr2) ? 6 : 3; 
-  char *name_arr[nwr];
-  name_arr[0] = &phiname0[0], name_arr[1] = &phiname1[0],
-    name_arr[2] = &phiname2[0];
-  if (wr2) { name_arr[3] = &piname0[0], name_arr[4] = &piname1[0],
-      name_arr[5] = &piname2[0]; }
-
   int npts0 = gs + 1;
   int npts1 = (same_grids) ? npts0 : 2*gs + 1;
   int npts2 = (same_grids) ? npts0 : 4*gs + 1;
-  vector<double> phi_4h(npts0, 0.0), pi_4h((wr2) ? npts0 : 1, 0.0);
-  vector<double> phi_2h(npts1, 0.0), pi_2h((wr2) ? npts1 : 1, 0.0);
-  vector<double> phi_h(npts2, 0.0), pi_h((wr2) ? npts2 : 1, 0.0);
-  double *field_arr[nwr];
-  field_arr[0] = &phi_4h[0], field_arr[1] = &phi_2h[0],
-    field_arr[2] = &phi_h[0];
-  if (wr2) { field_arr[3] = &pi_4h[0], field_arr[4] = &pi_2h[0],
-      field_arr[5] = &pi_h[0]; }
-  vector<double> zeros(4, 0.0);
-  vector<double> norms(4, 0.0);
+  
+  vector< vector<double> > norms(nwr, vector<double>(2, 0.0));
+  vector<double> zeros(2, 0.0);
+  vector< vector<double> > u_4h(nwr, vector<double>(npts0, 0.0)),
+    u_2h(nwr, vector<double>(npts1, 0.0)), u_h(nwr, vector<double>(npts2, 0.0));
+  vector< vector<double *> > field_arr;
 
+  vector<string> fnames{to_string(resn0) + "-" + outfile,
+	to_string(resn1) + "-" + outfile, to_string(resn2) + "-" + outfile};
+  vector< vector<string> > unames;
+  vector< vector<char *> > name_arr;
   // output file
   ofstream ofs;
-  ofs.open("conv-" + fname0 + ".csv", ofstream::out);
+  if (outname == "0") { outname = "conv-" + fnames[0] + ".csv"; }
+  ofs.open(outname, ofstream::out);
   ofs <<  "coarse,mid,fine,constant,points,times,same_times,same_grids\n"
-      <<  phiname0+","+phiname1+","+phiname2+","+hold_const+"," << npts0
+      <<  fnames[0]+","+fnames[1]+","+fnames[2]+","+hold_const+"," << npts0
       <<","<< num_steps <<","<< boolalpha << same_times <<","<< same_grids
       << "\n\ndspn,dspn_bound,zero_pi,sommerfeld,tol,maxit\n" << dspn <<","
       << dspn_bound <<","<< zero_pi <<","<< sommerfeld <<","<< tol <<","
@@ -128,40 +132,45 @@ int main(int argc, char **argv)
       << "\n\ncoarse grid:\nlastpt,save_pt,nsteps,save_step,\n" << lastpt
       <<","<< save_pt <<","<< nsteps <<","<< save_step << "\n\nlam,dr,dt,"
       << "tmax\n" << lam <<","<< dr <<","<< dt <<","<< dt*nsteps
-      << "\n\ntime,Q" << pre1 << "(t),Q" << pre2 << "(t),sum" << endl;
+      << "\n\ntime";
+  for (int k = 0; k < nwr; ++k) {
+    ofs << ",Q" << prefixes[k] << "(t)";
+    unames.push_back(get_unames(prefixes[k], fnames));
+    name_arr.push_back({&unames[k][0][0], &unames[k][1][0], &unames[k][2][0]});
+    field_arr.push_back({&u_4h[k][0], &u_2h[k][0], &u_h[k][0]});
+  }
+  ofs << endl;  
 
   // iterate through time steps
   int t1 = ((same_times) ? 1 : 2);
   int t2 = ((same_times) ? 1 : 4);
   int r1 = ((same_grids) ? 1 : 2);
   int r2 = ((same_grids) ? 1 : 4);
+  int times[3];
 
   gft_set_multi();
   for (int t = 0; t < num_steps; ++t) {
-    // compute ||u_4h(x,t) - u_2h(x,t)||/||u_2h(x,t) - u_h(x,t)||
-    int times[nwr];
+    // compute ||u_4h(x,t) - u_2h(x,t)||/||u_2h(x,t) - u_h(x,t)||    
     times[0] = t+1, times[1] = t1*t+1, times[2] = t2*t+1;
-    if (wr2) { times[3] = t+1, times[4] = t1*t+1, times[5] = t2*t+1; }
-    read_step(name_arr, times, field_arr, nwr);
-    norms = zeros;
+    for (int k = 0; k < nwr; ++k) {
+      read_step(name_arr[k], times, field_arr[k], 3);
+      norms[k] = zeros;
+    }
     // iterate through grid points
     for (int j = 0; j < npts0; ++j) {
-      norms[0] += abs(phi_4h[j] - phi_2h[r1*j]);
-      norms[1] += abs(phi_2h[r1*j] - phi_h[r2*j]);
-      if (wr2) {
-	norms[2] += abs(pi_4h[j] - pi_2h[r1*j]);
-	norms[3] += abs(pi_2h[r1*j] - pi_h[r2*j]);
+      for (int k = 0; k < nwr; ++k) {
+	norms[k][0] += abs(u_4h[k][j] - u_2h[k][r1*j]);
+	norms[k][1] += abs(u_2h[k][r1*j] - u_h[k][r2*j]);
       }
     }
-    // write time, q_phi, q_pi, q_phi+pi
-    ofs << t*save_step*dt <<","<< norms[0]/norms[1];
-    if (wr2) { ofs <<","<< norms[2]/norms[3] <<","
-		   << (norms[0] + norms[2])/(norms[1] + norms[3]); }
+    // write time, q_u,
+    ofs << t*save_step*dt;
+    for (int k = 0; k < nwr; ++k) { ofs <<","<< norms[k][0]/norms[k][1]; }
     ofs << endl;
   }
   gft_close_all();
   
-  cout << "\nconv-" + fname0 + ".csv" << "  written with:" << endl;
+  cout << outname << "  written with:" << endl;
   cout << "grid points used = " << npts0 << "  " << ((same_grids) ?
    "(same grids)" : "(dif grids)") << "\ntime steps used = " << num_steps
        << "  " << ((same_times) ? "(same times)" : "(dif times)") << endl;

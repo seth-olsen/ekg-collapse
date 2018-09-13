@@ -18,10 +18,10 @@ ekg: ekg.o
 ekg.o: ekg-proc.h ekg-fns.h fda-fns.h fda-io.h
 	$(CXX) -c $(CXXFLAGS) ekg.cpp
 
-p2-conv-test: fda-io.h
-	$(CXX) -c $(CXXFLAGS) p2-conv-test.cpp
-	$(CXX) $(LDFLAGS) p2-conv-test.o $(LDLIBS) -o p2-conv-test
-	rm -f p2-conv-test.o
+ekg-conv: fda-io.h
+	$(CXX) -c $(CXXFLAGS) ekg-conv.cpp
+	$(CXX) $(LDFLAGS) ekg-conv.o $(LDLIBS) -o ekg-conv
+	rm -f ekg-conv.o
 
 .PHONY : clean
 clean :
