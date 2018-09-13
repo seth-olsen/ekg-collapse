@@ -55,6 +55,7 @@ int main(int argc, char **argv)
   double rmax = 100.0;
   double dspn = 0.5; // dissipation coefficient
   double tol = 0.000000000001; // iterative method tolerance
+  double ell_tol = tol;
   int maxit = 25; // max iterations for debugging
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
@@ -62,12 +63,13 @@ int main(int argc, char **argv)
   bool zero_pi = false; // zero initial time derivative?
   bool sommerfeld = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
+  bool psi_hyp = false; // psi evolved with hyperbolic eom?
   // variable to hold constant across resolutions
   string hold_const = "lambda"; // "lambda", "dt", or "dr"
   bool same_times = true;
   bool same_grids = true;
   // resolution factors
-  int resn0 = 4, resn1 = 8, resn2 = 16; // 4h, 4h, and h
+  int resn0 = 4, resn1 = 2*resn0, resn2 = 2*resn1; // 4h, 2h, and h
 
   // get parameters from command line
   map<string, string *> p_str {{"-outfile",&outfile}, {"-pre1",&pre1},
@@ -79,10 +81,11 @@ int main(int argc, char **argv)
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
       {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ic_Dsq",&ic_Dsq},
-      {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
+      {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}, {"-ell_tol",&ell_tol}};
   map<string, bool *> p_bool {
-    {"-sommerfeld",&sommerfeld}, {"-dspn_bound",&dspn_bound},
-    {"-same_times",&same_times}, {"-same_grids",&same_grids}};
+      {"-sommerfeld",&sommerfeld}, {"-dspn_bound",&dspn_bound},
+      {"-same_times",&same_times}, {"-same_grids",&same_grids},
+      {"-psi_hyp",&psi_hyp}};
   map<string, string> params;
   param_collect(argv, argc, params);
   param_set(params, p_str, p_int, p_dbl, p_bool);
