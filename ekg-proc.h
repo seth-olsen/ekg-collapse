@@ -618,3 +618,193 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = 0; jac[++k] = 0; jac[++k] = cR;
   return;
 }
+
+inline void set_jac_alphaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			    const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			    int N, int ldab, int kl, int ku, int one_past_last, double dr, double r) {
+  int k = kl + ku;
+  double rp1 = r + dr;
+  // col 0
+  jac[k] = -3;
+  jac[++k] = jac_aa_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = 0;
+  // col 1
+  r = rp1; rp1 += dr;
+  k += kl + 1;
+  jac[++k] = 4;
+  jac[++k] = jac_aa(xi, pi, alpha, beta, psi, 1, dr, r);
+  jac[++k] = jac_aa_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[++k] = 0;
+  // col 2
+  double rm1 = r; r = rp1; rp1 += dr;
+  k += kl;
+  jac[++k] = -1;
+  jac[++k] = jac_aa_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[++k] = jac_aa(xi, pi, alpha, beta, psi, 2, dr, r);
+  jac[++k] = jac_aa_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[++k] = 0;
+  int j, jm1 = 2, jp1 = 4;
+  for (j = 3; j < one_past_last; ++j) {
+    // col d/d(alpha)
+    rm1 = r; r = rp1; rp1 += dr;
+    k += kl;
+    jac[++k] = 0;
+    jac[++k] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[++k] = jac_aa(xi, pi, alpha, beta, psi, j, dr, r);
+    jac[++k] = jac_aa_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[++k] = 0;
+    jm1 = j; ++jp1;
+  }
+  j = one_past_last;
+  // col N-3
+  rm1 = r; r = rp1; rp1 += dr;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[++k] = jac_aa(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[++k] = jac_aa_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[++k] = 1;
+  jm1 = j; ++j;
+  // col N-2
+  rm1 = r; r = rp1;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[++k] = jac_aa(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[++k] = -4;
+  ++jm1;
+  // col N-1
+  double cR = 3 + (2*dr / (r + dr));
+  k += 1 + kl;
+  jac[++k] = 0;
+  jac[++k] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[++k] = cR;
+  return;
+}
+
+inline void set_jac_betaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			   const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			   int N, int ldab, int kl, int ku, int one_past_last, double dr, double r) {
+  int k = kl + ku;
+  double rp1 = r + dr;
+  // col 0
+  jac[k] = 0;
+  jac[++k] = jac_bb_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = 0;
+  // col 1
+  r = rp1; rp1 += dr;
+  k += kl + 1;
+  jac[++k] = 1;
+  jac[++k] = jac_bb(alpha, beta, psi, 1, dr, r);
+  jac[++k] = jac_bb_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[++k] = 0;
+  // col 2
+  double rm1 = r; r = rp1; rp1 += dr;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_bb_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[++k] = jac_bb(alpha, beta, psi, 2, dr, r);
+  jac[++k] = jac_bb_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[++k] = 0;
+  int j, jm1 = 2, jp1 = 4;
+  for (j = 3; j < one_past_last; ++j) {
+    // col d/d(alpha)
+    rm1 = r; r = rp1; rp1 += dr;
+    k += kl;
+    jac[++k] = 0;
+    jac[++k] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[++k] = jac_bb(alpha, beta, psi, j, dr, r);
+    jac[++k] = jac_bb_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[++k] = 0;
+    jm1 = j; ++jp1;
+  }
+  j = one_past_last;
+  // col N-3
+  rm1 = r; r = rp1; rp1 += dr;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[++k] = jac_bb(alpha, beta, psi, j, dr, r);
+  jac[++k] = jac_bb_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[++k] = 1;
+  jm1 = j; ++j;
+  // col N-2
+  rm1 = r; r = rp1;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[++k] = jac_bb(alpha, beta, psi, j, dr, r);
+  jac[++k] = -4;
+  ++jm1;
+  // col N-1
+  double cR = 3 + (2*dr / (r + dr));
+  k += 1 + kl;
+  jac[++k] = 0;
+  jac[++k] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[++k] = cR;
+  return;
+}
+
+
+inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			  int N, int ldab, int kl, int ku, int one_past_last, double dr, double r) {
+  int k = kl + ku;
+  double rp1 = r + dr;
+  // col 0
+  jac[k] = -3;
+  jac[++k] = jac_pp_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[++k] = 0;
+  // col 1
+  r = rp1; rp1 += dr;
+  k += kl + 1;
+  jac[++k] = 4;
+  jac[++k] = jac_pp(xi, pi, alpha, beta, psi, 1, dr, r);
+  jac[++k] = jac_pp_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[++k] = 0;
+  // col 2
+  double rm1 = r; r = rp1; rp1 += dr;
+  k += kl;
+  jac[++k] = -1;
+  jac[++k] = jac_pp_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[++k] = jac_pp(xi, pi, alpha, beta, psi, 2, dr, r);
+  jac[++k] = jac_pp_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[++k] = 0;
+  int j, jm1 = 2, jp1 = 4;
+  for (j = 3; j < one_past_last; ++j) {
+    // col d/d(alpha)
+    rm1 = r; r = rp1; rp1 += dr;
+    k += kl;
+    jac[++k] = 0;
+    jac[++k] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[++k] = jac_pp(xi, pi, alpha, beta, psi, j, dr, r);
+    jac[++k] = jac_pp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[++k] = 0;
+    jm1 = j; ++jp1;
+  }
+  j = one_past_last;
+  // col N-3
+  rm1 = r; r = rp1; rp1 += dr;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[++k] = jac_pp(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[++k] = jac_pp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[++k] = 1;
+  jm1 = j; ++j;
+  // col N-2
+  rm1 = r; r = rp1;
+  k += kl;
+  jac[++k] = 0;
+  jac[++k] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[++k] = jac_pp(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[++k] = -4;
+  ++jm1;
+  // col N-1
+  double cR = 3 + (2*dr / (r + dr));
+  k += 1 + kl;
+  jac[++k] = 0;
+  jac[++k] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[++k] = cR;
+  return;
+}
