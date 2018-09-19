@@ -2,7 +2,8 @@
 #include <algorithm> // for max_element()
 #include <fstream> // for mass/itn files
 #include <ctime> // for quick time analysis
-#include "ekg-fns.h"
+#include "ekg-debug-fns.h"
+#include <lapacke.h>
 
 void update_sol(const vector<double>& xi, const vector<double>& pi,
 		const vector<double>& alpha, const vector<double>& beta,
@@ -74,10 +75,34 @@ inline void set_psivals(double *vals, const vector<double>& xi, const vector<dou
 void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<double>& pi,
 		 const vector<double>& alpha, const vector<double>& beta,
 		 const vector<double>& psi, int lastpt, int N, double dr, double r);
+void get_pres(vector<double>& pres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r);
+void get_bres(vector<double>& bres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r);
+void get_ares(vector<double>& ares, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r);
 //  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
 inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
 			  int N, int ldab, int kl, int ku, int last, double dr, double r);
+inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			  int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
+inline void set_jac_betaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			   const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			   int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
+inline void set_jac_alphaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			    const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			    int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
+int ell_solve(vector<double>& jac, vector<double>& abpres,
+	      const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, double dr, double rmin,
+	      int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+	      int ldb, int ell_maxit, double ell_tol, double t);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,6 +429,47 @@ void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<
   abpres[N-1] = fdaR_respsi(psi, lastpt, dr, r);
   return;
 }
+
+void get_pres(vector<double>& pres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  pres[0] = -3*psi[0] + 4*psi[1] - psi[2];
+  for (int k = 1; k < lastpt; ++k) {
+    r += dr;
+    pres[k] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
+  }
+  r += dr;
+  pres[N-1] = fdaR_respsi(psi, lastpt, dr, r);
+  return;
+}
+
+void get_bres(vector<double>& bres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  bres[0] = beta[0];
+  for (int k = 1; k < lastpt; ++k) {
+    r += dr;
+    bres[k] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
+  }
+  r += dr;
+  bres[N-1] = fdaR_resbeta(beta, lastpt, dr, r);
+  return;
+}
+
+void get_ares(vector<double>& ares, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  ares[0] = -3*alpha[0] + 4*alpha[1] - alpha[2];
+  for (int k = 1; k < lastpt; ++k) {
+    r += dr;
+    ares[k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
+  }
+  r += dr;
+  ares[N-1] = fdaR_resalpha(alpha, lastpt, dr, r);
+  return;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -618,7 +684,253 @@ inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = 0; jac[++k] = 0; jac[++k] = cR;
   return;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+inline void set_jac_vecCMslow(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			  int N, int ldab, int kl, int ku, int one_past_last, double dr, double r) {
+  // J(i, j) = jac[kl + ku + i + (ldab - 1)*j]
+  int jmult = ldab-1;
+  int k = kl + ku;
+  int jfact = k;
+  double rp1 = r + dr;
+  int i, j;
+  for (j = 0; j < N; ++j) {
+    for (i = j - kl; i <= j + ku; ++j) {
+      if (i > -1 && i < N) { jac[jfact + i] = 0; }
+    }
+    jfact += jmult;
+  }
+  // col 0
+  jfact = k
+  jac[jfact] = -3;
+  jac[jfact + 1] = jac_aa_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[jfact + 2] = jac_ba_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[jfact + 3] = jac_pa_pm();
+  // col 1
+  jfact += jmult;
+  jac[jfact + 1] = 1;
+  jac[jfact + 3] = jac_ab_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[jfact + 4] = jac_bb_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[jfact + 5] = jac_pb_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  // col 2
+  jfact += jmult;
+  jac[jfact + 2] = -3;
+  jac[jfact + 3] = jac_ap_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[jfact + 4] = jac_bp_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  jac[jfact + 5] = jac_pp_pm(alpha, beta, psi, 1, -1, dr, rp1);
+  // col 3
+  jfact += jmult;
+  r = rp1; rp1 += dr;
+  jac[jfact] = 4;
+  jac[jfact + 3] = jac_aa(xi, pi, alpha, beta, psi, 1, dr, r);
+  jac[jfact + 4] = jac_ba(xi, pi, alpha, beta, psi, 1, dr, r);
+  jac[jfact + 5] = jac_pa(alpha, beta, psi, 1, dr, r);
+  jac[jfact + 6] = jac_aa_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[jfact + 7] = jac_ba_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[jfact + 8] = jac_pa_pm();
+  // col 4
+  jfact += jmult;
+  jac[jfact + 3] = jac_ab(alpha, beta, psi, 1, dr, r);
+  jac[jfact + 4] = jac_bb(alpha, beta, psi, 1, dr, r);
+  jac[jfact + 5] = jac_pb(alpha, beta, psi, 1, dr, r);
+  jac[jfact + 6] = jac_ab_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[jfact + 7] = jac_bb_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[jfact + 8] = jac_pb_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  // col 5
+  jfact += jmult;
+  jac[jfact + 2] = 4;
+  jac[jfact + 3] = jac_ap(alpha, beta, psi, 1, dr, r);
+  jac[jfact + 4] = jac_bp(xi, pi, alpha, beta, psi, 1, dr, r);
+  jac[jfact + 5] = jac_pp(xi, pi, alpha, beta, psi, 1, dr, r);
+  jac[jfact + 6] = jac_ap_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[jfact + 7] = jac_bp_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  jac[jfact + 8] = jac_pp_pm(alpha, beta, psi, 2, -1, dr, rp1);
+  // col 6
+  jfact += jmult;
+  double rm1 = r; r = rp1; rp1 += dr;
+  jac[jfact] = -1;
+  jac[jfact + 3] = jac_aa_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 4] = jac_ba_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 5] = jac_pa_pm();
+  jac[jfact + 6] = jac_aa(xi, pi, alpha, beta, psi, 2, dr, r);
+  jac[jfact + 7] = jac_ba(xi, pi, alpha, beta, psi, 2, dr, r);
+  jac[jfact + 8] = jac_pa(alpha, beta, psi, 2, dr, r);
+  jac[jfact + 9] = jac_aa_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[jfact + 10] = jac_ba_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[jfact + 11] = jac_pa_pm();
+  // col 7
+  jfact += jmult;
+  jac[jfact + 3] = jac_ab_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 4] = jac_bb_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 5] = jac_pb_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 6] = jac_ab(alpha, beta, psi, 2, dr, r);
+  jac[jfact + 7] = jac_bb(alpha, beta, psi, 2, dr, r);
+  jac[jfact + 8] = jac_pb(alpha, beta, psi, 2, dr, r);
+  jac[jfact + 9] = jac_ab_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[jfact + 10] = jac_bb_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[jfact + 11] = jac_pb_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  // col 8
+  jfact += jmult;
+  jac[jfact + 2] = -1;
+  jac[jfact + 3] = jac_ap_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 4] = jac_bp_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 5] = jac_pp_pm(alpha, beta, psi, 1, 1, dr, rm1);
+  jac[jfact + 6] = jac_ap(alpha, beta, psi, 2, dr, r);
+  jac[jfact + 7] = jac_bp(xi, pi, alpha, beta, psi, 2, dr, r);
+  jac[jfact + 8] = jac_pp(xi, pi, alpha, beta, psi, 2, dr, r);
+  jac[jfact + 9] = jac_ap_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[jfact + 10] = jac_bp_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  jac[jfact + 11] = jac_pp_pm(alpha, beta, psi, 3, -1, dr, rp1);
+  int jm1 = 2, jp1 = 4;
+// GAVE UP HERE CUZ THIS IS STUPID
+  for (j = 3; j < one_past_last; ++j) {
+    // col d/d(alpha)
+    jfact += jmult;
+    rm1 = r; r = rp1; rp1 += dr;
+    jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = 0;
+    jac[jfact + i] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_ba_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_pa_pm();
+    jac[jfact + i] = jac_aa(xi, pi, alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_ba(xi, pi, alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_pa(alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_aa_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[jfact + i] = jac_ba_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[jfact + i] = jac_pa_pm();
+    // col d/d(beta)
+    jfact += jmult;
+    jac[jfact + i] = 0; jac[jfact + i] = 0;
+    jac[jfact + i] = jac_ab_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_pb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_ab(alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_bb(alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_pb(alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_ab_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[jfact + i] = jac_bb_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[jfact + i] = jac_pb_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    // col d/d(psi)
+    jfact += jmult;
+    jac[jfact + i] = 0;
+    jac[jfact + i] = jac_ap_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_bp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+    jac[jfact + i] = jac_ap(alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_bp(xi, pi, alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_pp(xi, pi, alpha, beta, psi, j, dr, r);
+    jac[jfact + i] = jac_ap_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[jfact + i] = jac_bp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jac[jfact + i] = jac_pp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+    jm1 = j; ++jp1;
+  }
+  j = one_past_last;
+  // col N-9
+  jfact += jmult;
+  rm1 = r; r = rp1; rp1 += dr;
+  jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = 0;
+  jac[jfact + i] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_ba_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_pa_pm();
+  jac[jfact + i] = jac_aa(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_ba(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_pa(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_aa_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[jfact + i] = jac_ba_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[jfact + i] = jac_pa_pm(); jac[jfact + i] = 1;
+  // col N-8
+  jfact += jmult;
+  jac[jfact + i] = 0; jac[jfact + i] = 0;
+  jac[jfact + i] = jac_ab_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_pb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_ab(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_bb(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_pb(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_ab_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[jfact + i] = jac_bb_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[jfact + i] = jac_pb_pm(alpha, beta, psi, jp1, -1, dr, rp1); jac[jfact + i] = 0; jac[jfact + i] = 1;
+  // col N-7
+  jfact += jmult;
+  jac[jfact + i] = 0;
+  jac[jfact + i] = jac_ap_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_bp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_ap(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_bp(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_pp(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_ap_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[jfact + i] = jac_bp_pm(alpha, beta, psi, jp1, -1, dr, rp1);
+  jac[jfact + i] = jac_pp_pm(alpha, beta, psi, jp1, -1, dr, rp1); jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = 1;
+  jm1 = j; ++j;
+  // col N-6
+  jfact += jmult;
+  rm1 = r; r = rp1;
+  jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = 0;
+  jac[jfact + i] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_ba_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_pa_pm();
+  jac[jfact + i] = jac_aa(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_ba(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_pa(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = -4; jac[jfact + i] = 0; jac[jfact + i] = 0;
+  // col N-5
+  jfact += jmult;
+  jac[jfact + i] = 0; jac[jfact + i] = 0;
+  jac[jfact + i] = jac_ab_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_pb_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_ab(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_bb(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_pb(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = 0; jac[jfact + i] = -4; jac[jfact + i] = 0;
+  // col N-4
+  jfact += jmult;
+  jac[jfact + i] = 0;
+  jac[jfact + i] = jac_ap_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_bp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, rm1);
+  jac[jfact + i] = jac_ap(alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_bp(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = jac_pp(xi, pi, alpha, beta, psi, j, dr, r);
+  jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = -4;
+  ++jm1;
+  // col N-3
+  jfact += jmult;
+  double cR = 3 + (2*dr / (r + dr));
+  jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = 0;
+  jac[jfact + i] = jac_aa_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = jac_ba_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = jac_pa_pm();
+  jac[jfact + i] = cR; jac[jfact + i] = 0; jac[jfact + i] = 0;
+  // col N-2
+  jfact += jmult;
+  jac[jfact + i] = 0; jac[jfact + i] = 0;
+  jac[jfact + i] = jac_ab_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = jac_bb_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = jac_pb_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = 0; jac[jfact + i] = cR; jac[jfact + i] = 0;
+  // col N-1
+  jfact += jmult;
+  jac[jfact + i] = 0;
+  jac[jfact + i] = jac_ap_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = jac_bp_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = jac_pp_pm(alpha, beta, psi, jm1, 1, dr, r);
+  jac[jfact + i] = 0; jac[jfact + i] = 0; jac[jfact + i] = cR;
+  return;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+*/
 inline void set_jac_alphaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
 			    const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
 			    int N, int ldab, int kl, int ku, int one_past_last, double dr, double r) {
@@ -688,13 +1000,13 @@ inline void set_jac_betaCM(vector<double>& jac, const vector<double>& xi, const 
   int k = kl + ku;
   double rp1 = r + dr;
   // col 0
-  jac[k] = 0;
+  jac[k] = 1;
   jac[++k] = jac_bb_pm(alpha, beta, psi, 1, -1, dr, rp1);
   jac[++k] = 0;
   // col 1
   r = rp1; rp1 += dr;
   k += kl + 1;
-  jac[++k] = 1;
+  jac[++k] = 0;
   jac[++k] = jac_bb(alpha, beta, psi, 1, dr, r);
   jac[++k] = jac_bb_pm(alpha, beta, psi, 2, -1, dr, rp1);
   jac[++k] = 0;
@@ -808,3 +1120,70 @@ inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = cR;
   return;
 }
+
+
+
+int ell_solve(vector<double>& jac, vector<double>& abpres,
+	      const vector<double>& xi, const vector<double>& pi,
+	      vector<double>& alpha, vector<double>& beta,
+	      vector<double>& psi, int lastpt, double dr, double rmin,
+	      int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+	      int ldb, int ell_maxit, double ell_tol, double t) {
+  int p_itn = 0, info = 0, j;
+  // get initial residual
+  get_pres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  double ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		       abs(*min_element(abpres.begin(), abpres.end())));
+  // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
+  while (ell_res > ell_tol && p_itn < ell_maxit) {
+    set_jac_psiCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " p_info= " << info << " at p_itn = " << p_itn << endl; }
+    for (j = 0; j < N; ++j) {
+      psi[j] -= abpres[j];
+    }	
+    // get new residual
+    get_pres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++p_itn; 
+  }
+
+  int b_itn = 0;
+  get_bres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		abs(*min_element(abpres.begin(), abpres.end())));
+  while (ell_res > ell_tol && b_itn < ell_maxit) {
+    set_jac_betaCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " b_info= " << info << " at b_itn = " << b_itn << endl; }
+    for (j = 0; j < N; ++j) {
+      beta[j] -= abpres[j];
+    }
+    get_bres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++b_itn; 
+  }
+
+  int a_itn = 0;
+  get_ares(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		abs(*min_element(abpres.begin(), abpres.end())));
+  while (ell_res > ell_tol && a_itn < ell_maxit) {
+    set_jac_alphaCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " a_info= " << info << " at a_itn = " << a_itn << endl; }
+    for (j = 0; j < N; ++j) {
+      alpha[j] -= abpres[j];
+    }
+    get_bres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++a_itn; 
+  }
+  
+  return max(p_itn, max(b_itn, a_itn));
+}
+
+

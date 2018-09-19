@@ -286,9 +286,9 @@ int main(int argc, char **argv)
 		  abs(*min_element(abpres.begin(), abpres.end())));
     ++ell_itn; 
     if (ell_itn % ell_maxit == 0) {
+      cout << "INITIAL ell_res= " << ell_res << " at " << ell_itn << endl;
       ell_res = 0.0;
       ++ell_maxit_count;
-      cout << "INITIAL ell_res= " << res << " at " << ell_itn << endl;
     }
   }
   
@@ -337,9 +337,9 @@ int main(int argc, char **argv)
 		  *max_element(respi.begin(), respi.end())); // can use 1-norm or 2-norm
 	++itn; 
 	if (itn % maxit == 0) {
+	  if (i % 100*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
 	  res = 0.0;
 	  ++maxit_count;
-	  if (i % 500*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
 	}
       }
       if (wr_itn) { ofs_itn << itn << endl; } // record itn count
@@ -385,9 +385,9 @@ int main(int argc, char **argv)
 		      abs(*min_element(abpres.begin(), abpres.end())));
 	++ell_itn; 
 	if (ell_itn % ell_maxit == 0) {
+	  if (i % 100*factor == 0) { cout << i << " ell_res= " << ell_res << " at " << ell_itn << endl; }
 	  ell_res = 0.0;
 	  ++ell_maxit_count;
-	  if (i % 500*factor == 0) { cout << i << " ell_res= " << res << " at " << ell_itn << endl; }
 	}
       }
       
@@ -426,8 +426,11 @@ int main(int argc, char **argv)
   
   // write final time step
   if (nsteps % save_step == 0) {
-    get_wr_arr(xi, pi, wr_xi, wr_pi, lastwr+1, save_pt);
-    wr_step(field_arr, 2, name_arr, nsteps*dt, bbh_shape, bbh_rank, coords);
+    writing(lastwr, wr_shape, wr_xi, wr_pi, field_arr, bbh_shape, bbh_rank, coords,
+	    wr_sol, solname, sol, wr_xp, name_arr, xi, pi, old_xi, old_pi, alpha, beta,
+	    psi, iresxi, irespi, resxi, respi, wr_res, resname_arr, wr_ires, ires_arr,
+	    iresname_arr, wr_abp, wr_alpha, alphaname, wr_beta, betaname,
+	    wr_psi, psiname, save_pt, lam, dr, rmin, nsteps*dt);
   }
   // close outfiles
   gft_close_all();

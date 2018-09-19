@@ -22,8 +22,7 @@ following ordered pair of command line arguments:
 default values can be found at the start of main()
 */
 
-#include "ekg-proc.h"
-#include <lapacke.h>
+#include "ekg-debug-proc.h"
 
 int main(int argc, char **argv)
 {
@@ -59,8 +58,8 @@ int main(int argc, char **argv)
   bool wr_res = false; // write res? won't trigger without wr_xp
   bool wr_sol = false; // write sol?
   bool wr_itn = false; // write itn counts?
-  bool wr_mtot = true; // write total mass?
-  bool wr_mass = true; // write mass aspect?
+  bool wr_mtot = false; // write total mass?
+  bool wr_mass = false; // write mass aspect?
   bool wr_xp = false; // write xi and pi?
   bool wr_abp = false; // write metric fields (alpha, beta, psi)?
   bool wr_alpha = true; // only triggered if wr_abp=true
@@ -114,7 +113,7 @@ int main(int argc, char **argv)
   double coord_lims[2] = {rmin, rmax};
   double *coords = &coord_lims[0];
 
-  int n_ell = ((psi_hyp) ? 2 : 3); // number of elliptic eqn fields
+  //int n_ell = ((psi_hyp) ? 2 : 3); // number of elliptic eqn fields
   int vlen = ((wr_ires) ? wr_shape : 1);
   vector<double> iresxi(vlen, 0.0), irespi(vlen, 0.0);
   double *ires_arr[2] = {&iresxi[0], &irespi[0]};
@@ -228,13 +227,12 @@ int main(int argc, char **argv)
   // *********************************************
   
   // lapack object declaration  
-  lapack_int N = n_ell * npts;
-  lapack_int kl = n_ell * 2;
-  lapack_int ku = n_ell * 2;
+  lapack_int N = npts;
+  lapack_int kl = 2;
+  lapack_int ku = 2;
   lapack_int nrhs = 1;
   lapack_int ldab = 2*kl + ku + 1;
   lapack_int ldb = N;
-  lapack_int info;
   vector<lapack_int> ipiv(N);
   // matrices and vectors
   vector<double> jac(ldab*N, 0.0);
@@ -246,9 +244,9 @@ int main(int argc, char **argv)
 // ******************* INITIAL DATA ************************
 // **********************************************************
 
-  int i, j, itn = 0, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
-  double res = tol + 1.0, ell_res = ell_tol + 1;// declare residual indicators
-  double r = rmin, t = 0.0; // declare position and time variables
+  int i, j, itn = 2, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
+  double res = tol + 1;// declare residual indicators
+  double r = rmin, t = 0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
     alpha[j] = ic_alpha(r, r2m);
     beta[j] = ic_beta(r, r2m);
@@ -265,30 +263,16 @@ int main(int argc, char **argv)
   }
 
   // SOLVE ELLIPTIC EQUATIONS FOR t=0
-  // get initial residual
-  get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-  ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		abs(*min_element(abpres.begin(), abpres.end())));
-  ell_itn = 0;
-  // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
-  while (ell_res > ell_tol) {
-    set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
-    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
-    if (info != 0) { cout << "INITIAL info= " << info << endl; }
-    for (j = 0; j < npts; ++j) {
-      alpha[j] -= abpres[3*j];
-      beta[j] -= abpres[3*j+1];
-      psi[j] -= abpres[3*j+2];
-    }	
-    // get new residual
-    get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-    ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		  abs(*min_element(abpres.begin(), abpres.end())));
-    ++ell_itn; 
-    if (ell_itn % ell_maxit == 0) {
-      ell_res = 0.0;
+  ell_itn = ell_solve(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+		      N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t);
+  while (ell_itn > 1) {
+    if (ell_itn > ell_maxit-2) {
       ++ell_maxit_count;
-      cout << "INITIAL ell_res= " << res << " at " << ell_itn << endl;
+      ell_itn = 0;
+    }
+    else {
+      ell_itn = ell_solve(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+			  N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t);
     }
   }
   
@@ -316,15 +300,14 @@ int main(int argc, char **argv)
 //         SOLVE HYPERBOLIC & ELLIPTIC EQUATIONS ITERATIVELY
 // ******************************************************************
 // ******************************************************************
-    
-    r = rmin;
-    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, lastpt);
+
+    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, rmin, lastpt);
     // reset res > tol to enter gauss-seidel solver for hyperbolic equations
     // reset ell_itn > 1 to enter direct linear solver for the elliptic equations
     // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
-    ell_itn = 2;
-    while (ell_itn > 1) {
+    itn = 2;
+    while (itn > 1) {
 // ***********************************************************************
 // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
 // ***********************************************************************
@@ -336,12 +319,12 @@ int main(int argc, char **argv)
 	res = max(*max_element(resxi.begin(), resxi.end()),
 		  *max_element(respi.begin(), respi.end())); // can use 1-norm or 2-norm
 	++itn; 
-	if (itn % maxit == 0) {
-	  res = 0.0;
+	if (itn == maxit) {
+	  if (i % 100*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
+	  res = 0;
 	  ++maxit_count;
-	  if (i % 500*factor == 0) { cout << i << " res= " << res << " at " << itn << endl; }
 	}
-      }
+      }     
       if (wr_itn) { ofs_itn << itn << endl; } // record itn count
 // ****************************************************************************
 // ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
@@ -364,37 +347,28 @@ int main(int argc, char **argv)
 // ***********************************************************************
 // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
 // ***********************************************************************
-      // get initial residual
-      get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-      ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		    abs(*min_element(abpres.begin(), abpres.end())));
-      ell_itn = 0;
-      // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
-      while (ell_res > ell_tol) {
-	set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
-        info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
-	if (info != 0) { cout << i << " info= " << info << endl; } // lapack error check
-	for (j = 0; j < npts; ++j) {
-	  alpha[j] -= abpres[3*j];
-	  beta[j] -= abpres[3*j+1];
-	  psi[j] -= abpres[3*j+2];
-	}	
-	// get new residual
-	get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-        ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		      abs(*min_element(abpres.begin(), abpres.end())));
-	++ell_itn; 
-	if (ell_itn % ell_maxit == 0) {
-	  ell_res = 0.0;
+      ell_itn = ell_solve(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+			  N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t);
+      itn = ell_itn;
+      while (ell_itn > 1) {
+	if (ell_itn > ell_maxit-2) {
 	  ++ell_maxit_count;
-	  if (i % 500*factor == 0) { cout << i << " ell_res= " << res << " at " << ell_itn << endl; }
+	  ell_itn = 0;
+	}
+	else {
+	  ell_itn = ell_solve(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+			      N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t);
 	}
       }
       
 // **************************************************************************
 // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
 // **************************************************************************
-    ++hyp_ell_itn;
+      ++hyp_ell_itn;
+      if (hyp_ell_itn == ell_maxit) {
+	itn = 0;
+	cout << i << " hyp_ell_itn reached " << ell_maxit << endl;
+      }
     }
     
 // ***********************************************************************
@@ -426,8 +400,11 @@ int main(int argc, char **argv)
   
   // write final time step
   if (nsteps % save_step == 0) {
-    get_wr_arr(xi, pi, wr_xi, wr_pi, lastwr+1, save_pt);
-    wr_step(field_arr, 2, name_arr, nsteps*dt, bbh_shape, bbh_rank, coords);
+    writing(lastwr, wr_shape, wr_xi, wr_pi, field_arr, bbh_shape, bbh_rank, coords,
+	    wr_sol, solname, sol, wr_xp, name_arr, xi, pi, old_xi, old_pi, alpha, beta,
+	    psi, iresxi, irespi, resxi, respi, wr_res, resname_arr, wr_ires, ires_arr,
+	    iresname_arr, wr_abp, wr_alpha, alphaname, wr_beta, betaname,
+	    wr_psi, psiname, save_pt, lam, dr, rmin, nsteps*dt);
   }
   // close outfiles
   gft_close_all();

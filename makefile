@@ -18,6 +18,13 @@ ekg: ekg.o
 ekg.o: ekg-proc.h ekg-fns.h fda-fns.h fda-io.h
 	$(CXX) -c $(CXXFLAGS) ekg.cpp
 
+ekg-debug: ekg-debug.o
+	-${CXX} -o ekg-debug ekg-debug.o ${LDLIBS}
+	rm -f ekg-debug.o
+
+ekg-debug.o: ekg-debug-proc.h ekg-debug-fns.h fda-fns.h fda-io.h
+	$(CXX) -c $(CXXFLAGS) ekg-debug.cpp
+
 ekg-conv: fda-io.h
 	$(CXX) -c $(CXXFLAGS) ekg-conv.cpp
 	$(CXX) $(LDFLAGS) ekg-conv.o $(LDLIBS) -o ekg-conv
