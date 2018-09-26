@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 // ******************* INITIAL DATA ************************
 // **********************************************************
 
-  int i, j, itn = 0, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
+  int i, j, itn = 2, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
   double res = tol + 1.0, ell_res = ell_tol + 1;// declare residual indicators
   double r = rmin, t = 0.0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
@@ -324,7 +324,7 @@ int main(int argc, char **argv)
     // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
     ell_itn = 2;
-    while (ell_itn > 1) {
+    while (ell_itn > 1 || itn > 1) {
 // ***********************************************************************
 // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
 // ***********************************************************************
@@ -395,6 +395,11 @@ int main(int argc, char **argv)
 // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
 // **************************************************************************
     ++hyp_ell_itn;
+    if (hyp_ell_itn > ell_maxit) {
+      ell_itn = 0;
+      itn = 0;
+      cout << i << " hyp_ell_itn reached " << hyp_ell_itn << " at t = " << t << endl;
+    }
     }
     
 // ***********************************************************************

@@ -1020,7 +1020,7 @@ inline void set_jac_betaCM(vector<double>& jac, const vector<double>& xi, const 
   jac[++k] = 0;
   int j, jm1 = 2, jp1 = 4;
   for (j = 3; j < one_past_last; ++j) {
-    // col d/d(alpha)
+    // col d/d(beta)
     rm1 = r; r = rp1; rp1 += dr;
     k += kl;
     jac[++k] = 0;
@@ -1084,7 +1084,7 @@ inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = 0;
   int j, jm1 = 2, jp1 = 4;
   for (j = 3; j < one_past_last; ++j) {
-    // col d/d(alpha)
+    // col d/d(psi)
     rm1 = r; r = rp1; rp1 += dr;
     k += kl;
     jac[++k] = 0;

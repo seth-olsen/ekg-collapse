@@ -30,6 +30,13 @@ ekg-conv: fda-io.h
 	$(CXX) $(LDFLAGS) ekg-conv.o $(LDLIBS) -o ekg-conv
 	rm -f ekg-conv.o
 
+test: test.o
+	-${CXX} -o test test.o ${LDLIBS}
+	rm -f test.o
+
+test.o: ekg-debug-proc.h ekg-debug-fns.h ekg-proc.h ekg-fns.h fda-fns.h fda-io.h
+	$(CXX) -c $(CXXFLAGS) test.cpp
+
 .PHONY : clean
 clean :
 	rm -f *.o *~

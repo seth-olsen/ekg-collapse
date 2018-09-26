@@ -39,7 +39,7 @@ inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
 inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
 		      const vector<double>& alpha, const vector<double>& beta,
 		      const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return 0.25*lam*(beta[ind]*d_c(psi,ind) + psi[ind]*(4*dr*beta[ind]/r + d_c(beta,ind))/6.0); }
+  return 0.25*lam*(beta[ind]*d_c(psi,ind) + psi[ind]*(2*dr*beta[ind]/(3*r) + d_c(beta,ind))/6.0); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // only need these if no BC at rmin
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ inline double fda0_pi(const vector<double>& xi, const vector<double>& pi,
 inline double fda0_psi(const vector<double>& xi, const vector<double>& pi,
 		       const vector<double>& alpha, const vector<double>& beta,
 		       const vector<double>& psi, double lam, double dr, double r) {
-  return 0.25*lam*(beta[0]*d_f(psi,0) + psi[0]*(4*dr*beta[0]/r + d_f(beta,0))/6.0); }
+  return 0.25*lam*(beta[0]*d_f(psi,0) + psi[0]*(2*dr*beta[0]/(3*r) + d_f(beta,0))/6.0); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double fda_respsi(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
