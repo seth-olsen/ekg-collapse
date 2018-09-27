@@ -46,19 +46,25 @@ inline void set_rhs_xpp(vector<double>& bxi, vector<double>& bpi, vector<double>
 			const vector<double>& psi, vector<double>& old_psi,
 			double lam, double dr, double r, int lastpt);
 // perform gauss-seidel update on xi, pi (xpp version for including psi)
-inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
-		      vector<double>& resxi, vector<double>& respi,
-		      vector<double>& xi, vector<double>& pi,
-		      const vector<double>& alpha, const vector<double>& beta,
-		      const vector<double>& psi, double lam, double dr, double r,
-		      double rmin, int lastpt, double somm_coeff);
-inline void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
-		      const vector<double>& bpsi, vector<double>& resxi,
-		      vector<double>& respi, vector<double>& respsi,
-		      vector<double>& xi, vector<double>& pi,
-		      const vector<double>& alpha, const vector<double>& beta,
-		      vector<double>& psi, double lam, double dr, double r,
-		      double rmin, int lastpt, double somm_coeff);
+void gs_update(const vector<double>& bxi, const vector<double>& bpi,
+	       vector<double>& resxi, vector<double>& respi,
+	       vector<double>& xi, vector<double>& pi,
+	       const vector<double>& alpha, const vector<double>& beta,
+	       const vector<double>& psi, double lam, double dr, double r,
+	       double rmin, int lastpt, double somm_coeff);
+void gs_dr3update(const vector<double>& bxi, const vector<double>& bpi,
+		  vector<double>& resxi, vector<double>& respi,
+		  vector<double>& xi, vector<double>& pi,
+		  const vector<double>& alpha, const vector<double>& beta,
+		  const vector<double>& psi, double lam, double dr, double r,
+		  double rmin, int lastpt, double somm_coeff);
+void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
+	       const vector<double>& bpsi, vector<double>& resxi,
+	       vector<double>& respi, vector<double>& respsi,
+	       vector<double>& xi, vector<double>& pi,
+	       const vector<double>& alpha, const vector<double>& beta,
+	       vector<double>& psi, double lam, double dr, double r,
+	       double rmin, int lastpt, double somm_coeff);
 // petsc matrix setup
 inline void set_inds(int *cols, int indalpha);
 inline void set_alphavals(double *vals, const vector<double>& xi, const vector<double>& pi,
@@ -246,12 +252,12 @@ inline void set_rhs_xpp(vector<double>& bxi, vector<double>& bpi, vector<double>
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // perform gauss-seidel update (xi and pi only)
 ////////////////////////////////////////////////////////////////////////////////////////////////
-inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
-		      vector<double>& resxi, vector<double>& respi,
-		      vector<double>& xi, vector<double>& pi,
-		      const vector<double>& alpha, const vector<double>& beta,
-		      const vector<double>& psi, double lam, double dr, double r,
-		      double rmin, int lastpt, double somm_coeff) {
+void gs_update(const vector<double>& bxi, const vector<double>& bpi,
+	       vector<double>& resxi, vector<double>& respi,
+	       vector<double>& xi, vector<double>& pi,
+	       const vector<double>& alpha, const vector<double>& beta,
+	       const vector<double>& psi, double lam, double dr, double r,
+	       double rmin, int lastpt, double somm_coeff) {
   if (r == 0) { neumann0(pi); }
   else {
     xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
@@ -289,13 +295,13 @@ inline void gs_update(const vector<double>& bxi, const vector<double>& bpi,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // perform gauss-seidel update on xi, pi, and psi
 ////////////////////////////////////////////////////////////////////////////////////////////////
-inline void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
-		      const vector<double>& bpsi, vector<double>& resxi,
-		      vector<double>& respi, vector<double>& respsi,
-		      vector<double>& xi, vector<double>& pi,
-		      const vector<double>& alpha, const vector<double>& beta,
-		      vector<double>& psi, double lam, double dr, double r,
-		      double rmin, int lastpt, double somm_coeff) {
+void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
+	       const vector<double>& bpsi, vector<double>& resxi,
+	       vector<double>& respi, vector<double>& respsi,
+	       vector<double>& xi, vector<double>& pi,
+	       const vector<double>& alpha, const vector<double>& beta,
+	       vector<double>& psi, double lam, double dr, double r,
+	       double rmin, int lastpt, double somm_coeff) {
   //***********************************************
   //*********   UNFINISHED ************************
   //***********************************************
@@ -331,6 +337,49 @@ inline void gs_up_xpp(const vector<double>& bxi, const vector<double>& bpi,
 			fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
   respi[lastpt-1] = abs(pi[lastpt-1] - bpi[lastpt-1] -
 			fda_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, dr, r));
+  return;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////
+// perform gauss-seidel update with d/dr3 scheme (xi and pi only)
+////////////////////////////////////////////////////////////////////////////////////////////////
+void gs_dr3update(const vector<double>& bxi, const vector<double>& bpi,
+		  vector<double>& resxi, vector<double>& respi,
+		  vector<double>& xi, vector<double>& pi,
+		  const vector<double>& alpha, const vector<double>& beta,
+		  const vector<double>& psi, double lam, double dr, double r,
+		  double rmin, int lastpt, double somm_coeff) {
+  if (r == 0) { neumann0(pi); }
+  else {
+    xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
+    pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, dr, r);
+  }
+  r += dr;
+  xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
+  pi[1] = bpi[1] + fda_dr3_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
+  for (int j = 2; j < lastpt; ++j) {
+    r += dr;
+    xi[j] = bxi[j] + fda_xi(xi, pi, alpha, beta, psi, j, lam);
+    pi[j] = bpi[j] + fda_dr3_pi(xi, pi, alpha, beta, psi, j, lam, dr, r);
+    resxi[j-1] = abs(xi[j-1] - bxi[j-1] -
+		     fda_xi(xi, pi, alpha, beta, psi, j-1, lam));
+    respi[j-1] = abs(pi[j-1] - bpi[j-1] -
+		     fda_dr3_pi(xi, pi, alpha, beta, psi, j-1, lam, dr, r-dr));
+  }
+  if (rmin == 0) { respi[0] = abs(neumann0res(pi)); }
+  else {
+    resxi[0] = abs(xi[0] - bxi[0] -
+		   fda0_xi(xi, pi, alpha, beta, psi, lam));
+    respi[0] = abs(pi[0] - bpi[0] -
+		   fda0_pi(xi, pi, alpha, beta, psi, lam, dr, rmin));
+  }
+  // UPDATE BOUNDARY
+  sommerfeld(xi, xi, lastpt, lam, somm_coeff);
+  sommerfeld(pi, pi, lastpt, lam, somm_coeff);
+  
+  resxi[lastpt-1] = abs(xi[lastpt-1] - bxi[lastpt-1] -
+			fda_xi(xi, pi, alpha, beta, psi, lastpt-1, lam));
+  respi[lastpt-1] = abs(pi[lastpt-1] - bpi[lastpt-1] -
+			fda_dr3_pi(xi, pi, alpha, beta, psi, lastpt-1, lam, dr, r));
   return;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -55,6 +55,7 @@ int main(int argc, char **argv)
   bool zero_pi = false; // zero initial time derivative?
   bool somm_cond = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
+  bool dr3up = false; // update pi with d/dr^3 scheme?
   bool wr_ires = false; // write ires? won't trigger without wr_xp
   bool wr_res = false; // write res? won't trigger without wr_xp
   bool wr_sol = false; // write sol?
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
       {"-rmax",&rmax}, {"-dspn",&dspn}, {"-tol",&tol}, {"-ell_tol",&ell_tol},
       {"-ic_Dsq",&ic_Dsq}, {"-ic_r0",&ic_r0}, {"-ic_Amp",&ic_Amp}};
   map<string, bool *> p_bool {{"-psi_hyp",&psi_hyp}, {"-zero_pi",&zero_pi},
-      {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound},
+      {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound}, {"-dr3up",&dr3up},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res}, {"-wr_sol",&wr_sol},
       {"-wr_itn",&wr_itn}, {"-wr_mtot",&wr_mtot}, {"-wr_mass",&wr_mass},
       {"-wr_xp",&wr_xp}, {"-wr_abp",&wr_abp},
@@ -103,6 +104,16 @@ int main(int argc, char **argv)
   for (int k = 0; k < nresn; ++k) {
     resolutions[k] = *resns[k];
   }
+
+  // set hyperbolic update scheme
+  void (*hyp_update_fn)(const vector<double>&, const vector<double>&,
+			vector<double>&, vector<double>&,
+			vector<double>&, vector<double>&,
+			const vector<double>&, const vector<double>&,
+			const vector<double>&, double, double, double,
+			double, int, double);
+  if (dr3up) { hyp_update_fn = gs_dr3update; }
+  else { hyp_update_fn = gs_update; }
 
   // bbhutil parameters for writing data to sdf
   int lastwr = lastpt/save_pt;
@@ -224,10 +235,10 @@ int main(int argc, char **argv)
   int maxit_count = 0, ell_maxit_count = 0;
 
   // *********************************************
-  // **************** PETSC **********************
+  // **************** LAPACK **********************
   // *********************************************
   
-  // lapack object declaration  
+  // lapack object declaration
   lapack_int N = n_ell * npts;
   lapack_int kl = n_ell * 2;
   lapack_int ku = n_ell * 2;
@@ -247,8 +258,8 @@ int main(int argc, char **argv)
 // **********************************************************
 
   int i, j, itn = 2, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
-  double res = tol + 1.0, ell_res = ell_tol + 1;// declare residual indicators
-  double r = rmin, t = 0.0; // declare position and time variables
+  double res = tol + 1, ell_res = ell_tol + 1;// declare residual indicators
+  double r = rmin, t = 0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
     alpha[j] = ic_alpha(r, r2m);
     beta[j] = ic_beta(r, r2m);
@@ -324,14 +335,14 @@ int main(int argc, char **argv)
     // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
     ell_itn = 2;
-    while (ell_itn > 1 || itn > 1) {
+    while (ell_itn > 1 || itn > 2) {
 // ***********************************************************************
 // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
 // ***********************************************************************
       itn = 0, res = tol + 1;
       while (res > tol) {
-	gs_update(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, rmin, rmin,
-		  lastpt, somm_coeff);
+	(*hyp_update_fn)(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, rmin, rmin,
+			 lastpt, somm_coeff);
 	// CHECK RESIDUAL
 	res = max(*max_element(resxi.begin(), resxi.end()),
 		  *max_element(respi.begin(), respi.end())); // can use 1-norm or 2-norm

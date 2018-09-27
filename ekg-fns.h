@@ -28,12 +28,18 @@ inline double mass_aspectR(const vector<double>& alpha, const vector<double>& be
 inline double fda_xi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double lam)
-{ return ( 0.25*lam* dx_ekg_c(beta, xi, alpha, pi, psi, ind) ); }
+{ return ( 0.25*lam*dx_ekg_c(beta, xi, alpha, pi, psi, ind) ); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double fda_pi(const vector<double>& xi, const vector<double>& pi,
 		     const vector<double>& alpha, const vector<double>& beta,
 		     const vector<double>& psi, int ind, double lam, double dr, double r) {
   return ( 0.25*lam*dp_ekg_c(beta, pi, alpha, xi, psi, ind, dr, r) / (pw4(psi[ind])*sq(r))
+	   - (lam/3.0)* pi[ind]*( d_c(beta, ind) + beta[ind]*(6*d_c(psi, ind)/psi[ind] + 4*dr/r) ) ); }
+////////////////////////////////////////////////////////////////////////////////////////////////
+inline double fda_dr3_pi(const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ( 0.25*lam*d3p_ekg_c(beta, pi, alpha, xi, psi, ind, dr, r) / pw4(psi[ind])
 	   - (lam/3.0)* pi[ind]*( d_c(beta, ind) + beta[ind]*(6*d_c(psi, ind)/psi[ind] + 4*dr/r) ) ); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double fda_psi(const vector<double>& xi, const vector<double>& pi,
