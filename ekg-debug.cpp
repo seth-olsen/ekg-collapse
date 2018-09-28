@@ -354,6 +354,7 @@ int main(int argc, char **argv)
 	if (ell_itn > ell_maxit-2) {
 	  ++ell_maxit_count;
 	  ell_itn = 0;
+	  cout << "t = " << t << " ell_itn= " << ell_itn << endl; 
 	}
 	else {
 	  ell_itn = ell_solve(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,

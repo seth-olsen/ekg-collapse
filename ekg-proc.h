@@ -103,12 +103,18 @@ inline void set_jac_betaCM(vector<double>& jac, const vector<double>& xi, const 
 inline void set_jac_alphaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
 			    const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
 			    int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
-int ell_solve(vector<double>& jac, vector<double>& abpres,
-	      const vector<double>& xi, const vector<double>& pi,
-	      const vector<double>& alpha, const vector<double>& beta,
-	      const vector<double>& psi, int lastpt, double dr, double rmin,
-	      int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
-	      int ldb, int ell_maxit, double ell_tol, double t);
+int ell_solve_abp_diag(vector<double>& jac, vector<double>& abpres,
+		       const vector<double>& xi, const vector<double>& pi,
+		       const vector<double>& alpha, const vector<double>& beta,
+		       const vector<double>& psi, int lastpt, double dr, double rmin,
+		       int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+		       int ldb, int ell_maxit, double ell_tol, double t, int *ell_maxit_count);
+int ell_solve_abp_full(vector<double>& jac, vector<double>& abpres,
+		       const vector<double>& xi, const vector<double>& pi,
+		       vector<double>& alpha, vector<double>& beta,
+		       vector<double>& psi, int lastpt, double dr, double rmin,
+		       int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+		       int ldb, int ell_maxit, double ell_tol, double t, int *ell_maxit_count);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -926,12 +932,12 @@ inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const v
 
 
 
-int ell_solve(vector<double>& jac, vector<double>& abpres,
-	      const vector<double>& xi, const vector<double>& pi,
-	      vector<double>& alpha, vector<double>& beta,
-	      vector<double>& psi, int lastpt, double dr, double rmin,
-	      int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
-	      int ldb, int ell_maxit, double ell_tol, double t) {
+int ell_solve_abp_diag(vector<double>& jac, vector<double>& abpres,
+		       const vector<double>& xi, const vector<double>& pi,
+		       vector<double>& alpha, vector<double>& beta,
+		       vector<double>& psi, int lastpt, double dr, double rmin,
+		       int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+		       int ldb, int ell_maxit, double ell_tol, double t, int *ell_maxit_count) {
   int p_itn = 0, info = 0, j;
   // get initial residual
   get_pres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
@@ -985,8 +991,49 @@ int ell_solve(vector<double>& jac, vector<double>& abpres,
 		  abs(*min_element(abpres.begin(), abpres.end())));
     ++a_itn; 
   }
-  
-  return max(p_itn, max(b_itn, a_itn));
+  int ell_itn = max(p_itn, max(b_itn, a_itn));
+  if (ell_itn == ell_maxit) {
+      cout << "t = " << t << " ell_res= " << ell_res << " at " << ell_itn << endl;
+      ell_res = 0.0;
+      ell_itn = 0;
+      ++(*ell_maxit_count);
+    }
+  return ;
 }
 
 
+int ell_solve_abp_full(vector<double>& jac, vector<double>& abpres,
+		       const vector<double>& xi, const vector<double>& pi,
+		       vector<double>& alpha, vector<double>& beta,
+		       vector<double>& psi, int lastpt, double dr, double rmin,
+		       int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+		       int ldb, int ell_maxit, double ell_tol, double t, int *ell_maxit_count) {
+  int ell_itn = 0, info = 0, one_past_last = lastpt + 1, j;
+  // get initial residual
+  get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  double ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		       abs(*min_element(abpres.begin(), abpres.end())));
+  // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
+  while (ell_res > ell_tol) {
+    set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " info= " << info << " at ell_itn = " << ell_itn << endl; }
+    for (j = 0; j < one_past_last; ++j) {
+      alpha[j] -= abpres[3*j];
+      beta[j] -= abpres[3*j+1];
+      psi[j] -= abpres[3*j+2];
+    }	
+    // get new residual
+    get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++ell_itn;
+    if (ell_itn == ell_maxit) {
+      cout << "t = " << t << " ell_res= " << ell_res << " at " << ell_itn << endl;
+      ell_res = 0.0;
+      ell_itn = 0;
+      ++(*ell_maxit_count);
+    }
+  }  
+  return ell_itn;
+}

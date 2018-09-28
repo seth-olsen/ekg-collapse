@@ -58,6 +58,7 @@ int main(int argc, char **argv)
   bool somm_cond = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
   bool dr3up = false; // update pi with d/dr^3 scheme?
+  bool elldiag = false; // solve elliptic equation w/o jac coupling of abp?
   bool wr_ires = false; // write ires? won't trigger without wr_xp
   bool wr_res = false; // write res? won't trigger without wr_xp
   bool wr_sol = false; // write sol?
@@ -117,6 +118,15 @@ int main(int argc, char **argv)
 			double, int, double);
   if (dr3up) { hyp_update_fn = gs_dr3update; }
   else { hyp_update_fn = gs_update; }
+
+  int (*ell_solver)(vector<double>&, vector<double>&,
+		    const vector<double>&, const vector<double>&,
+		    vector<double>&, vector<double>&,
+		    vector<double>&, int, double, double,
+		    int, int, int, int, int, vector<int>&,
+		    int, int, double, double, int *);
+  if (elldiag) { ell_solver = ell_solve_abp_diag; }
+  else { ell_solver = ell_solve_abp_full; }
 
   // bbhutil parameters for writing data to sdf
   int lastwr = lastpt/save_pt;
@@ -248,7 +258,7 @@ int main(int argc, char **argv)
   lapack_int nrhs = 1;
   lapack_int ldab = 2*kl + ku + 1;
   lapack_int ldb = N;
-  lapack_int info;
+  // lapack_int info; --> now defined in ell_solver
   vector<lapack_int> ipiv(N);
   // matrices and vectors
   vector<double> jac(ldab*N, 0.0);
@@ -261,7 +271,8 @@ int main(int argc, char **argv)
 // **********************************************************
 
   int i, j, itn = itn_tol + 1, ell_itn = ell_itn_tol + 1, hyp_ell_itn = 0; // declare loop integers
-  double res = tol + 1, ell_res = ell_tol + 1;// declare residual indicators
+  double res = tol + 1; // declare residual indicators
+  // double ell_res = ell_tol + 1; --> now defined in ell_solver
   double r = rmin, t = 0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
     alpha[j] = ic_alpha(r, r2m);
@@ -279,31 +290,13 @@ int main(int argc, char **argv)
   }
 
   // SOLVE ELLIPTIC EQUATIONS FOR t=0
-  // get initial residual
-  get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-  ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		abs(*min_element(abpres.begin(), abpres.end())));
-  ell_itn = 0;
-  // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
-  while (ell_res > ell_tol) {
-    set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
-    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
-    if (info != 0) { cout << "INITIAL info= " << info << endl; }
-    for (j = 0; j < npts; ++j) {
-      alpha[j] -= abpres[3*j];
-      beta[j] -= abpres[3*j+1];
-      psi[j] -= abpres[3*j+2];
-    }	
-    // get new residual
-    get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-    ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		  abs(*min_element(abpres.begin(), abpres.end())));
-    ++ell_itn; 
-    if (ell_itn % ell_maxit == 0) {
-      cout << "INITIAL ell_res= " << ell_res << " at " << ell_itn << endl;
-      ell_res = 0.0;
-      ++ell_maxit_count;
-    }
+  ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+			  N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, 0,
+			  &ell_maxit_count);
+  while (ell_itn > ell_itn_tol) {
+    ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+			    N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, 0,
+			    &ell_maxit_count);
   }
   
 // **********************************************************
@@ -378,31 +371,13 @@ int main(int argc, char **argv)
 // ***********************************************************************
 // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
 // ***********************************************************************
-      // get initial residual
-      get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-      ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		    abs(*min_element(abpres.begin(), abpres.end())));
-      ell_itn = 0;
-      // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
-      while (ell_res > ell_tol) {
-	set_jac_vecCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
-        info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
-	if (info != 0) { cout << i << " info= " << info << endl; } // lapack error check
-	for (j = 0; j < npts; ++j) {
-	  alpha[j] -= abpres[3*j];
-	  beta[j] -= abpres[3*j+1];
-	  psi[j] -= abpres[3*j+2];
-	}	
-	// get new residual
-	get_ell_res(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
-        ell_res = max(*max_element(abpres.begin(), abpres.end()),
-		      abs(*min_element(abpres.begin(), abpres.end())));
-	++ell_itn; 
-	if (ell_itn % ell_maxit == 0) {
-	  if (i % 100*factor == 0) { cout << i << " ell_res= " << ell_res << " at " << ell_itn << endl; }
-	  ell_res = 0.0;
-	  ++ell_maxit_count;
-	}
+      ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+			      N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t,
+			      &ell_maxit_count);
+      while (ell_itn > ell_itn_tol) {
+	ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
+				N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t,
+				&ell_maxit_count);
       }
       
 // **************************************************************************
@@ -414,8 +389,8 @@ int main(int argc, char **argv)
       itn = 0;
       cout << i << " hyp_ell_itn reached " << hyp_ell_itn << " at t = " << t << endl;
     }
-    }
     
+    }   
 // ***********************************************************************
 // ***********************************************************************
 // ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
