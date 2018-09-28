@@ -23,7 +23,6 @@ default values can be found at the start of main()
 */
 
 #include "ekg-proc.h"
-#include <lapacke.h>
 
 int main(int argc, char **argv)
 {
@@ -45,7 +44,10 @@ int main(int argc, char **argv)
   double tol = 0.000000000001; // iterative method tolerance
   double ell_tol = tol; // will not auto change if tol changed
   int maxit = 25; // max iterations for debugging
-  int ell_maxit = 2*maxit; // will not auto change if maxit changed
+  int ell_maxit = 2*maxit; // will not auto change if maxit set w/cmd line
+  // update only accepted once it takes less that itn_tol after ell update
+  int itn_tol = 2;
+  int ell_itn_tol = 1; // max itns for ell soln to be accepted
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 0.01; // gaussian amplitude
@@ -77,6 +79,7 @@ int main(int argc, char **argv)
       {"-hold_const",&hold_const}};
   map<string, int *> p_int {{"-lastpt",&lastpt}, {"-save_pt", &save_pt},
       {"-nsteps", &nsteps}, {"-save_step",&save_step}, {"-maxit",&maxit},
+      {"-itn_tol",&itn_tol}, {"-ell_itn_tol",&ell_itn_tol},
       {"-check_step", &check_step}, {"-nresn", &nresn},
       {"-resn0", &resn0}, {"-resn1", &resn1}, {"-resn2", &resn2}};
   map<string, double *> p_dbl {{"-lam",&lam}, {"-r2m",&r2m}, {"-rmin",&rmin},
@@ -257,7 +260,7 @@ int main(int argc, char **argv)
 // ******************* INITIAL DATA ************************
 // **********************************************************
 
-  int i, j, itn = 2, ell_itn = 2, hyp_ell_itn = 0; // declare loop integers
+  int i, j, itn = itn_tol + 1, ell_itn = ell_itn_tol + 1, hyp_ell_itn = 0; // declare loop integers
   double res = tol + 1, ell_res = ell_tol + 1;// declare residual indicators
   double r = rmin, t = 0; // declare position and time variables
   for (j = 0; j < npts; ++j) {
@@ -334,12 +337,12 @@ int main(int argc, char **argv)
     // reset ell_itn > 1 to enter direct linear solver for the elliptic equations
     // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
-    ell_itn = 2;
-    while (ell_itn > 1 || itn > 2) {
+    ell_itn = ell_itn_tol + 1; itn = itn_tol + 1;
+    while (ell_itn > ell_itn_tol || itn > itn_tol) {
 // ***********************************************************************
 // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
 // ***********************************************************************
-      itn = 0, res = tol + 1;
+      itn = 0; res = tol + 1;
       while (res > tol) {
 	(*hyp_update_fn)(bxi, bpi, resxi, respi, xi, pi, alpha, beta, psi, lam, dr, rmin, rmin,
 			 lastpt, somm_coeff);

@@ -3,6 +3,7 @@
 #include <fstream> // for mass/itn files
 #include <ctime> // for quick time analysis
 #include "ekg-fns.h"
+#include "lapacke.h"
 
 void update_sol(const vector<double>& xi, const vector<double>& pi,
 		const vector<double>& alpha, const vector<double>& beta,
@@ -80,10 +81,34 @@ inline void set_psivals(double *vals, const vector<double>& xi, const vector<dou
 void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<double>& pi,
 		 const vector<double>& alpha, const vector<double>& beta,
 		 const vector<double>& psi, int lastpt, int N, double dr, double r);
+void get_pres(vector<double>& pres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r);
+void get_bres(vector<double>& bres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r);
+void get_ares(vector<double>& ares, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r);
 //  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
 inline void set_jac_vecCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
 			  int N, int ldab, int kl, int ku, int last, double dr, double r);
+inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			  int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
+inline void set_jac_betaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			   const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			   int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
+inline void set_jac_alphaCM(vector<double>& jac, const vector<double>& xi, const vector<double>& pi,
+			    const vector<double>& alpha, const vector<double>& beta, const vector<double>& psi,
+			    int N, int ldab, int kl, int ku, int one_past_last, double dr, double r);
+int ell_solve(vector<double>& jac, vector<double>& abpres,
+	      const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, double dr, double rmin,
+	      int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+	      int ldb, int ell_maxit, double ell_tol, double t);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -453,6 +478,47 @@ void get_ell_res(vector<double>& abpres, const vector<double>& xi, const vector<
   abpres[N-1] = fdaR_respsi(psi, lastpt, dr, r);
   return;
 }
+
+void get_pres(vector<double>& pres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  pres[0] = -3*psi[0] + 4*psi[1] - psi[2];
+  for (int k = 1; k < lastpt; ++k) {
+    r += dr;
+    pres[k] = fda_respsi(xi, pi, alpha, beta, psi, k, dr, r);
+  }
+  r += dr;
+  pres[N-1] = fdaR_respsi(psi, lastpt, dr, r);
+  return;
+}
+
+void get_bres(vector<double>& bres, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  bres[0] = beta[0];
+  for (int k = 1; k < lastpt; ++k) {
+    r += dr;
+    bres[k] = fda_resbeta(xi, pi, alpha, beta, psi, k, dr, r);
+  }
+  r += dr;
+  bres[N-1] = fdaR_resbeta(beta, lastpt, dr, r);
+  return;
+}
+
+void get_ares(vector<double>& ares, const vector<double>& xi, const vector<double>& pi,
+	      const vector<double>& alpha, const vector<double>& beta,
+	      const vector<double>& psi, int lastpt, int N, double dr, double r) {
+  ares[0] = -3*alpha[0] + 4*alpha[1] - alpha[2];
+  for (int k = 1; k < lastpt; ++k) {
+    r += dr;
+    ares[k] = fda_resalpha(xi, pi, alpha, beta, psi, k, dr, r);
+  }
+  r += dr;
+  ares[N-1] = fdaR_resalpha(alpha, lastpt, dr, r);
+  return;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //  for LAPACKE_dgbsv(): jac[ (kl + ku + 1) + (ldab - 1)*j + i ]  =  jac[ i, j ]
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -857,3 +923,70 @@ inline void set_jac_psiCM(vector<double>& jac, const vector<double>& xi, const v
   jac[++k] = cR;
   return;
 }
+
+
+
+int ell_solve(vector<double>& jac, vector<double>& abpres,
+	      const vector<double>& xi, const vector<double>& pi,
+	      vector<double>& alpha, vector<double>& beta,
+	      vector<double>& psi, int lastpt, double dr, double rmin,
+	      int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+	      int ldb, int ell_maxit, double ell_tol, double t) {
+  int p_itn = 0, info = 0, j;
+  // get initial residual
+  get_pres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  double ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		       abs(*min_element(abpres.begin(), abpres.end())));
+  // if ell_res > ell_tol, solve jac.x = abpres and update abpres -= x
+  while (ell_res > ell_tol && p_itn < ell_maxit) {
+    set_jac_psiCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " p_info= " << info << " at p_itn = " << p_itn << endl; }
+    for (j = 0; j < N; ++j) {
+      psi[j] -= abpres[j];
+    }	
+    // get new residual
+    get_pres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++p_itn; 
+  }
+
+  int b_itn = 0;
+  get_bres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		abs(*min_element(abpres.begin(), abpres.end())));
+  while (ell_res > ell_tol && b_itn < ell_maxit) {
+    set_jac_betaCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " b_info= " << info << " at b_itn = " << b_itn << endl; }
+    for (j = 0; j < N; ++j) {
+      beta[j] -= abpres[j];
+    }
+    get_bres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++b_itn; 
+  }
+
+  int a_itn = 0;
+  get_ares(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+  ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		abs(*min_element(abpres.begin(), abpres.end())));
+  while (ell_res > ell_tol && a_itn < ell_maxit) {
+    set_jac_alphaCM(jac, xi, pi, alpha, beta, psi, N, ldab, kl, ku, lastpt-2, dr, rmin);
+    info = LAPACKE_dgbsv(LAPACK_COL_MAJOR, N, kl, ku, nrhs, &jac[0], ldab, &ipiv[0], &abpres[0], ldb);
+    if (info != 0) { cout << "t = " << t << " a_info= " << info << " at a_itn = " << a_itn << endl; }
+    for (j = 0; j < N; ++j) {
+      alpha[j] -= abpres[j];
+    }
+    get_bres(abpres, xi, pi, alpha, beta, psi, lastpt, N, dr, rmin);
+    ell_res = max(*max_element(abpres.begin(), abpres.end()),
+		  abs(*min_element(abpres.begin(), abpres.end())));
+    ++a_itn; 
+  }
+  
+  return max(p_itn, max(b_itn, a_itn));
+}
+
+
