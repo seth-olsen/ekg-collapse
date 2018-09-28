@@ -59,6 +59,7 @@ int main(int argc, char **argv)
   bool dspn_bound = false; // dissipate boundary points?
   bool dr3up = false; // update pi with d/dr^3 scheme?
   bool elldiag = false; // solve elliptic equation w/o jac coupling of abp?
+  bool static_metric = false; // ignore scalar field's effect on metric?
   bool wr_ires = false; // write ires? won't trigger without wr_xp
   bool wr_res = false; // write res? won't trigger without wr_xp
   bool wr_sol = false; // write sol?
@@ -125,7 +126,8 @@ int main(int argc, char **argv)
 		    vector<double>&, int, double, double,
 		    int, int, int, int, int, vector<int>&,
 		    int, int, double, double, int *);
-  if (elldiag) { ell_solver = ell_solve_abp_diag; }
+  if (static_metric) { ell_solver = ell_solve_static_metric; }
+  else if (elldiag) { ell_solver = ell_solve_abp_diag; }
   else { ell_solver = ell_solve_abp_full; }
 
   // bbhutil parameters for writing data to sdf

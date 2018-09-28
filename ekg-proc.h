@@ -115,6 +115,13 @@ int ell_solve_abp_full(vector<double>& jac, vector<double>& abpres,
 		       vector<double>& psi, int lastpt, double dr, double rmin,
 		       int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
 		       int ldb, int ell_maxit, double ell_tol, double t, int *ell_maxit_count);
+int ell_solve_static_metric(vector<double>& jac, vector<double>& abpres,
+			    const vector<double>& xi, const vector<double>& pi,
+			    vector<double>& alpha, vector<double>& beta,
+			    vector<double>& psi, int lastpt, double dr, double rmin,
+			    int N, int kl, int ku, int nrhs, int ldab, vector<int>& ipiv,
+			    int ldb, int ell_maxit, double ell_tol, double t,
+			    int *ell_maxit_count) { return 0; }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
