@@ -1,3 +1,6 @@
+#ifndef FDA_FNS_H_INCLUDED
+#define FDA_FNS_H_INCLUDED
+
 #include <vector> // for everything
 #include <cmath> // for ICs
 
@@ -279,6 +282,36 @@ inline double irespi_f(const vector<double>& xi, const vector<double>& pi,
 		   *dr2a4_f(psi, ind, dr, r))
     - (lam/3.0)* pi[ind]*( d_f(beta, ind) + beta[ind]*(6*d_f(psi, ind)/psi[ind] + 4*dr/r) ); }
 
+inline double irespsi_c(const vector<double>& xi, const vector<double>& pi,
+			const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ; }
+
+inline double irespsi_f(const vector<double>& xi, const vector<double>& pi,
+			const vector<double>& alpha, const vector<double>& beta,
+			const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ; }
+
+inline double iresbeta_c(const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ; }
+
+inline double iresbeta_f(const vector<double>& xi, const vector<double>& pi,
+			 const vector<double>& alpha, const vector<double>& beta,
+			 const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ; }
+
+inline double iresalpha_c(const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ; }
+
+inline double iresalpha_f(const vector<double>& xi, const vector<double>& pi,
+			  const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int ind, double lam, double dr, double r) {
+  return ; }
+
 // GET COARSENED ARRAY FOR WRITING
 void get_wr_f(const vector<double>& f, vector<double>& wr,
 	      int one_past_last, int savept)
@@ -290,3 +323,6 @@ void get_wr_f(const vector<double>& f, vector<double>& wr,
   }
   return;
 }
+
+#endif
+

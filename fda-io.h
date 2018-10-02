@@ -1,3 +1,6 @@
+#ifndef FDA_IO_H_INCLUDED
+#define FDA_IO_H_INCLUDED
+
 #include <string> // for parameter input
 #include <map> // for parameter input
 #include <cstdlib> // for atoi() and atof()
@@ -63,4 +66,7 @@ string param_print(string outfile, int lastpt, int save_pt, int nsteps,
     "\noptions:\nzero pi_0 = " + z_p + "\nsommerfeld bc = " + s_c +
     "\ndissipation at bound = " + d_b + "\n";
 }
+
+#endif
+
 

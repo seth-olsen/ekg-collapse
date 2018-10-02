@@ -22,7 +22,21 @@ following ordered pair of command line arguments:
 default values can be found at the start of main()
 */
 
+#include "lapacke.h"
 #include "ekg-proc.h"
+#include "ekg-fns.h"
+#include "fda-fns.h"
+#include "fda-io.h"
+#include <iostream>
+#include <algorithm> // for max_element()
+#include <fstream> // for mass/itn files
+#include <ctime> // for quick time analysis
+#include <cmath> // for ICs
+#include <vector> // for everything
+#include <string> // for parameter input
+#include <map> // for parameter input
+#include <cstdlib> // for atoi() and atof()
+#include "bbhutil.h" // for output to .sdf
 
 int main(int argc, char **argv)
 {
@@ -58,9 +72,10 @@ int main(int argc, char **argv)
   bool somm_cond = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
   bool dr3up = false; // update pi with d/dr^3 scheme?
-  bool elldiag = false; // solve elliptic equation w/o jac coupling of abp?
+  bool elldiag = false; // solve elliptic equation w/o jac off-diag terms?
   bool static_metric = false; // ignore scalar field's effect on metric?
   bool wr_ires = false; // write ires? won't trigger without wr_xp
+  bool wr_abpires = false; // write ires for metric vars? won't trigger without wr_abp
   bool wr_res = false; // write res? won't trigger without wr_xp
   bool wr_sol = false; // write sol?
   bool wr_itn = false; // write itn counts?
@@ -91,7 +106,7 @@ int main(int argc, char **argv)
       {"-somm_cond",&somm_cond}, {"-dspn_bound",&dspn_bound}, {"-dr3up",&dr3up},
       {"-wr_ires",&wr_ires}, {"-wr_res",&wr_res}, {"-wr_sol",&wr_sol},
       {"-wr_itn",&wr_itn}, {"-wr_mtot",&wr_mtot}, {"-wr_mass",&wr_mass},
-      {"-wr_xp",&wr_xp}, {"-wr_abp",&wr_abp},
+      {"-wr_xp",&wr_xp}, {"-wr_abp",&wr_abp}, {"-wr_abpires",&wr_abpires},
       {"-wr_alpha",&wr_alpha}, {"-wr_beta",&wr_beta}, {"-wr_psi",&wr_psi}};
   map<string, string> params;
   param_collect(argv, argc, params);
@@ -216,7 +231,11 @@ int main(int argc, char **argv)
   char *name_arr[2] = {&outfileXi_name[0], &outfilePi_name[0]};
   string iresXi_name = "iresXi-" + outfile + ".sdf";
   string iresPi_name = "iresPi-" + outfile + ".sdf";
-  char *iresname_arr[2] = {&iresXi_name[0], &iresPi_name[0]};  
+  char *iresname_arr[2] = {&iresXi_name[0], &iresPi_name[0]};
+  string iresalpha_name = "ires-" + alphaname;
+  string iresbeta_name = "ires-" + betaname;
+  string irespsi_name = "ires-" + psiname;
+  char *abpiresname_arr[3] = {&iresalpha_name[0], &iresbeta_name[0], &irespsi_name[0]};
   string itn_file = "itns-" + outfile + ".csv";
   ofstream ofs_itn;
   if (wr_itn) { ofs_itn.open(itn_file, ofstream::out); }
@@ -315,7 +334,7 @@ int main(int argc, char **argv)
 	      wr_sol, solname, sol, wr_xp, name_arr, xi, pi, old_xi, old_pi, alpha, beta,
 	      psi, iresxi, irespi, resxi, respi, wr_res, resname_arr, wr_ires, ires_arr,
 	      iresname_arr, wr_abp, wr_alpha, alphaname, wr_beta, betaname,
-	      wr_psi, psiname, save_pt, lam, dr, rmin, t);
+	      wr_psi, psiname, wr_abpires, abpiresname_arr, save_pt, lam, dr, rmin, t);
     }
     // now set old_xi/pi to t(n) so that xi/pi can be updated to t(n+1)
     old_xi = xi;

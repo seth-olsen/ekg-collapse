@@ -1,9 +1,21 @@
+#ifndef EKG_PROC_H_INCLUDED
+#define EKG_PROC_H_INCLUDED
+
 #include <iostream>
 #include <algorithm> // for max_element()
 #include <fstream> // for mass/itn files
 #include <ctime> // for quick time analysis
-#include "ekg-fns.h"
 #include "lapacke.h"
+#include "ekg-fns.h"
+#include "fda-fns.h"
+#include "fda-io.h"
+#include <vector> // for everything
+#include <cmath> // for ICs
+#include <string> // for parameter input
+#include <map> // for parameter input
+#include <cstdlib> // for atoi() and atof()
+#include "bbhutil.h" // for output to .sdf
+
 
 void update_sol(const vector<double>& xi, const vector<double>& pi,
 		const vector<double>& alpha, const vector<double>& beta,
@@ -34,7 +46,8 @@ inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<doub
 		    const vector<double>& resxi, const vector<double>& respi, bool wr_res,
 		    char *resname_arr[2], bool wr_ires, double *ires_arr[2], char *iresname_arr[2],
 		    bool wr_abp, bool wr_alpha, string alphaname, bool wr_beta, string betaname,
-		    bool wr_psi, string psiname, int save_pt, double lam, double dr, double rmin, double t);
+		    bool wr_psi, string psiname, bool wr_abpires, char *abpiresname_arr[3],
+		    int save_pt, double lam, double dr, double rmin, double t);
 // set rhs of A.x(t_n+1) = b(t_n) for xi, pi (xpp version for including psi)
 inline void set_rhs(vector<double>& bxi, vector<double>& bpi,
 		    const vector<double>& old_xi, const vector<double>& old_pi,
@@ -215,7 +228,8 @@ inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<doub
 		    const vector<double>& resxi, const vector<double>& respi, bool wr_res,
 		    char *resname_arr[2], bool wr_ires, double *ires_arr[2], char *iresname_arr[2],
 		    bool wr_abp, bool wr_alpha, string alphaname, bool wr_beta, string betaname,
-		    bool wr_psi, string psiname, int save_pt, double lam, double dr, double rmin, double t)
+		    bool wr_psi, string psiname, bool wr_abpires, char *abpiresname_arr[3],
+		    int save_pt, double lam, double dr, double rmin, double t)
 {
   if (wr_sol) {
     gft_out_bbox(&solname[0], t, bbh_shape, bbh_rank, coords, &sol[0]); }
@@ -1044,3 +1058,7 @@ int ell_solve_abp_full(vector<double>& jac, vector<double>& abpres,
   }  
   return ell_itn;
 }
+
+
+#endif
+

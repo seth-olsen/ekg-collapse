@@ -1,5 +1,10 @@
+#ifndef EKG_FNS_H_INCLUDED
+#define EKG_FNS_H_INCLUDED
+
 #include "fda-fns.h"
 #include "fda-io.h"
+#include <vector> // for everything
+#include <cmath> // for ICs
 
 // multiply by 4*M_PI*r^2 for dm/dr of scalar
 inline double dmdr_scalar(double xival, double pival, double alphaval,
@@ -203,3 +208,6 @@ inline double jac_pp(const vector<double>& xi, const vector<double>& pi,
 inline double jac_pp_pm(const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, int p_m, double dr, double r) {
   return 1 + p_m*dr/r; }
+
+
+#endif
