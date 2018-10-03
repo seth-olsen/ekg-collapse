@@ -215,7 +215,6 @@ void get_wr_arr_ires(const vector<double>& xi, const vector<double>& pi,
   wrxi[lastwrite] = xi[s];
   wrpi[lastwrite] = pi[s];
   return;
-  return;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<double>& wr_pi,
@@ -250,14 +249,50 @@ inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<doub
     if (wr_alpha) {
       get_wr_f(alpha, wr_xi, wr_shape, save_pt);
       gft_out_bbox(&alphaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+      if (wr_abpires) {
+	int k = 0, s = 0, lastwrite = wr_shape - 1;
+	double r = rmin, wr_dr = dr * save_pt;
+	wr_pi[k] = iresalpha_f(xi, pi, alpha, beta, psi, s, lam, dr, r);
+	for (k = 1; k < lastwrite; ++k) {
+	  r += wr_dr;
+	  s += save_pt;
+	  wr_pi[k] = iresalpha_c(xi, pi, alpha, beta, psi, s, lam, dr, r);
+	}
+	wr_pi[lastwrite] = 0;
+	gft_out_bbox(abpiresname_arr[0], t, bbh_shape, bbh_rank, coords, &wr_pi[0]);
+      }
     }
     if (wr_beta) {
       get_wr_f(beta, wr_xi, wr_shape, save_pt);
       gft_out_bbox(&betaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+      if (wr_abpires) {
+	int k = 0, s = 0, lastwrite = wr_shape - 1;
+	double r = rmin, wr_dr = dr * save_pt;
+	wr_pi[k] = iresbeta_f(xi, pi, alpha, beta, psi, s, lam, dr, r);
+	for (k = 1; k < lastwrite; ++k) {
+	  r += wr_dr;
+	  s += save_pt;
+	  wr_pi[k] = iresbeta_c(xi, pi, alpha, beta, psi, s, lam, dr, r);
+	}
+	wr_pi[lastwrite] = 0;
+	gft_out_bbox(abpiresname_arr[1], t, bbh_shape, bbh_rank, coords, &wr_pi[0]);
+      }
     }
     if (wr_psi) {
       get_wr_f(psi, wr_xi, wr_shape, save_pt);
       gft_out_bbox(&psiname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
+      if (wr_abpires) {
+	int k = 0, s = 0, lastwrite = wr_shape - 1;
+	double r = rmin, wr_dr = dr * save_pt;
+	wr_pi[k] = irespsi_f(xi, pi, alpha, beta, psi, s, lam, dr, r);
+	for (k = 1; k < lastwrite; ++k) {
+	  r += wr_dr;
+	  s += save_pt;
+	  wr_pi[k] = irespsi_c(xi, pi, alpha, beta, psi, s, lam, dr, r);
+	}
+	wr_pi[lastwrite] = 0;
+	gft_out_bbox(abpiresname_arr[2], t, bbh_shape, bbh_rank, coords, &wr_pi[0]);
+      }
     }
   }
   return;
@@ -1019,7 +1054,7 @@ int ell_solve_abp_diag(vector<double>& jac, vector<double>& abpres,
       ell_itn = 0;
       ++(*ell_maxit_count);
     }
-  return ;
+  return ell_itn;
 }
 
 

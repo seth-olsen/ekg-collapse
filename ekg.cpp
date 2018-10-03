@@ -445,7 +445,8 @@ int main(int argc, char **argv)
 	    wr_sol, solname, sol, wr_xp, name_arr, xi, pi, old_xi, old_pi, alpha, beta,
 	    psi, iresxi, irespi, resxi, respi, wr_res, resname_arr, wr_ires, ires_arr,
 	    iresname_arr, wr_abp, wr_alpha, alphaname, wr_beta, betaname,
-	    wr_psi, psiname, save_pt, lam, dr, rmin, nsteps*dt);
+	    wr_psi, psiname, wr_abpires, abpiresname_arr,
+	    save_pt, lam, dr, rmin, nsteps*dt);
   }
   // close outfiles
   gft_close_all();

@@ -56,6 +56,24 @@ inline double ddr2_f(const vector<double>& u, int ind, double dr)
 inline double ddr2_b(const vector<double>& u, int ind, double dr)
 { return d2_b(u, ind) / sq(dr); }
 
+inline double d_ru_c(const vector<double>& u, int ind, double dr, double r)
+{ return u[ind+1]*(r+dr) - u[ind-1]*(r-dr); }
+
+inline double d_ru_f(const vector<double>& u, int ind, double dr, double r)
+{ return -3*u[ind]*r + 4*u[ind+1]*(r+dr) - u[ind+2]*(r+2*dr); }
+
+inline double d_ru_b(const vector<double>& u, int ind, double dr, double r)
+{ return 3*u[ind]*r - 4*u[ind-1]*(r-dr) + u[ind-2]*(r-2*dr); }
+
+inline double d_urinv_c(const vector<double>& u, int ind, double dr, double r)
+{ return u[ind+1]/(r+dr) - u[ind-1]/(r-dr); }
+
+inline double d_urinv_f(const vector<double>& u, int ind, double dr, double r)
+{ return -3*u[ind]/r + 4*u[ind+1]/(r+dr) - u[ind+2]/(r+2*dr); }
+
+inline double d_urinv_b(const vector<double>& u, int ind, double dr, double r)
+{ return 3*u[ind]/r - 4*u[ind-1]/(r-dr) + u[ind-2]/(r-2*dr); }
+
 
 // ******* DIFFERENCE OPERATORS FOR EKG-COLLAPSE
 
@@ -285,32 +303,40 @@ inline double irespi_f(const vector<double>& xi, const vector<double>& pi,
 inline double irespsi_c(const vector<double>& xi, const vector<double>& pi,
 			const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ; }
+  return d2_c(psi,ind) + sq(dr)*psi[ind]*M_PI*(sq(xi[ind]) + sq(pi[ind])) + dr*d_c(psi,ind)/r
+    + pw5(psi[ind])*sq(r*d_urinv_c(beta,ind,dr,r)) / (48*sq(alpha[ind])); }
 
 inline double irespsi_f(const vector<double>& xi, const vector<double>& pi,
 			const vector<double>& alpha, const vector<double>& beta,
 			const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ; }
+  return d2_f(psi,ind) + sq(dr)*psi[ind]*M_PI*(sq(xi[ind]) + sq(pi[ind])) + dr*d_f(psi,ind)/r
+    + pw5(psi[ind])*sq(r*d_urinv_f(beta,ind,dr,r)) / (48*sq(alpha[ind])); }
 
 inline double iresbeta_c(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ; }
+  return d2_c(beta,ind) + sq(dr)*12*M_PI*alpha[ind]*xi[ind]*pi[ind] / sq(psi[ind]) +
+    0.25*r*d_urinv_c(beta,ind,dr,r)*(6*d_c(psi,ind)/psi[ind] - d_c(alpha,ind)/alpha[ind] + 4*dr/r); }
 
 inline double iresbeta_f(const vector<double>& xi, const vector<double>& pi,
 			 const vector<double>& alpha, const vector<double>& beta,
 			 const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ; }
+  return d2_f(beta,ind) + sq(dr)*12*M_PI*alpha[ind]*xi[ind]*pi[ind] / sq(psi[ind]) +
+    0.25*r*d_urinv_f(beta,ind,dr,r)*(6*d_f(psi,ind)/psi[ind] - d_f(alpha,ind)/alpha[ind] + 4*dr/r); }
 
 inline double iresalpha_c(const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ; }
+  return d2_c(alpha,ind) - sq(dr)*8*M_PI*alpha[ind]*sq(pi[ind])
+    + 0.25*d_c(alpha,ind)*(d_c(psi,ind)/psi[ind] + 4*dr/r)
+    - pw4(psi[ind])*sq(r*d_urinv_c(beta,ind,dr,r)) / (6*alpha[ind]); }
 
 inline double iresalpha_f(const vector<double>& xi, const vector<double>& pi,
 			  const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int ind, double lam, double dr, double r) {
-  return ; }
+  return d2_f(alpha,ind) - sq(dr)*8*M_PI*alpha[ind]*sq(pi[ind])
+    + 0.25*d_f(alpha,ind)*(d_f(psi,ind)/psi[ind] + 4*dr/r)
+    - pw4(psi[ind])*sq(r*d_urinv_f(beta,ind,dr,r)) / (6*alpha[ind]); }
 
 // GET COARSENED ARRAY FOR WRITING
 void get_wr_f(const vector<double>& f, vector<double>& wr,
