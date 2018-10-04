@@ -203,6 +203,7 @@ int main(int argc, char **argv)
     double dr = (rmax - rmin) / ((double) lastpt);
     double dt = lam * dr;
     double somm_coeff = 0.75*lam + 0.5*dt/rmax; // for outer bc
+    double wr_dr = dr*save_pt;
     
     // OUTPUT parameter data
     cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
@@ -370,20 +371,6 @@ int main(int argc, char **argv)
 // ****************************************************************************
 // ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
 // ****************************************************************************
-    
-// ****************** kreiss-oliger DISSIPATION ********************
-    // at ind next to boundaries can call dissipate on ind+/-1 or ind+/-2
-      if (rmin == 0) {
-	xi[1] += antidiss1(dspn, old_xi);
-	pi[1] += symdiss1(dspn, old_pi);
-	if (dspn_bound) {
-	  pi[0] += symdiss0(dspn, old_pi);
-	}
-      }
-      for (j = 2; j < lastpt-1; ++j) {
-	xi[j] += dissipate(dspn, old_xi, j);
-	pi[j] += dissipate(dspn, old_pi, j);
-      }
       
 // ***********************************************************************
 // ****************** START ELLIPTIC ITERATIVE SOLUTION ******************
@@ -395,6 +382,7 @@ int main(int argc, char **argv)
 // **************************************************************************
 // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
 // **************************************************************************
+      
       // record itn count of this sweep
       if (wr_itn) { ofs_itn << i <<","<< t <<","<< itn <<","<< ell_itn << endl; }
       // increment sweep count and check for stalling
@@ -404,9 +392,26 @@ int main(int argc, char **argv)
 	++hyp_ell_maxit_count;
 	ell_itn = 0;
 	itn = 0;
-      }
-      
+      }      
     }
+    // *************************** DONE UPDATING ******************************
+    
+    // **************************************************************************
+    // *********************** kreiss-oliger DISSIPATION ************************
+    // **************************************************************************
+    // at ind next to boundaries can call dissipate on ind+/-1 or ind+/-2
+    if (rmin == 0) {
+      xi[1] += antidiss1(dspn, old_xi);
+      pi[1] += symdiss1(dspn, old_pi);
+      if (dspn_bound) {
+	pi[0] += symdiss0(dspn, old_pi);
+      }
+    }
+    for (j = 2; j < lastpt-1; ++j) {
+      xi[j] += dissipate(dspn, old_xi, j);
+      pi[j] += dissipate(dspn, old_pi, j);
+    }
+    
 // ***********************************************************************
 // ***********************************************************************
 // ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
@@ -416,10 +421,9 @@ int main(int argc, char **argv)
     // ****************** WRITE MASS & update field **********************
     if (i % (check_step*save_step) == 0) {
       if (wr_mass) {
-	maspect[0] = mass_aspect0(alpha, beta, psi, dr, rmin);
 	r = rmin;
 	for (j = 1; j < lastwr; ++j) {
-	  r += save_pt*dr;
+	  r += wr_dr;
 	  maspect[j] = mass_aspect(alpha, beta, psi, j, dr, r);
 	}
 	maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);

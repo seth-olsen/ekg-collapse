@@ -2,7 +2,6 @@
 #define EKG_FNS_H_INCLUDED
 
 #include "fda-fns.h"
-#include "fda-io.h"
 #include <vector> // for everything
 #include <cmath> // for ICs
 
@@ -13,20 +12,27 @@ inline double dmdr_scalar(double xival, double pival, double alphaval,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // mass aspect function
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
   return r*pw6(psi[k])*sq(r*ddr_c(beta,k,dr) - beta[k]) / (18*sq(alpha[k])) -
     2*sq(r)*ddr_c(psi,k,dr)*(psi[k] + r*ddr_c(psi,k,dr)); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
-inline double mass_aspect0(const vector<double>& alpha, const vector<double>& beta,
-			  const vector<double>& psi, double dr, double r) {
-  return r*pw6(psi[0])*sq(r*ddr_f(beta,0,dr) - beta[0]) / (18*sq(alpha[0])) -
-    2*sq(r)*ddr_f(psi,0,dr)*(psi[0] + r*ddr_f(psi,0,dr)); }
+inline double mass_aspectR(const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int k, double dr, double r) {
+  return r*pw6(psi[k])*sq(r*ddr_b(beta,k,dr) - beta[k]) / (18*sq(alpha[k])) -
+    2*sq(r)*ddr_b(psi,k,dr)*(psi[k] + r*ddr_b(psi,k,dr)); }
+////////////////////////////////////////////////////////////////////////////////////////////////
+*/
+inline double mass_aspect(const vector<double>& alpha, const vector<double>& beta,
+			  const vector<double>& psi, int k, double dr, double r) {
+  return (0.5*sq(r)/sq(dr))*( (r*pw6(psi[k]) / (18*sq(alpha[k]))) * sq(0.5*d_c(beta,k) - dr*beta[k]/r)
+			      - d_c(psi,k) * d_ru_c(psi,k,dr,r) ); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 inline double mass_aspectR(const vector<double>& alpha, const vector<double>& beta,
 			  const vector<double>& psi, int k, double dr, double r) {
-  return r*pw6(psi[k])*sq(r*ddr_b(beta,k,dr) - beta[k]) / (18*sq(alpha[0])) -
-    2*sq(r)*ddr_b(psi,k,dr)*(psi[k] + r*ddr_b(psi,k,dr)); }
+  return (0.5*sq(r)/sq(dr))*( r*pw6(psi[k]) * sq(0.5*d_b(beta,k) - dr*beta[k]/r) / (18*sq(alpha[k]))
+			      - d_b(psi,k) * d_ru_b(psi,k,dr,r) ); }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // field = oldfield + fda(field) + fda(oldfield)
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -351,12 +351,12 @@ void gs_update(const vector<double>& bxi, const vector<double>& bpi,
 	       const vector<double>& alpha, const vector<double>& beta,
 	       const vector<double>& psi, double lam, double dr, double r,
 	       double rmin, int lastpt, double somm_coeff) {
-  if (r == 0) { neumann0(pi); }
+  if (rmin == 0) { neumann0(pi); }
   else {
     xi[0] = bxi[0] + fda0_xi(xi, pi, alpha, beta, psi, lam);
     pi[0] = bpi[0] + fda0_pi(xi, pi, alpha, beta, psi, lam, dr, r);
   }
-  r += dr;
+  r = rmin + dr;
   xi[1] = bxi[1] + fda_xi(xi, pi, alpha, beta, psi, 1, lam);
   pi[1] = bpi[1] + fda_pi(xi, pi, alpha, beta, psi, 1, lam, dr, r);
   for (int j = 2; j < lastpt; ++j) {
