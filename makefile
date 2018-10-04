@@ -15,26 +15,19 @@ ekg: ekg.o
 	-${CXX} -o ekg ekg.o ${LDLIBS}
 	rm -f ekg.o
 
-ekg.o: ekg-proc.h ekg-fns.h fda-fns.h fda-io.h
+ekg.o: ekg-proc.h ekg-fns.h fda-fns.h fda-io.h ekg.cpp
 	$(CXX) -c $(CXXFLAGS) ekg.cpp
 
-ekg-debug: ekg-debug.o
-	-${CXX} -o ekg-debug ekg-debug.o ${LDLIBS}
-	rm -f ekg-debug.o
-
-ekg-debug.o: ekg-debug-proc.h ekg-debug-fns.h fda-fns.h fda-io.h
-	$(CXX) -c $(CXXFLAGS) ekg-debug.cpp
-
-ekg-conv: fda-io.h
+ekg-conv: fda-io.h ekg-conv.cpp
 	$(CXX) -c $(CXXFLAGS) ekg-conv.cpp
-	$(CXX) $(LDFLAGS) ekg-conv.o $(LDLIBS) -o ekg-conv
+	$(CXX) $(LDFLAGS) ekg-conv.o -lbbhutil -o ekg-conv
 	rm -f ekg-conv.o
 
 test: test.o
 	-${CXX} -o test test.o ${LDLIBS}
 	rm -f test.o
 
-test.o: ekg-debug-proc.h ekg-debug-fns.h ekg-proc.h ekg-fns.h fda-fns.h fda-io.h
+test.o: ekg-proc.h ekg-fns.h fda-fns.h fda-io.h test.cpp
 	$(CXX) -c $(CXXFLAGS) test.cpp
 
 .PHONY : clean

@@ -69,7 +69,9 @@ int main(int argc, char **argv)
   bool same_times = true;
   bool same_grids = true;
   // resolution factors
-  int resn0 = 4, resn1 = 2*resn0, resn2 = 2*resn1; // 4h, 2h, and h
+  int resn0 = 4;
+  int resn1 = 2*resn0;
+  int resn2 = 4*resn0; // 4h, 2h, and h
 
   // get parameters from command line
   map<string, string *> p_str {{"-outfile",&outfile}, {"-pre1",&pre1},
@@ -143,7 +145,7 @@ int main(int argc, char **argv)
     field_arr.push_back({&u_4h[k][0], &u_2h[k][0], &u_h[k][0]});
   }
   ofs << endl;  
-
+  
   // iterate through time steps
   int t1 = ((same_times) ? 1 : 2);
   int t2 = ((same_times) ? 1 : 4);

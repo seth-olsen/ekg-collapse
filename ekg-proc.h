@@ -249,11 +249,13 @@ inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<doub
     if (wr_alpha) {
       get_wr_f(alpha, wr_xi, wr_shape, save_pt);
       gft_out_bbox(&alphaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
-      if (wr_abpires) {
-	int k = 0, s = 0, lastwrite = wr_shape - 1;
+      if (wr_abpires) {	
 	double r = rmin, wr_dr = dr * save_pt;
+	wr_pi[0] = -3*alpha[0] + 4*alpha[1] - alpha[2];
+	r += wr_dr;
+	int k = 1, s = save_pt, lastwrite = wr_shape - 1;
 	wr_pi[k] = iresalpha_f(xi, pi, alpha, beta, psi, s, lam, dr, r);
-	for (k = 1; k < lastwrite; ++k) {
+	for (k = 2; k < lastwrite; ++k) {
 	  r += wr_dr;
 	  s += save_pt;
 	  wr_pi[k] = iresalpha_c(xi, pi, alpha, beta, psi, s, lam, dr, r);
@@ -266,10 +268,12 @@ inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<doub
       get_wr_f(beta, wr_xi, wr_shape, save_pt);
       gft_out_bbox(&betaname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
       if (wr_abpires) {
-	int k = 0, s = 0, lastwrite = wr_shape - 1;
 	double r = rmin, wr_dr = dr * save_pt;
+	wr_pi[0] = beta[0];
+	r += wr_dr;
+	int k = 1, s = save_pt, lastwrite = wr_shape - 1;
 	wr_pi[k] = iresbeta_f(xi, pi, alpha, beta, psi, s, lam, dr, r);
-	for (k = 1; k < lastwrite; ++k) {
+	for (k = 2; k < lastwrite; ++k) {
 	  r += wr_dr;
 	  s += save_pt;
 	  wr_pi[k] = iresbeta_c(xi, pi, alpha, beta, psi, s, lam, dr, r);
@@ -282,10 +286,12 @@ inline void writing(int lastwr, int wr_shape, vector<double>& wr_xi, vector<doub
       get_wr_f(psi, wr_xi, wr_shape, save_pt);
       gft_out_bbox(&psiname[0], t, bbh_shape, bbh_rank, coords, &wr_xi[0]);
       if (wr_abpires) {
-	int k = 0, s = 0, lastwrite = wr_shape - 1;
 	double r = rmin, wr_dr = dr * save_pt;
+	wr_pi[0] = -3*psi[0] + 4*psi[1] - psi[2];
+	r += wr_dr;
+	int k = 1, s = save_pt, lastwrite = wr_shape - 1;
 	wr_pi[k] = irespsi_f(xi, pi, alpha, beta, psi, s, lam, dr, r);
-	for (k = 1; k < lastwrite; ++k) {
+	for (k = 2; k < lastwrite; ++k) {
 	  r += wr_dr;
 	  s += save_pt;
 	  wr_pi[k] = irespsi_c(xi, pi, alpha, beta, psi, s, lam, dr, r);

@@ -60,14 +60,14 @@ int main(int argc, char **argv)
   int maxit = 25; // max iterations for debugging
   int ell_maxit = 2*maxit; // will not auto change if maxit set w/cmd line
   // update only accepted once it takes less that itn_tol after ell update
-  int itn_tol = 2;
+  int itn_tol = 1;
   int ell_itn_tol = 1; // max itns for ell soln to be accepted
   double ic_Dsq = 4.0; // gaussian width
   double ic_r0 = 50.0; // gaussian center
   double ic_Amp = 0.01; // gaussian amplitude
   int check_step = 1; // for monitoring invariant mass
   // note: set bools in command line with integers 1=true or 0=false
-  bool psi_hyp = false;
+  bool psi_hyp = false; // update psi with hyperbolic evolution eqn after IC?
   bool zero_pi = false; // zero initial time derivative?
   bool somm_cond = true; // sommerfeld condition at outer bound?
   bool dspn_bound = false; // dissipate boundary points?
@@ -238,7 +238,10 @@ int main(int argc, char **argv)
   char *abpiresname_arr[3] = {&iresalpha_name[0], &iresbeta_name[0], &irespsi_name[0]};
   string itn_file = "itns-" + outfile + ".csv";
   ofstream ofs_itn;
-  if (wr_itn) { ofs_itn.open(itn_file, ofstream::out); }
+  if (wr_itn) {
+    ofs_itn.open(itn_file, ofstream::out);
+    ofs_itn << "step,time,hyp_itn,ell_itn" << endl;
+  }
   string maspect_name = "maspect-" + outfile + ".sdf";
   string mass_file = "mass-" + outfile + ".csv";
   ofstream ofs_mass;
@@ -266,7 +269,7 @@ int main(int argc, char **argv)
   string resxi_fname = "resXi-" + outfile + ".sdf";
   string respi_fname = "resPi-" + outfile + ".sdf";
   char *resname_arr[2] = {&resxi_fname[0], &respi_fname[0]};
-  int maxit_count = 0, ell_maxit_count = 0;
+  int maxit_count = 0, ell_maxit_count = 0, hyp_ell_maxit_count = 0;
 
   // *********************************************
   // **************** LAPACK **********************
@@ -291,7 +294,7 @@ int main(int argc, char **argv)
 // ******************* INITIAL DATA ************************
 // **********************************************************
 
-  int i, j, itn = itn_tol + 1, ell_itn = ell_itn_tol + 1, hyp_ell_itn = 0; // declare loop integers
+  int i, j, itn, ell_itn, hyp_ell_itn; // declare loop integers
   double res = tol + 1; // declare residual indicators
   // double ell_res = ell_tol + 1; --> now defined in ell_solver
   double r = rmin, t = 0; // declare position and time variables
@@ -314,11 +317,6 @@ int main(int argc, char **argv)
   ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
 			  N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, 0,
 			  &ell_maxit_count);
-  while (ell_itn > ell_itn_tol) {
-    ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
-			    N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, 0,
-			    &ell_maxit_count);
-  }
   
 // **********************************************************
 // ******************* TIME STEPPING ************************
@@ -345,13 +343,12 @@ int main(int argc, char **argv)
 // ******************************************************************
 // ******************************************************************
     
-    r = rmin;
-    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, r, lastpt);
+    set_rhs(bxi, bpi, old_xi, old_pi, alpha, beta, psi, lam, dr, rmin, lastpt);
     // reset res > tol to enter gauss-seidel solver for hyperbolic equations
     // reset ell_itn > 1 to enter direct linear solver for the elliptic equations
     // solution is accepted when elliptic equations take less than 2 updates
     hyp_ell_itn = 0;
-    ell_itn = ell_itn_tol + 1; itn = itn_tol + 1;
+    itn = itn_tol + 1;
     while (ell_itn > ell_itn_tol || itn > itn_tol) {
 // ***********************************************************************
 // ***************** START HYPERBOLIC ITERATIVE SOLUTION *****************
@@ -370,7 +367,6 @@ int main(int argc, char **argv)
 	  ++maxit_count;
 	}
       }
-      if (wr_itn) { ofs_itn << itn << endl; } // record itn count
 // ****************************************************************************
 // ****************** HYPERBOLIC ITERATIVE SOLUTION COMPLETE ******************
 // ****************************************************************************
@@ -395,23 +391,22 @@ int main(int argc, char **argv)
       ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
 			      N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t,
 			      &ell_maxit_count);
-      while (ell_itn > ell_itn_tol) {
-	ell_itn = (*ell_solver)(jac, abpres, xi, pi, alpha, beta, psi, lastpt, dr, rmin,
-				N, kl, ku, nrhs, ldab, ipiv, ldb, ell_maxit, ell_tol, t,
-				&ell_maxit_count);
-      }
       
 // **************************************************************************
 // ****************** ELLIPTIC ITERATIVE SOLUTION COMPLETE ******************
 // **************************************************************************
-    ++hyp_ell_itn;
-    if (hyp_ell_itn > ell_maxit) {
-      ell_itn = 0;
-      itn = 0;
-      cout << i << " hyp_ell_itn reached " << hyp_ell_itn << " at t = " << t << endl;
+      // record itn count of this sweep
+      if (wr_itn) { ofs_itn << i <<","<< t <<","<< itn <<","<< ell_itn << endl; }
+      // increment sweep count and check for stalling
+      ++hyp_ell_itn;
+      if (hyp_ell_itn > ell_maxit) {
+	//cout << i << " hyp_ell_itn reached " << hyp_ell_itn << " at t = " << t << endl;
+	++hyp_ell_maxit_count;
+	ell_itn = 0;
+	itn = 0;
+      }
+      
     }
-    
-    }   
 // ***********************************************************************
 // ***********************************************************************
 // ****************** FULL ITERATIVE SOLUTION COMPLETE *******************
@@ -456,7 +451,8 @@ int main(int argc, char **argv)
   cout << difftime(time(NULL), start_time) << " seconds elapsed" << endl;
   //*************DEBUG************
   cout << maxit_count << " hyperbolic steps reached maxit=" << maxit << endl;
-  cout << ell_maxit_count << " elliptic steps reached maxit=" << ell_maxit << "\n" << endl;
+  cout << ell_maxit_count << " elliptic steps reached ell_maxit=" << ell_maxit << endl;
+  cout << hyp_ell_maxit_count << " time steps reached hyp_ell_maxit=" << ell_maxit << "\n" << endl;
   
   }
   // ******************** DONE LOOPING OVER RESOLUTIONS *********************
