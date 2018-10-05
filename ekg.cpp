@@ -148,6 +148,7 @@ int main(int argc, char **argv)
   // bbhutil parameters for writing data to sdf
   int lastwr = lastpt/save_pt;
   int wr_shape = lastwr + 1;
+  double wr_dr = (rmax - rmin) / lastwr;
   vector<double> wr_xi(wr_shape), wr_pi(wr_shape);
   double *field_arr[2] = {&wr_xi[0], &wr_pi[0]};
   int *bbh_shape = &wr_shape;
@@ -203,7 +204,6 @@ int main(int argc, char **argv)
     double dr = (rmax - rmin) / ((double) lastpt);
     double dt = lam * dr;
     double somm_coeff = 0.75*lam + 0.5*dt/rmax; // for outer bc
-    double wr_dr = dr*save_pt;
     
     // OUTPUT parameter data
     cout << param_print(outfile,lastpt,save_pt,nsteps,save_step,lam,r2m,rmin,rmax,
@@ -424,9 +424,9 @@ int main(int argc, char **argv)
 	r = rmin;
 	for (j = 1; j < lastwr; ++j) {
 	  r += wr_dr;
-	  maspect[j] = mass_aspect(alpha, beta, psi, j, dr, r);
+	  maspect[j] = mass_aspect(alpha, beta, psi, save_pt*j, dr, r);
 	}
-	maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastwr, dr, rmax);
+	maspect[lastwr] = mass_aspectR(alpha, beta, psi, lastpt, dr, rmax);
 	gft_out_bbox(&maspect_name[0], t, bbh_shape, bbh_rank, coords, &maspect[0]);
 	if (wr_mtot) { ofs_mass << i <<","<< t <<","<< maspect[lastwr] << endl; }
       }
